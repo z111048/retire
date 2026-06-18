@@ -86,7 +86,7 @@ export const OutroScene: React.FC<OutroSceneProps> = ({ line1, line2, line3, lin
       ))}
 
       {/* Floating particles (gentle, warm) */}
-      <FloatingParticles count={12} opacityScale={0.45} />
+      <FloatingParticles count={6} opacityScale={0.4} />
 
       {/* White fade-to-white overlay */}
       <div style={{

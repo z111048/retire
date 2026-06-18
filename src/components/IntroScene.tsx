@@ -94,7 +94,7 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ title, subtitle, date })
       />
 
       {/* Floating bokeh particles */}
-      <FloatingParticles count={12} opacityScale={0.7} />
+      <FloatingParticles count={6} opacityScale={0.65} />
 
       {/* Text block */}
       <div

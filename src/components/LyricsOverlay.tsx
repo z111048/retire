@@ -63,15 +63,14 @@ export const LyricsOverlay: React.FC<LyricsOverlayProps> = ({ lyrics, suppressRa
         opacity,
         transform: `translateY(${translateY}px) scale(${scale})`,
         transformOrigin: 'bottom center',
-        backgroundColor: 'rgba(0, 0, 0, 0.58)',
-        backdropFilter: 'blur(8px)',
+        // backdropFilter removed — triggers full-frame compositing every frame on mobile
+        backgroundColor: 'rgba(0, 0, 0, 0.72)',
         borderRadius: 10,
         padding: '14px 40px',
         maxWidth: '86%',
         textAlign: 'center',
         borderLeft: '3px solid #C9A84C',
         borderRight: '3px solid #C9A84C',
-        boxShadow: '0 4px 32px rgba(0,0,0,0.4), 0 0 60px rgba(201,168,76,0.08)',
       }}>
         <span style={{
           color: '#FFF8EC',
