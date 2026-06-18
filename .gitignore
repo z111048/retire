@@ -1,0 +1,13 @@
+node_modules/
+out/
+dist/
+
+# 原始大圖不加入版控（已在 images/ 保留）
+# public/photos/ 加入版控（壓縮後的版本）
+
+# 環境變數（保留 .env.example）
+.env
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,585 @@
+{
+  "totalDuration": 463,
+  "sections": [
+    {
+      "id": "career-journey",
+      "section": "一路走來",
+      "title": "一路走來",
+      "subtitle": "每一步都是歷史的印記",
+      "photos": [
+        {
+          "fileName": "104_11_14-4.jpg",
+          "caption": "昔日回憶，點滴情誼永存心。",
+          "duration": 4
+        },
+        {
+          "fileName": "2D63E874-4F44-47E7-AF31-C7353BB1FA4D.jpg",
+          "caption": "謝謝有你相伴",
+          "duration": 4
+        },
+        {
+          "fileName": "BCC5D070-EBFF-4DDC-8B2B-0AF5C846D5A2.jpg",
+          "caption": "共事歲月，珍貴情誼",
+          "duration": 4
+        },
+        {
+          "fileName": "IMG_5950.jpg",
+          "caption": "公職生涯，同事情誼永誌不忘",
+          "duration": 4
+        },
+        {
+          "fileName": "LINE_ALBUM_260427_1_71145b.jpg",
+          "caption": "最溫馨的辦公室時光",
+          "duration": 4
+        }
+      ]
+    },
+    {
+      "id": "teamwork",
+      "section": "一起努力的日子",
+      "title": "一起努力的日子",
+      "subtitle": "因為有妳，工作更有意義",
+      "photos": [
+        {
+          "fileName": "F9DA86B5-8E61-48C6-A3AB-431BDEA59B1D.jpg",
+          "caption": "青春歲月有妳相伴，真好！",
+          "duration": 4
+        },
+        {
+          "fileName": "LINE_ALBUM_260427_5_ba5237.jpg",
+          "caption": "美好時光，開心留影。",
+          "duration": 4
+        }
+      ]
+    },
+    {
+      "id": "events",
+      "section": "每一次活動都有妳的笑容",
+      "title": "每一次活動都有妳的笑容",
+      "subtitle": "妳的笑容是最美的風景",
+      "photos": [
+        {
+          "fileName": "00370BC2-4048-456A-94E8-D1DED736B2CC.jpg",
+          "caption": "相伴多年，情誼永存。",
+          "duration": 4
+        },
+        {
+          "fileName": "106_6_10-24_0.jpg",
+          "caption": "歡聲笑語，共創美好回憶。",
+          "duration": 4
+        },
+        {
+          "fileName": "1DFADFA8-B17B-480A-8F9D-8EDE93BD52ED.jpg",
+          "caption": "一路走來的溫馨相伴",
+          "duration": 4
+        },
+        {
+          "fileName": "2015-3-28_049.jpg",
+          "caption": "珍貴的情誼，永遠在心。",
+          "duration": 4
+        },
+        {
+          "fileName": "4E8840DA-9A03-4DEA-9C36-BEBBAF7FC69C.jpg",
+          "caption": "充滿愛的大家庭，溫暖永存。",
+          "duration": 4
+        },
+        {
+          "fileName": "6887B7C2-0A2A-4553-98E7-8AA336C41D3F.jpg",
+          "caption": "歡樂時光，情誼永存",
+          "duration": 4
+        },
+        {
+          "fileName": "A75C1821.jpg",
+          "caption": "珍貴時刻，笑容永存心底",
+          "duration": 4
+        },
+        {
+          "fileName": "B0AE52E0-70F2-4B9C-8E7E-5050C7FE48DE.jpg",
+          "caption": "忠義長存，情誼永恆的歲月。",
+          "duration": 4
+        },
+        {
+          "fileName": "B36B22CC-0110-4F5D-A334-9406472AC488.jpg",
+          "caption": "與摯愛同事們的溫馨相聚，情誼永存。",
+          "duration": 4
+        },
+        {
+          "fileName": "D6C05E6D-8A3C-44C2-B561-DEDB59300760.jpg",
+          "caption": "美好的時光，感謝有你！",
+          "duration": 4
+        },
+        {
+          "fileName": "DSC0259.jpg",
+          "caption": "幸福洋溢，情誼永存",
+          "duration": 4
+        },
+        {
+          "fileName": "DSC08940.jpg",
+          "caption": "共同見證幸福時刻，永誌難忘。",
+          "duration": 4
+        },
+        {
+          "fileName": "DSCN1504.jpg",
+          "caption": "共享榮耀時刻，友誼珍貴如昔。",
+          "duration": 4
+        },
+        {
+          "fileName": "IMG_0135.jpg",
+          "caption": "歡樂時刻，共享美好回憶。",
+          "duration": 4
+        },
+        {
+          "fileName": "IMG_3752.jpg",
+          "caption": "攜手相伴，笑容燦爛",
+          "duration": 4
+        },
+        {
+          "fileName": "IMG_9950_0.jpg",
+          "caption": "歡聲笑語，情誼永存",
+          "duration": 4
+        },
+        {
+          "fileName": "LINE_ALBUM_20220627_29_220629_73.jpg",
+          "caption": "感謝一路有你相伴，情誼永存。",
+          "duration": 4
+        },
+        {
+          "fileName": "LINE_ALBUM_260428_2_8fb7a2.jpg",
+          "caption": "珍貴情誼，歡樂永存。",
+          "duration": 4
+        },
+        {
+          "fileName": "S_153387107.jpg",
+          "caption": "感謝一路相伴的珍貴情誼。",
+          "duration": 4
+        },
+        {
+          "fileName": "messageImage_1779768613974.jpg",
+          "caption": "家庭溫馨時光，永恆回憶。",
+          "duration": 4
+        },
+        {
+          "fileName": "02CAA7CC-9544-4DD7-9E21-D26D2273821A.jpg",
+          "caption": "與同事們的溫馨合影，滿載歡聲笑語",
+          "duration": 4
+        },
+        {
+          "fileName": "4493.jpg",
+          "caption": "歡樂相聚，情誼永存心間。",
+          "duration": 4
+        },
+        {
+          "fileName": "5F171B2A-2C86-42A1-9C19-A77F736E45F5.jpg",
+          "caption": "與好友們的歡樂時光，永恆回憶",
+          "duration": 4
+        },
+        {
+          "fileName": "67BEE6B5-A1BD-4F68-9370-3F58D1AA3796.jpg",
+          "caption": "與摯愛親友，共享喜悅。",
+          "duration": 4
+        },
+        {
+          "fileName": "8B5DFA36-61D4-4D19-8777-8B412F3A24EC.jpg",
+          "caption": "相聚歡顏，情誼永繫",
+          "duration": 4
+        },
+        {
+          "fileName": "A75C1492.jpg",
+          "caption": "珍貴友誼，一路相伴",
+          "duration": 4
+        },
+        {
+          "fileName": "DSC08684_0.jpg",
+          "caption": "姐妹情深，笑容燦爛",
+          "duration": 4
+        },
+        {
+          "fileName": "DSC_1001.jpg",
+          "caption": "有妳真好，溫暖相伴",
+          "duration": 4
+        },
+        {
+          "fileName": "IMG_0011_0.jpg",
+          "caption": "共同的歡樂時光，永恆回憶。",
+          "duration": 4
+        },
+        {
+          "fileName": "IMG_0178.jpg",
+          "caption": "分享歡樂，共創回憶。",
+          "duration": 4
+        },
+        {
+          "fileName": "IMG_0223.jpg",
+          "caption": "享受陽光，自在暢遊。",
+          "duration": 4
+        },
+        {
+          "fileName": "IMG_0391.jpg",
+          "caption": "美好時光，與您共享每個歡樂瞬間",
+          "duration": 4
+        },
+        {
+          "fileName": "IMG_0395.jpg",
+          "caption": "溫馨歡樂的同事情誼",
+          "duration": 4
+        },
+        {
+          "fileName": "IMG_0955.jpg",
+          "caption": "感謝一路相伴，情誼永存",
+          "duration": 4
+        },
+        {
+          "fileName": "IMG_2861.jpg",
+          "caption": "與好友相聚的歡樂時光",
+          "duration": 4
+        },
+        {
+          "fileName": "IMG_2869.jpg",
+          "caption": "歡聚時刻，情誼永存心間",
+          "duration": 4
+        },
+        {
+          "fileName": "IMG_4836.jpg",
+          "caption": "歡樂回憶，情誼永存。",
+          "duration": 4
+        },
+        {
+          "fileName": "IMG_5581_0.jpg",
+          "caption": "歡聚時刻，情誼永恆",
+          "duration": 4
+        },
+        {
+          "fileName": "IMG_5974.jpg",
+          "caption": "歡樂餐敘，情誼永恆",
+          "duration": 4
+        },
+        {
+          "fileName": "IMG_8500.jpg",
+          "caption": "與您共度的歡樂時光",
+          "duration": 4
+        }
+      ]
+    },
+    {
+      "id": "colleagues",
+      "section": "同事情誼",
+      "title": "同事情誼",
+      "subtitle": "相識是緣，共事是福",
+      "photos": [
+        {
+          "fileName": "076D595E-F71B-4B96-A615-531B80CBFC74.jpg",
+          "caption": "歡樂時光，留下珍貴回憶。",
+          "duration": 4
+        },
+        {
+          "fileName": "1030502-_13.jpg",
+          "caption": "感謝您與我們一同走過這段溫馨的歲月",
+          "duration": 4
+        },
+        {
+          "fileName": "16460.jpg",
+          "caption": "歡聲笑語，永存心底。",
+          "duration": 4
+        },
+        {
+          "fileName": "16573028-D277-4A97-A878-1B7A6FAE27F7.jpg",
+          "caption": "與您共創美好時光",
+          "duration": 4
+        },
+        {
+          "fileName": "684B13B0-F9B6-4FDA-BBEA-DC1B0A9DFBD2.jpg",
+          "caption": "歡樂時光，永存心間",
+          "duration": 4
+        },
+        {
+          "fileName": "6DD26E1A-FA8C-4394-9314-20642A680A30.jpg",
+          "caption": "溫馨合影，滿載歡樂回憶",
+          "duration": 4
+        },
+        {
+          "fileName": "A2C49F0C-F2B1-449A-9FBC-ECEDCD4BD226.jpg",
+          "caption": "同仁情誼永在，笑容滿滿",
+          "duration": 4
+        },
+        {
+          "fileName": "D5B5DB93-7926-4CBC-AABB-B07DE8499578.jpg",
+          "caption": "珍貴友情，常伴左右。",
+          "duration": 4
+        },
+        {
+          "fileName": "IMAG3518.jpg",
+          "caption": "笑容紀錄美好時光",
+          "duration": 4
+        },
+        {
+          "fileName": "IMG_0905.jpg",
+          "caption": "笑容滿盈，情誼長存",
+          "duration": 4
+        },
+        {
+          "fileName": "IMG_4224.jpg",
+          "caption": "感謝有妳們相伴，情誼永存。",
+          "duration": 4
+        },
+        {
+          "fileName": "IMG_5200_0.jpg",
+          "caption": "感謝有您，一路相伴。",
+          "duration": 4
+        },
+        {
+          "fileName": "S_14598155_0.jpg",
+          "caption": "同事情誼永難忘，共同歡笑共成長。",
+          "duration": 4
+        },
+        {
+          "fileName": "102_12_6_DSCN8060_0.jpg",
+          "caption": "同事們的溫馨時刻",
+          "duration": 4
+        },
+        {
+          "fileName": "104_11_13--14.jpg",
+          "caption": "感謝粉絲，情誼永存心底",
+          "duration": 4
+        },
+        {
+          "fileName": "1040ECC0-10B8-4331-BA28-84FDD05BF21E.jpg",
+          "caption": "相聚一堂，真摯情感暖心頭",
+          "duration": 4
+        },
+        {
+          "fileName": "1419774348952_0.jpg",
+          "caption": "職場好夥伴，笑容最燦爛",
+          "duration": 4
+        },
+        {
+          "fileName": "2015-3-28_042.jpg",
+          "caption": "共同回憶，友誼長存的美好時光",
+          "duration": 4
+        },
+        {
+          "fileName": "225D3EB6-A6B7-41D2-8796-8CD5931689A4.jpg",
+          "caption": "與您共創的歡樂時光",
+          "duration": 4
+        },
+        {
+          "fileName": "31AA5AA9-2205-4F99-A28F-ECC3842F01FD.jpg",
+          "caption": "昔日情誼不變，歡聚時刻溫暖心扉",
+          "duration": 4
+        },
+        {
+          "fileName": "3457-4_0.jpg",
+          "caption": "有您相伴，處處溫馨。",
+          "duration": 4
+        },
+        {
+          "fileName": "421A6FB6-FE77-4CBE-89A5-F0D8B6EC23FB.jpg",
+          "caption": "共同打拼的歲月",
+          "duration": 4
+        },
+        {
+          "fileName": "8447C83D-35B1-43CC-81EC-531073342CB3.jpg",
+          "caption": "一同走過，珍貴回憶",
+          "duration": 4
+        },
+        {
+          "fileName": "8CF4EC91-289E-4A39-B4F7-586E0042CA2E.jpg",
+          "caption": "與親愛的同仁們，共度的美好時光。",
+          "duration": 4
+        },
+        {
+          "fileName": "95803A56-1978-4678-80DC-C789AB3B248C.jpg",
+          "caption": "青澀年代的共同回憶，永誌不忘。",
+          "duration": 4
+        },
+        {
+          "fileName": "D8CEEDEF-5A8A-4D60-94B9-A4A178B2D193.jpg",
+          "caption": "共同的歡樂時光，永存記憶中。",
+          "duration": 4
+        },
+        {
+          "fileName": "DE11079D-2040-4A38-B66B-EDDCB6978AA9.jpg",
+          "caption": "與同事們的青春歲月，珍貴回憶",
+          "duration": 4
+        },
+        {
+          "fileName": "DSC01482.jpg",
+          "caption": "笑語不斷，溫暖的回憶",
+          "duration": 4
+        },
+        {
+          "fileName": "DSCN0776.jpg",
+          "caption": "同事情誼，溫暖相伴",
+          "duration": 4
+        },
+        {
+          "fileName": "DSCN2613_0.jpg",
+          "caption": "共同的時光，珍貴的回憶",
+          "duration": 4
+        },
+        {
+          "fileName": "DSCN3510.jpg",
+          "caption": "歡聚時刻，情誼永存",
+          "duration": 4
+        },
+        {
+          "fileName": "DSCN5224_0.jpg",
+          "caption": "相聚一刻，情誼長存",
+          "duration": 4
+        },
+        {
+          "fileName": "DSCN5225_0.jpg",
+          "caption": "同仁們的溫馨合影，滿滿的笑容與回憶。",
+          "duration": 4
+        },
+        {
+          "fileName": "DSCN6591_0.jpg",
+          "caption": "與好友共度的美好時光",
+          "duration": 4
+        },
+        {
+          "fileName": "DSCN6594_0.jpg",
+          "caption": "昔日歡聚，情誼永存。",
+          "duration": 4
+        },
+        {
+          "fileName": "DSCN6619_0.jpg",
+          "caption": "昔日同遊，歡樂永存心間。",
+          "duration": 4
+        },
+        {
+          "fileName": "DSCN8851_0.jpg",
+          "caption": "珍貴的同事情誼，永遠銘記在心",
+          "duration": 4
+        },
+        {
+          "fileName": "DSCN8856_0.jpg",
+          "caption": "溫馨相伴，感謝有妳",
+          "duration": 4
+        },
+        {
+          "fileName": "DSCN9372.jpg",
+          "caption": "昔日同事情誼，永誌不忘。",
+          "duration": 4
+        },
+        {
+          "fileName": "DSC_0465.jpg",
+          "caption": "珍貴友誼，歡樂時光",
+          "duration": 4
+        }
+      ]
+    },
+    {
+      "id": "farewell",
+      "section": "帶著祝福",
+      "title": "帶著祝福",
+      "subtitle": "感謝妳的付出，一路順風",
+      "photos": [
+        {
+          "fileName": "9C5BC6D8-F8A8-4EDF-B163-4C30A405DCBF.jpg",
+          "caption": "同事情誼，點滴在心頭",
+          "duration": 4
+        },
+        {
+          "fileName": "DSC08506.jpg",
+          "caption": "歡送同仁榮退，溫馨永留心底。",
+          "duration": 4
+        },
+        {
+          "fileName": "DSC08556.jpg",
+          "caption": "歡送會上的溫馨合影，情誼永存",
+          "duration": 4
+        },
+        {
+          "fileName": "DSC08585.jpg",
+          "caption": "感謝多年相伴，美好回憶永存",
+          "duration": 4
+        },
+        {
+          "fileName": "DSCN4528.jpg",
+          "caption": "永遠的夥伴，感謝有您！",
+          "duration": 4
+        },
+        {
+          "fileName": "IMG_5586_0.jpg",
+          "caption": "感謝有您，共創精彩。",
+          "duration": 4
+        },
+        {
+          "fileName": "IMG_9484.jpg",
+          "caption": "珍貴合影，情誼永存心底。",
+          "duration": 4
+        },
+        {
+          "fileName": "S_14598157_0.jpg",
+          "caption": "感謝有您，美好回憶永存心中。",
+          "duration": 4
+        },
+        {
+          "fileName": "S_14598158_0.jpg",
+          "caption": "感謝有您，美好回憶永存心中。",
+          "duration": 4
+        },
+        {
+          "fileName": "S_827489.jpg",
+          "caption": "感謝有您，歡樂相聚",
+          "duration": 4
+        },
+        {
+          "fileName": "S_893564.jpg",
+          "caption": "歡聚一堂，情誼永在心",
+          "duration": 4
+        },
+        {
+          "fileName": "2015-3-28_044_0.jpg",
+          "caption": "喜悅笑容，開啟人生新篇章。",
+          "duration": 4
+        },
+        {
+          "fileName": "DSC01833.jpg",
+          "caption": "歡樂的退休時刻，感謝有您。",
+          "duration": 4
+        },
+        {
+          "fileName": "DSC08571.jpg",
+          "caption": "相聚時光，歡聲笑語永留存。",
+          "duration": 4
+        },
+        {
+          "fileName": "DSCN0991_0.jpg",
+          "caption": "感謝有您，共創美好回憶。",
+          "duration": 4
+        },
+        {
+          "fileName": "IMG_2590_0.jpg",
+          "caption": "歡樂時光，情誼永存。",
+          "duration": 4
+        },
+        {
+          "fileName": "IMG_4159.jpg",
+          "caption": "活力退休，開心做自己！",
+          "duration": 4
+        },
+        {
+          "fileName": "IMG_6932_0.jpg",
+          "caption": "感謝有您，一路相伴",
+          "duration": 4
+        },
+        {
+          "fileName": "IMG_8387.jpg",
+          "caption": "歡樂相聚，友情長存",
+          "duration": 4
+        },
+        {
+          "fileName": "P2020879.jpg",
+          "caption": "歡聲笑語，情誼長存。",
+          "duration": 4
+        },
+        {
+          "fileName": "S_153387108.jpg",
+          "caption": "感謝有您，溫馨情誼永難忘",
+          "duration": 4
+        }
+      ]
+    }
+  ]
+}

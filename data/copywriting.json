@@ -1,0 +1,39 @@
+{
+  "intro": {
+    "title": "感謝有妳",
+    "subtitle": "高雄市政府都市發展局 秀燕 榮退紀念",
+    "date": "中華民國一一四年六月"
+  },
+  "sections": [
+    {
+      "id": "career-journey",
+      "title": "一路走來",
+      "subtitle": "每一步都是歷史的印記"
+    },
+    {
+      "id": "teamwork",
+      "title": "一起努力的日子",
+      "subtitle": "因為有妳，工作更有意義"
+    },
+    {
+      "id": "events",
+      "title": "每一次活動都有妳的笑容",
+      "subtitle": "妳的笑容是最美的風景"
+    },
+    {
+      "id": "colleagues",
+      "title": "同事情誼",
+      "subtitle": "相識是緣，共事是福"
+    },
+    {
+      "id": "farewell",
+      "title": "帶著祝福",
+      "subtitle": "感謝妳的付出，一路順風"
+    }
+  ],
+  "outro": {
+    "line1": "感謝多年來的付出與奉獻",
+    "line2": "祝福您退休生活快樂、身體健康",
+    "line3": "退休快樂"
+  }
+}

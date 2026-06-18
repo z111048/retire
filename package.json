@@ -1,0 +1,36 @@
+{
+  "name": "retirement-video",
+  "version": "1.0.0",
+  "description": "退休紀念影片 - Remotion + Gemini API",
+  "scripts": {
+    "dev": "remotion studio",
+    "render": "remotion render RetirementVideo out/retirement.mp4",
+    "analyze-photos": "tsx scripts/analyzePhotos.ts",
+    "build-timeline": "tsx scripts/buildTimeline.ts",
+    "check-data": "tsx scripts/checkData.ts",
+    "typecheck": "tsc --noEmit",
+    "compress-photos": "tsx scripts/compressForWeb.ts",
+    "player:build": "vite build",
+    "player:dev": "vite dev"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@remotion/cli": "4.0.272",
+    "@remotion/player": "^4.0.479",
+    "dotenv": "^16.4.7",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.272",
+    "zod": "^3.22.3"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@types/sharp": "^0.31.1",
+    "@vitejs/plugin-react": "^6.0.2",
+    "sharp": "^0.35.1",
+    "tsx": "^4.19.3",
+    "typescript": "^5.4.5",
+    "vite": "^8.0.16"
+  }
+}
