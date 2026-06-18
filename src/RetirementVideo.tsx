@@ -17,6 +17,7 @@ export const RetirementVideo: React.FC<RetirementVideoProps> = ({ timeline, copy
 
   const sequences: React.ReactNode[] = [];
   let currentFrame = 0;
+  let globalPhotoIndex = 0;
 
   // Background music — audioSrc passed from PlayerApp (Vite) or Root (Remotion Studio)
   const bgmSrc = audioSrc ?? staticFile('bgm.mp3');
@@ -65,14 +66,16 @@ export const RetirementVideo: React.FC<RetirementVideoProps> = ({ timeline, copy
     }
 
     // Photos
-    for (const photo of section.photos) {
+    for (let pi = 0; pi < section.photos.length; pi++) {
+      const photo = section.photos[pi];
       const photoFrames = photo.duration * FRAME_RATE;
       sequences.push(
         <Sequence key={`${section.id}-${photo.fileName}`} from={currentFrame} durationInFrames={photoFrames}>
-          <PhotoScene photo={photo} />
+          <PhotoScene photo={photo} index={globalPhotoIndex} />
         </Sequence>
       );
       currentFrame += photoFrames;
+      globalPhotoIndex++;
     }
   }
 

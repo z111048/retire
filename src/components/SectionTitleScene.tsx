@@ -20,9 +20,10 @@ export const SectionTitleScene: React.FC<SectionTitleSceneProps> = ({ title, sub
     { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
   );
 
-  const titleY = interpolate(frame, [0, fadeIn], [20, 0], {
+  const titleY = interpolate(frame, [0, fadeIn], [40, 0], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
+    easing: (t) => 1 - Math.pow(1 - t, 3),
   });
 
   const subtitleOpacity = interpolate(frame, [fadeIn, fadeIn + 15], [0, 1], {
