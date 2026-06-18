@@ -43,31 +43,38 @@ export const SectionTitleScene: React.FC<SectionTitleSceneProps> = ({ title, sub
     #C9A84C ${shimmerPos + 20}%,
     #C9A84C 100%)`;
 
-  // Expanding rings: two rings at slightly different speeds
-  const ring1Scale = interpolate(frame, [fadeIn, durationInFrames - fadeOut], [0.5, 1.6], {
+  // Safe keyframe helper: evenly spread across the active window [fadeIn, durationInFrames - fadeOut]
+  const activeStart = fadeIn;
+  const activeEnd = durationInFrames - fadeOut;
+  const activeMid = Math.round((activeStart + activeEnd) / 2);
+
+  // Expanding rings
+  const ring1Scale = interpolate(frame, [activeStart, activeEnd], [0.5, 1.6], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });
   const ring1Opacity = interpolate(
     frame,
-    [fadeIn, fadeIn + 20, durationInFrames - fadeOut - 10, durationInFrames - fadeOut],
-    [0, 0.18, 0.10, 0],
+    [activeStart, activeMid, activeEnd],
+    [0, 0.18, 0],
     { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
   );
 
-  const ring2Scale = interpolate(frame, [fadeIn + 10, durationInFrames - fadeOut + 10], [0.4, 2.0], {
+  const ring2Start = Math.min(activeStart + 8, activeMid);
+  const ring2Scale = interpolate(frame, [ring2Start, activeEnd], [0.4, 2.0], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });
+  const ring2Mid = Math.round((ring2Start + activeEnd) / 2);
   const ring2Opacity = interpolate(
     frame,
-    [fadeIn + 10, fadeIn + 30, durationInFrames - fadeOut, durationInFrames - fadeOut + 10],
-    [0, 0.10, 0.06, 0],
+    [ring2Start, ring2Mid, activeEnd],
+    [0, 0.10, 0],
     { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
   );
 
   // Soft radial glow behind title
-  const glowOpacity = interpolate(frame, [fadeIn, fadeIn + 25, durationInFrames - fadeOut], [0, 0.55, 0.55], {
+  const glowOpacity = interpolate(frame, [activeStart, activeMid, activeEnd], [0, 0.55, 0.40], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });
