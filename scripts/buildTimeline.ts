@@ -17,7 +17,7 @@ const METADATA_FILE = path.join(DATA_DIR, 'photo-metadata.json');
 const COPYWRITING_FILE = path.join(DATA_DIR, 'copywriting.json');
 const TIMELINE_FILE = path.join(DATA_DIR, 'timeline.json');
 
-const SECTION_MAX_PHOTOS = 40;
+const SECTION_MAX_PHOTOS = 10;
 
 const FAREWELL_KEYWORDS = ['退休', '榮退', '歡送', '離別', '畢業', '送別'];
 
