@@ -2,14 +2,15 @@ import React from 'react';
 import { Sequence, useVideoConfig, Audio } from 'remotion';
 import {
   FRAME_RATE, INTRO_DURATION_S, OUTRO_DURATION_S,
-  SECTION_TITLE_DURATION_S, LYRIC_DURATION_S,
+  SECTION_TITLE_DURATION_S,
 } from './constants';
 import { IntroScene } from './components/IntroScene';
 import { SectionTitleScene } from './components/SectionTitleScene';
-import { LyricScene } from './components/LyricScene';
 import { PhotoScene } from './components/PhotoScene';
 import { OutroScene } from './components/OutroScene';
+import { LyricsOverlay } from './components/LyricsOverlay';
 import { staticFile } from 'remotion';
+import lyricsTiming from '../data/lyrics-timing.json';
 import type { RetirementVideoProps } from './types';
 
 export const RetirementVideo: React.FC<RetirementVideoProps> = ({ timeline, copywriting, audioSrc }) => {
@@ -19,7 +20,6 @@ export const RetirementVideo: React.FC<RetirementVideoProps> = ({ timeline, copy
   let currentFrame = 0;
   let globalPhotoIndex = 0;
 
-  // Background music — audioSrc passed from PlayerApp (Vite) or Root (Remotion Studio)
   const bgmSrc = audioSrc ?? staticFile('bgm.mp3');
   sequences.push(
     <Audio key="bgm" src={bgmSrc} volume={0.65} />
@@ -38,15 +38,9 @@ export const RetirementVideo: React.FC<RetirementVideoProps> = ({ timeline, copy
   );
   currentFrame += introFrames;
 
-  // Sections
-  const cwSectionMap = Object.fromEntries(
-    copywriting.sections.map(s => [s.id, s])
-  );
-
+  // Sections — section title + photos (no dedicated lyric scenes)
   for (const section of timeline.sections) {
-    const cw = cwSectionMap[section.id];
     const titleFrames = SECTION_TITLE_DURATION_S * FRAME_RATE;
-
     sequences.push(
       <Sequence key={`title-${section.id}`} from={currentFrame} durationInFrames={titleFrames}>
         <SectionTitleScene title={section.title} subtitle={section.subtitle} />
@@ -54,18 +48,6 @@ export const RetirementVideo: React.FC<RetirementVideoProps> = ({ timeline, copy
     );
     currentFrame += titleFrames;
 
-    // Lyric card after title (if lyric exists)
-    if (cw?.lyric) {
-      const lyricFrames = LYRIC_DURATION_S * FRAME_RATE;
-      sequences.push(
-        <Sequence key={`lyric-${section.id}`} from={currentFrame} durationInFrames={lyricFrames}>
-          <LyricScene lyric={cw.lyric} sectionTitle={section.title} />
-        </Sequence>
-      );
-      currentFrame += lyricFrames;
-    }
-
-    // Photos
     for (let pi = 0; pi < section.photos.length; pi++) {
       const photo = section.photos[pi];
       const photoFrames = photo.duration * FRAME_RATE;
@@ -94,8 +76,12 @@ export const RetirementVideo: React.FC<RetirementVideoProps> = ({ timeline, copy
   );
 
   return (
-    <div style={{ width: '100%', height: '100%', backgroundColor: '#111' }}>
+    <div style={{ width: '100%', height: '100%', backgroundColor: '#111', position: 'relative' }}>
       {sequences}
+      {/* Lyrics overlay: always on top, timed to audio */}
+      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+        <LyricsOverlay lyrics={lyricsTiming} />
+      </div>
     </div>
   );
 };

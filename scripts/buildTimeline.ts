@@ -8,7 +8,6 @@ import {
   INTRO_DURATION_S,
   OUTRO_DURATION_S,
   SECTION_TITLE_DURATION_S,
-  LYRIC_DURATION_S,
   DEFAULT_PHOTO_DURATION_S,
   HIGH_IMPORTANCE_PHOTO_DURATION_S,
 } from '../src/constants.js';
@@ -117,12 +116,9 @@ function main() {
   }
 
   const sectionTitlesTotalDuration = copywriting.sections.length * SECTION_TITLE_DURATION_S;
-  const lyricSectionCount = copywriting.sections.filter((s: { lyric?: string }) => s.lyric).length;
-  const lyricsTotalDuration = lyricSectionCount * LYRIC_DURATION_S;
   const totalDuration =
     INTRO_DURATION_S +
     sectionTitlesTotalDuration +
-    lyricsTotalDuration +
     totalPhotoDuration +
     OUTRO_DURATION_S;
 
