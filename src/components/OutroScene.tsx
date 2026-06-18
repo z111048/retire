@@ -1,6 +1,7 @@
 import React from 'react';
 import { useCurrentFrame, useVideoConfig, interpolate } from 'remotion';
 import { FRAME_RATE } from '../constants';
+import { FloatingParticles } from './FloatingParticles';
 
 interface OutroSceneProps {
   line1: string;
@@ -83,6 +84,9 @@ export const OutroScene: React.FC<OutroSceneProps> = ({ line1, line2, line3, lin
           {line}
         </p>
       ))}
+
+      {/* Floating particles (gentle, warm) */}
+      <FloatingParticles count={12} opacityScale={0.45} />
 
       {/* White fade-to-white overlay */}
       <div style={{

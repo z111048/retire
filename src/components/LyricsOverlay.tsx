@@ -38,7 +38,14 @@ export const LyricsOverlay: React.FC<LyricsOverlayProps> = ({ lyrics, suppressRa
   const translateY = interpolate(
     currentSec,
     [active.start, fadeInEnd],
-    [12, 0],
+    [16, 0],
+    { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
+  );
+
+  const scale = interpolate(
+    currentSec,
+    [active.start, fadeInEnd],
+    [0.88, 1],
     { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
   );
 
@@ -54,16 +61,17 @@ export const LyricsOverlay: React.FC<LyricsOverlayProps> = ({ lyrics, suppressRa
     }}>
       <div style={{
         opacity,
-        transform: `translateY(${translateY}px)`,
-        backgroundColor: 'rgba(0, 0, 0, 0.55)',
-        backdropFilter: 'blur(6px)',
+        transform: `translateY(${translateY}px) scale(${scale})`,
+        transformOrigin: 'bottom center',
+        backgroundColor: 'rgba(0, 0, 0, 0.58)',
+        backdropFilter: 'blur(8px)',
         borderRadius: 10,
         padding: '14px 40px',
         maxWidth: '86%',
         textAlign: 'center',
-        // Gold left/right accent lines
         borderLeft: '3px solid #C9A84C',
         borderRight: '3px solid #C9A84C',
+        boxShadow: '0 4px 32px rgba(0,0,0,0.4), 0 0 60px rgba(201,168,76,0.08)',
       }}>
         <span style={{
           color: '#FFF8EC',

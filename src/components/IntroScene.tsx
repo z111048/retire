@@ -2,6 +2,7 @@ import React from 'react';
 import { useCurrentFrame, useVideoConfig, interpolate, Img } from 'remotion';
 import { photoSrc } from '../utils/photoSrc';
 import { FRAME_RATE } from '../constants';
+import { FloatingParticles } from './FloatingParticles';
 
 interface IntroSceneProps {
   title: string;
@@ -91,6 +92,9 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ title, subtitle, date })
             'linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.75) 100%)',
         }}
       />
+
+      {/* Floating bokeh particles */}
+      <FloatingParticles count={12} opacityScale={0.7} />
 
       {/* Text block */}
       <div

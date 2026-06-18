@@ -1,6 +1,7 @@
 import React from 'react';
 import { useCurrentFrame, useVideoConfig, interpolate, Img } from 'remotion';
 import { CaptionText } from './CaptionText';
+import { FloatingParticles } from './FloatingParticles';
 import type { TimelinePhoto } from '../types';
 import { FRAME_RATE } from '../constants';
 import { origPhotoSrc } from '../utils/photoSrc';
@@ -97,6 +98,14 @@ export const PhotoScene: React.FC<PhotoSceneProps> = ({ photo, index }) => {
         }}
       />
 
+      {/* Warm amber tint at bottom */}
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        background: 'linear-gradient(to top, rgba(180,120,30,0.18) 0%, transparent 40%)',
+        pointerEvents: 'none',
+      }} />
+
       {/* Vignette overlay */}
       <div style={{
         position: 'absolute',
@@ -104,6 +113,9 @@ export const PhotoScene: React.FC<PhotoSceneProps> = ({ photo, index }) => {
         background: 'radial-gradient(ellipse 85% 80% at 50% 50%, transparent 45%, rgba(0,0,0,0.52) 100%)',
         pointerEvents: 'none',
       }} />
+
+      {/* Floating bokeh particles */}
+      <FloatingParticles count={10} opacityScale={0.85} />
 
       {photo.caption && <CaptionText text={photo.caption} position="top" />}
     </div>
