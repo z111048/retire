@@ -110,7 +110,7 @@ function App() {
           }}>
             <Player
               component={RetirementVideo}
-              inputProps={{ timeline, copywriting }}
+              inputProps={{ timeline, copywriting, audioSrc: BASE + 'bgm.mp3' }}
               durationInFrames={totalFrames}
               fps={FRAME_RATE}
               compositionWidth={1920}

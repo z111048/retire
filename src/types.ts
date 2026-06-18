@@ -50,6 +50,12 @@ export interface FilenameMap {
   [originalFileName: string]: string;
 }
 
+export interface RetirementVideoProps {
+  timeline: Timeline;
+  copywriting: Copywriting;
+  audioSrc?: string;
+}
+
 export interface CopywritingSection {
   id: string;
   title: string;

@@ -13,9 +13,9 @@ export function photoSrc(fileName: string): string {
   return staticFile('photos/' + fileName);
 }
 
-export function staticSrc(fileName: string): string {
+export function origPhotoSrc(fileName: string): string {
   if (typeof window !== 'undefined' && window.__REMOTION_BASE__) {
-    return window.__REMOTION_BASE__ + fileName;
+    return window.__REMOTION_BASE__ + 'photos-orig/' + fileName;
   }
-  return staticFile(fileName);
+  return staticFile('photos-orig/' + fileName);
 }

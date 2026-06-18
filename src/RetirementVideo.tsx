@@ -9,23 +9,19 @@ import { SectionTitleScene } from './components/SectionTitleScene';
 import { LyricScene } from './components/LyricScene';
 import { PhotoScene } from './components/PhotoScene';
 import { OutroScene } from './components/OutroScene';
-import { staticSrc } from './utils/photoSrc';
-import type { Timeline, Copywriting } from './types';
+import { staticFile } from 'remotion';
+import type { RetirementVideoProps } from './types';
 
-interface RetirementVideoProps {
-  timeline: Timeline;
-  copywriting: Copywriting;
-}
-
-export const RetirementVideo: React.FC<RetirementVideoProps> = ({ timeline, copywriting }) => {
+export const RetirementVideo: React.FC<RetirementVideoProps> = ({ timeline, copywriting, audioSrc }) => {
   useVideoConfig();
 
   const sequences: React.ReactNode[] = [];
   let currentFrame = 0;
 
-  // Background music — plays from frame 0, stops naturally when file ends
+  // Background music — audioSrc passed from PlayerApp (Vite) or Root (Remotion Studio)
+  const bgmSrc = audioSrc ?? staticFile('bgm.mp3');
   sequences.push(
-    <Audio key="bgm" src={staticSrc('bgm.mp3')} volume={0.65} />
+    <Audio key="bgm" src={bgmSrc} volume={0.65} />
   );
 
   // Intro

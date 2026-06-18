@@ -1,5 +1,5 @@
 import React from 'react';
-import { Composition, continueRender, delayRender } from 'remotion';
+import { Composition, continueRender, delayRender, staticFile } from 'remotion';
 import { RetirementVideo } from './RetirementVideo';
 import timeline from '../data/timeline.json';
 import copywriting from '../data/copywriting.json';
@@ -40,6 +40,7 @@ export const RemotionRoot: React.FC = () => {
       defaultProps={{
         timeline: typedTimeline,
         copywriting: typedCopywriting,
+        audioSrc: staticFile('bgm.mp3'),
       }}
     />
   );
