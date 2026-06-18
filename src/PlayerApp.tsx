@@ -20,9 +20,8 @@ const totalFrames = Math.max(
 // In Vite, import.meta.env.BASE_URL is the base path (e.g. '/retire/')
 const BASE = import.meta.env.BASE_URL;
 
-// Override staticFile for the player context
-// Remotion's staticFile returns '/path' but we need BASE_URL + 'path'
-(window as unknown as Record<string, unknown>).__REMOTION_PLAYER_BASE__ = BASE;
+// Inject base path so photoSrc() helper can resolve correct URLs in the Player
+window.__REMOTION_BASE__ = BASE;
 
 function App() {
   const [ready, setReady] = useState(false);
@@ -66,7 +65,6 @@ function App() {
             controls
             autoPlay={false}
             loop={false}
-            publicPath={BASE}
           />
         </div>
       )}

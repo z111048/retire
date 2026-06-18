@@ -1,7 +1,8 @@
 import React from 'react';
-import { useCurrentFrame, interpolate, staticFile, Img } from 'remotion';
+import { useCurrentFrame, interpolate, Img } from 'remotion';
 import type { TimelinePhoto } from '../types';
 import { FRAME_RATE, MONTAGE_PHOTO_DURATION_S } from '../constants';
+import { photoSrc } from '../utils/photoSrc';
 
 interface PhotoMontageProps {
   photos: TimelinePhoto[];
@@ -28,7 +29,7 @@ export const PhotoMontage: React.FC<PhotoMontageProps> = ({ photos }) => {
   return (
     <div style={{ width: '100%', height: '100%', backgroundColor: '#111', position: 'relative' }}>
       <Img
-        src={staticFile(`photos/${photo.fileName}`)}
+        src={photoSrc(photo.fileName)}
         style={{
           width: '100%',
           height: '100%',

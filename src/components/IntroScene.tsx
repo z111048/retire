@@ -1,5 +1,6 @@
 import React from 'react';
-import { useCurrentFrame, useVideoConfig, interpolate, staticFile, Img } from 'remotion';
+import { useCurrentFrame, useVideoConfig, interpolate, Img } from 'remotion';
+import { photoSrc } from '../utils/photoSrc';
 import { FRAME_RATE } from '../constants';
 
 interface IntroSceneProps {
@@ -43,7 +44,7 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ title, subtitle, date })
     >
       {/* Blurred background */}
       <Img
-        src={staticFile('photos/cover.jpg')}
+        src={photoSrc('cover.jpg')}
         style={{
           position: 'absolute',
           inset: 0,
@@ -66,7 +67,7 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ title, subtitle, date })
         }}
       >
         <Img
-          src={staticFile('photos/cover.jpg')}
+          src={photoSrc('cover.jpg')}
           style={{
             maxWidth: '50%',
             maxHeight: '60%',

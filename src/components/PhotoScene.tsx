@@ -1,8 +1,9 @@
 import React from 'react';
-import { useCurrentFrame, useVideoConfig, interpolate, staticFile, Img } from 'remotion';
+import { useCurrentFrame, useVideoConfig, interpolate, Img } from 'remotion';
 import { CaptionText } from './CaptionText';
 import type { TimelinePhoto } from '../types';
 import { FRAME_RATE } from '../constants';
+import { photoSrc } from '../utils/photoSrc';
 
 interface PhotoSceneProps {
   photo: TimelinePhoto;
@@ -38,7 +39,7 @@ export const PhotoScene: React.FC<PhotoSceneProps> = ({ photo }) => {
       }}
     >
       <Img
-        src={staticFile(`photos/${photo.fileName}`)}
+        src={photoSrc(photo.fileName)}
         style={{
           width: '100%',
           height: '100%',
