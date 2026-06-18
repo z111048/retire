@@ -31,6 +31,18 @@ export const SectionTitleScene: React.FC<SectionTitleSceneProps> = ({ title, sub
     extrapolateRight: 'clamp',
   });
 
+  // Shimmer: sweeps across the gold bars once per scene
+  const shimmerPos = interpolate(frame, [fadeIn, durationInFrames - fadeOut], [-60, 160], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
+  const shimmerBar = `linear-gradient(90deg,
+    #C9A84C 0%,
+    #C9A84C ${shimmerPos - 20}%,
+    #FFE080 ${shimmerPos}%,
+    #C9A84C ${shimmerPos + 20}%,
+    #C9A84C 100%)`;
+
   return (
     <div
       style={{
@@ -44,12 +56,12 @@ export const SectionTitleScene: React.FC<SectionTitleSceneProps> = ({ title, sub
         opacity,
       }}
     >
-      {/* Gold horizontal rule */}
+      {/* Gold horizontal rule with shimmer */}
       <div
         style={{
           width: 80,
           height: 2,
-          backgroundColor: '#C9A84C',
+          background: shimmerBar,
           marginBottom: 32,
         }}
       />
@@ -86,7 +98,7 @@ export const SectionTitleScene: React.FC<SectionTitleSceneProps> = ({ title, sub
         style={{
           width: 80,
           height: 2,
-          backgroundColor: '#C9A84C',
+          background: shimmerBar,
           marginTop: 32,
         }}
       />

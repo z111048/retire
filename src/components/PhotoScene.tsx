@@ -10,8 +10,17 @@ import { origPhotoSrc } from '../utils/photoSrc';
 //   1 — slide from left + fade
 //   2 — scale up from 92% + fade (zoom-in reveal)
 //   3 — slide from bottom + fade
+// Ken Burns origins cycle: TL, TR, BL, BR, Center
 
-const ENTER_FRAMES = 20; // ~0.67s entrance
+const ENTER_FRAMES = 20;
+
+const KB_CONFIGS = [
+  { origin: '40% 40%', startScale: 1.0, endScale: 1.07 }, // zoom in, top-left focus
+  { origin: '60% 40%', startScale: 1.07, endScale: 1.0 }, // zoom out, top-right focus
+  { origin: '40% 60%', startScale: 1.0, endScale: 1.07 }, // zoom in, bottom-left focus
+  { origin: '60% 60%', startScale: 1.07, endScale: 1.0 }, // zoom out, bottom-right focus
+  { origin: 'center center', startScale: 1.0, endScale: 1.06 }, // zoom in, center
+];
 
 interface PhotoSceneProps {
   photo: TimelinePhoto;
@@ -23,6 +32,7 @@ export const PhotoScene: React.FC<PhotoSceneProps> = ({ photo, index }) => {
   const { durationInFrames } = useVideoConfig();
 
   const type = index % 4;
+  const kb = KB_CONFIGS[index % KB_CONFIGS.length];
   const fadeOutStart = durationInFrames - Math.min(FRAME_RATE * 0.45, 13);
 
   // --- Opacity (all types) ---
@@ -33,8 +43,8 @@ export const PhotoScene: React.FC<PhotoSceneProps> = ({ photo, index }) => {
     { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
   );
 
-  // --- Ken Burns scale (all types, subtle) ---
-  const kbScale = interpolate(frame, [0, durationInFrames], [1.0, 1.06], {
+  // --- Ken Burns scale (varied origin + direction per photo) ---
+  const kbScale = interpolate(frame, [0, durationInFrames], [kb.startScale, kb.endScale], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });
@@ -83,10 +93,19 @@ export const PhotoScene: React.FC<PhotoSceneProps> = ({ photo, index }) => {
           height: '100%',
           objectFit: 'contain',
           transform,
-          transformOrigin: 'center center',
+          transformOrigin: kb.origin,
         }}
       />
-      {photo.caption && <CaptionText text={photo.caption} />}
+
+      {/* Vignette overlay */}
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        background: 'radial-gradient(ellipse 85% 80% at 50% 50%, transparent 45%, rgba(0,0,0,0.52) 100%)',
+        pointerEvents: 'none',
+      }} />
+
+      {photo.caption && <CaptionText text={photo.caption} position="top" />}
     </div>
   );
 };

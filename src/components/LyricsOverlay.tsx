@@ -10,17 +10,20 @@ interface LyricLine {
 
 interface LyricsOverlayProps {
   lyrics: LyricLine[];
+  suppressRanges?: [number, number][];
 }
 
-const FADE_S = 0.25; // fade in/out duration in seconds
+const FADE_S = 0.25;
 
-export const LyricsOverlay: React.FC<LyricsOverlayProps> = ({ lyrics }) => {
+export const LyricsOverlay: React.FC<LyricsOverlayProps> = ({ lyrics, suppressRanges }) => {
   const frame = useCurrentFrame();
   const currentSec = frame / FRAME_RATE;
 
+  const isSuppressed = suppressRanges?.some(([s, e]) => currentSec >= s && currentSec < e) ?? false;
+
   // Find active lyric
   const active = lyrics.find(l => currentSec >= l.start && currentSec <= l.end);
-  if (!active) return null;
+  if (!active || isSuppressed) return null;
 
   const fadeInEnd  = active.start + FADE_S;
   const fadeOutStart = active.end - FADE_S;
@@ -68,7 +71,7 @@ export const LyricsOverlay: React.FC<LyricsOverlayProps> = ({ lyrics }) => {
           fontFamily: '"Noto Sans TC", "Microsoft JhengHei", "PingFang TC", sans-serif',
           fontWeight: 500,
           letterSpacing: '0.1em',
-          textShadow: '0 2px 8px rgba(0,0,0,0.9)',
+          textShadow: '0 2px 8px rgba(0,0,0,0.9), 0 0 20px rgba(201,168,76,0.35), 0 0 40px rgba(201,168,76,0.15)',
           lineHeight: 1.5,
         }}>
           {active.text}

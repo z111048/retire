@@ -20,6 +20,9 @@ export const RetirementVideo: React.FC<RetirementVideoProps> = ({ timeline, copy
   let currentFrame = 0;
   let globalPhotoIndex = 0;
 
+  // Suppress lyric overlay during non-photo scenes (intro, section titles, outro)
+  const suppressRanges: [number, number][] = [];
+
   const bgmSrc = audioSrc ?? staticFile('bgm.mp3');
   sequences.push(
     <Audio key="bgm" src={bgmSrc} volume={0.65} />
@@ -27,6 +30,7 @@ export const RetirementVideo: React.FC<RetirementVideoProps> = ({ timeline, copy
 
   // Intro
   const introFrames = INTRO_DURATION_S * FRAME_RATE;
+  suppressRanges.push([0, INTRO_DURATION_S]);
   sequences.push(
     <Sequence key="intro" from={currentFrame} durationInFrames={introFrames}>
       <IntroScene
@@ -41,6 +45,8 @@ export const RetirementVideo: React.FC<RetirementVideoProps> = ({ timeline, copy
   // Sections — section title + photos (no dedicated lyric scenes)
   for (const section of timeline.sections) {
     const titleFrames = SECTION_TITLE_DURATION_S * FRAME_RATE;
+    const titleStartSec = currentFrame / FRAME_RATE;
+    suppressRanges.push([titleStartSec, titleStartSec + SECTION_TITLE_DURATION_S]);
     sequences.push(
       <Sequence key={`title-${section.id}`} from={currentFrame} durationInFrames={titleFrames}>
         <SectionTitleScene title={section.title} subtitle={section.subtitle} />
@@ -63,6 +69,7 @@ export const RetirementVideo: React.FC<RetirementVideoProps> = ({ timeline, copy
 
   // Outro
   const outroFrames = OUTRO_DURATION_S * FRAME_RATE;
+  suppressRanges.push([currentFrame / FRAME_RATE, (currentFrame + outroFrames) / FRAME_RATE]);
   sequences.push(
     <Sequence key="outro" from={currentFrame} durationInFrames={outroFrames}>
       <OutroScene
@@ -80,7 +87,7 @@ export const RetirementVideo: React.FC<RetirementVideoProps> = ({ timeline, copy
       {sequences}
       {/* Lyrics overlay: always on top, timed to audio */}
       <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-        <LyricsOverlay lyrics={lyricsTiming} />
+        <LyricsOverlay lyrics={lyricsTiming} suppressRanges={suppressRanges} />
       </div>
     </div>
   );
