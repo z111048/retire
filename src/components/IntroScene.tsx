@@ -109,7 +109,7 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ title, subtitle, date })
         <h1
           style={{
             ...makeTextStyle(0),
-            fontSize: 72,
+            fontSize: 90,
             fontWeight: 700,
             color: '#fff',
             letterSpacing: '0.2em',
@@ -122,7 +122,7 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ title, subtitle, date })
         <p
           style={{
             ...makeTextStyle(25),
-            fontSize: 36,
+            fontSize: 46,
             fontWeight: 400,
             color: '#F5E6C8',
             letterSpacing: '0.12em',
@@ -134,7 +134,7 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ title, subtitle, date })
         <p
           style={{
             ...makeTextStyle(50),
-            fontSize: 28,
+            fontSize: 36,
             fontWeight: 300,
             color: '#D4C4A0',
             letterSpacing: '0.1em',

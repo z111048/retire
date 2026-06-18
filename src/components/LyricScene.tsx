@@ -72,7 +72,7 @@ export const LyricScene: React.FC<LyricSceneProps> = ({ lyric, sectionTitle }) =
       {/* Section title label */}
       <p style={{
         color: '#C9A84C',
-        fontSize: 22,
+        fontSize: 30,
         letterSpacing: '0.3em',
         margin: '0 0 48px',
         fontWeight: 300,
@@ -88,7 +88,7 @@ export const LyricScene: React.FC<LyricSceneProps> = ({ lyric, sectionTitle }) =
             key={i}
             style={{
               color: i % 2 === 0 ? '#F5E6C8' : '#D4C4A0',
-              fontSize: 32,
+              fontSize: 46,
               fontWeight: i % 2 === 0 ? 400 : 300,
               letterSpacing: '0.12em',
               margin: 0,

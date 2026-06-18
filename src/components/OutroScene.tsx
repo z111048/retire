@@ -43,7 +43,7 @@ export const OutroScene: React.FC<OutroSceneProps> = ({ line1, line2, line3, lin
         extrapolateLeft: 'clamp',
         extrapolateRight: 'clamp',
       })}px)`,
-      fontSize: isLast ? 58 : 38,
+      fontSize: isLast ? 72 : 50,
       fontWeight: isLast ? 700 : 400,
       color: isLast ? '#C9A84C' : index < 2 ? '#3A2E1E' : '#5A4A32',
       letterSpacing: isLast ? '0.22em' : '0.1em',

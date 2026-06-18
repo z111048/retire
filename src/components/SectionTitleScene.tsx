@@ -56,7 +56,7 @@ export const SectionTitleScene: React.FC<SectionTitleSceneProps> = ({ title, sub
       <h2
         style={{
           fontFamily: '"Noto Sans TC", "Microsoft JhengHei", "PingFang TC", sans-serif',
-          fontSize: 64,
+          fontSize: 80,
           fontWeight: 700,
           color: '#3A2E1E',
           letterSpacing: '0.15em',
@@ -70,7 +70,7 @@ export const SectionTitleScene: React.FC<SectionTitleSceneProps> = ({ title, sub
       <p
         style={{
           fontFamily: '"Noto Sans TC", "Microsoft JhengHei", "PingFang TC", sans-serif',
-          fontSize: 32,
+          fontSize: 42,
           fontWeight: 400,
           color: '#7A6A52',
           letterSpacing: '0.1em',

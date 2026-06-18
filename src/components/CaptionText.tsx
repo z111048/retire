@@ -45,7 +45,7 @@ export const CaptionText: React.FC<CaptionTextProps> = ({ text, bottom = 60 }) =
         <span
           style={{
             color: '#fff',
-            fontSize: 40,
+            fontSize: 52,
             fontFamily: '"Noto Sans TC", "Microsoft JhengHei", "PingFang TC", sans-serif',
             fontWeight: 500,
             letterSpacing: '0.08em',
