@@ -5,51 +5,49 @@ import type { TimelinePhoto } from '../types';
 import { FRAME_RATE } from '../constants';
 import { photoSrc, origPhotoSrc } from '../utils/photoSrc';
 
+// Per-photo timing:
+//   0           → FADE_IN    : AI photo fades in (快速, 0.3s)
+//   FADE_IN     → CROSS_START: AI photo held at full opacity
+//   CROSS_START → CROSS_END  : AI fades out, original fades in (cross-fade 0.7s)
+//   CROSS_END   → END-FADE   : Original photo held
+//   END-FADE    → END        : Original fades out (0.4s)
+
+const FADE_IN_S    = 0.3;
+const CROSS_DUR_S  = 0.7;
+const FADE_OUT_S   = 0.4;
+const CROSS_SPLIT  = 0.50; // cross-fade starts at 50% of total duration
+
 interface PhotoSceneProps {
   photo: TimelinePhoto;
 }
-
-// Timeline for each photo:
-//   Phase 1  0% – 45%  : AI art photo (Ken Burns scale-in)
-//   Crossfade 40% – 55%: AI fades out, original fades in simultaneously
-//   Phase 2  50% – 100%: Original photo (Ken Burns scale continues)
-//   Fade     last 15%  : overall fade to black for next scene
 
 export const PhotoScene: React.FC<PhotoSceneProps> = ({ photo }) => {
   const frame = useCurrentFrame();
   const { durationInFrames } = useVideoConfig();
 
-  const crossStart = Math.floor(durationInFrames * 0.40);
-  const crossEnd   = Math.floor(durationInFrames * 0.58);
-  const fadeStart  = Math.floor(durationInFrames * 0.85);
+  const fadeInEnd    = Math.round(FADE_IN_S * FRAME_RATE);
+  const crossStart   = Math.round(durationInFrames * CROSS_SPLIT);
+  const crossEnd     = Math.min(crossStart + Math.round(CROSS_DUR_S * FRAME_RATE), durationInFrames - 2);
+  const fadeOutStart = Math.round(durationInFrames - FADE_OUT_S * FRAME_RATE);
 
-  // Overall scene fade-in / fade-out
-  const sceneFadeIn  = Math.min(FRAME_RATE * 0.4, 12);
-  const sceneOpacity = interpolate(
-    frame,
-    [0, sceneFadeIn, fadeStart, durationInFrames],
-    [0, 1, 1, 0],
-    { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
-  );
-
-  // AI photo: visible in phase 1, fades out during crossfade
+  // AI photo: fades in fast → held → fades out during crossfade
   const aiOpacity = interpolate(
     frame,
-    [0, sceneFadeIn, crossStart, crossEnd],
-    [0, 1, 1, 0],
+    [0, fadeInEnd, crossStart, crossEnd],
+    [0, 1,         1,          0],
     { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
   );
 
-  // Original photo: invisible in phase 1, fades in during crossfade
+  // Original photo: invisible → fades in during crossfade → held → fades out
   const origOpacity = interpolate(
     frame,
-    [crossStart, crossEnd, fadeStart, durationInFrames],
-    [0, 1, 1, 0],
+    [crossStart, crossEnd, fadeOutStart, durationInFrames],
+    [0,          1,         1,            0],
     { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
   );
 
-  // Ken Burns: slow zoom throughout entire duration
-  const scale = interpolate(frame, [0, durationInFrames], [1.0, 1.08], {
+  // Ken Burns: slow continuous zoom
+  const scale = interpolate(frame, [0, durationInFrames], [1.0, 1.07], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });
@@ -71,24 +69,17 @@ export const PhotoScene: React.FC<PhotoSceneProps> = ({ photo }) => {
       backgroundColor: '#111',
       overflow: 'hidden',
       position: 'relative',
-      opacity: sceneOpacity,
     }}>
-      {/* Phase 1: AI artistic photo */}
+      {/* Phase 1: AI artistic photo — appears FIRST */}
       <div style={{ position: 'absolute', inset: 0, opacity: aiOpacity }}>
         <Img src={photoSrc(photo.fileName)} style={imgStyle} />
       </div>
 
-      {/* Phase 2: Original photo */}
+      {/* Phase 2: Original real photo — appears AFTER crossfade */}
       <div style={{ position: 'absolute', inset: 0, opacity: origOpacity }}>
         <Img src={origPhotoSrc(photo.fileName)} style={imgStyle} />
+        {photo.caption && <CaptionText text={photo.caption} />}
       </div>
-
-      {/* Caption shows only during original photo phase */}
-      {photo.caption && origOpacity > 0 && (
-        <div style={{ opacity: origOpacity }}>
-          <CaptionText text={photo.caption} />
-        </div>
-      )}
     </div>
   );
 };
