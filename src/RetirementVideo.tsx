@@ -1,12 +1,16 @@
 import React from 'react';
-import { Sequence, useVideoConfig } from 'remotion';
-import { FRAME_RATE, INTRO_DURATION_S, OUTRO_DURATION_S, SECTION_TITLE_DURATION_S } from './constants';
+import { Sequence, useVideoConfig, Audio } from 'remotion';
+import {
+  FRAME_RATE, INTRO_DURATION_S, OUTRO_DURATION_S,
+  SECTION_TITLE_DURATION_S, LYRIC_DURATION_S,
+} from './constants';
 import { IntroScene } from './components/IntroScene';
 import { SectionTitleScene } from './components/SectionTitleScene';
+import { LyricScene } from './components/LyricScene';
 import { PhotoScene } from './components/PhotoScene';
 import { OutroScene } from './components/OutroScene';
-import type { Timeline } from './types';
-import type { Copywriting } from './types';
+import { staticSrc } from './utils/photoSrc';
+import type { Timeline, Copywriting } from './types';
 
 interface RetirementVideoProps {
   timeline: Timeline;
@@ -14,12 +18,15 @@ interface RetirementVideoProps {
 }
 
 export const RetirementVideo: React.FC<RetirementVideoProps> = ({ timeline, copywriting }) => {
-  useVideoConfig(); // keep for context
+  useVideoConfig();
 
-  const sections = timeline.sections;
   const sequences: React.ReactNode[] = [];
-
   let currentFrame = 0;
+
+  // Background music — plays from frame 0, stops naturally when file ends
+  sequences.push(
+    <Audio key="bgm" src={staticSrc('bgm.mp3')} volume={0.65} />
+  );
 
   // Intro
   const introFrames = INTRO_DURATION_S * FRAME_RATE;
@@ -35,7 +42,12 @@ export const RetirementVideo: React.FC<RetirementVideoProps> = ({ timeline, copy
   currentFrame += introFrames;
 
   // Sections
-  for (const section of sections) {
+  const cwSectionMap = Object.fromEntries(
+    copywriting.sections.map(s => [s.id, s])
+  );
+
+  for (const section of timeline.sections) {
+    const cw = cwSectionMap[section.id];
     const titleFrames = SECTION_TITLE_DURATION_S * FRAME_RATE;
 
     sequences.push(
@@ -45,6 +57,18 @@ export const RetirementVideo: React.FC<RetirementVideoProps> = ({ timeline, copy
     );
     currentFrame += titleFrames;
 
+    // Lyric card after title (if lyric exists)
+    if (cw?.lyric) {
+      const lyricFrames = LYRIC_DURATION_S * FRAME_RATE;
+      sequences.push(
+        <Sequence key={`lyric-${section.id}`} from={currentFrame} durationInFrames={lyricFrames}>
+          <LyricScene lyric={cw.lyric} sectionTitle={section.title} />
+        </Sequence>
+      );
+      currentFrame += lyricFrames;
+    }
+
+    // Photos
     for (const photo of section.photos) {
       const photoFrames = photo.duration * FRAME_RATE;
       sequences.push(
@@ -64,6 +88,8 @@ export const RetirementVideo: React.FC<RetirementVideoProps> = ({ timeline, copy
         line1={copywriting.outro.line1}
         line2={copywriting.outro.line2}
         line3={copywriting.outro.line3}
+        line4={copywriting.outro.line4}
+        line5={copywriting.outro.line5}
       />
     </Sequence>
   );

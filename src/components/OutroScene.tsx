@@ -6,32 +6,53 @@ interface OutroSceneProps {
   line1: string;
   line2: string;
   line3: string;
+  line4?: string;
+  line5?: string;
 }
 
-export const OutroScene: React.FC<OutroSceneProps> = ({ line1, line2, line3 }) => {
+export const OutroScene: React.FC<OutroSceneProps> = ({ line1, line2, line3, line4, line5 }) => {
   const frame = useCurrentFrame();
   const { durationInFrames } = useVideoConfig();
 
-  const holdStart = durationInFrames - FRAME_RATE * 1.5;
+  const fadeOutStart = durationInFrames - FRAME_RATE * 1.5;
+  const lines = [line1, line2, line3, line4, line5].filter(Boolean) as string[];
 
-  // Fade to white at the very end
-  const overlayOpacity = interpolate(
+  const containerOpacity = interpolate(
     frame,
-    [holdStart, durationInFrames],
+    [0, 15, fadeOutStart, durationInFrames],
+    [0, 1, 1, 0],
+    { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
+  );
+
+  const whiteOverlay = interpolate(
+    frame,
+    [fadeOutStart, durationInFrames],
     [0, 1],
     { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
   );
 
-  const makeLineStyle = (startFrame: number) => ({
-    opacity: interpolate(frame, [startFrame, startFrame + 25, holdStart], [0, 1, 1], {
-      extrapolateLeft: 'clamp',
-      extrapolateRight: 'clamp',
-    }),
-    transform: `translateY(${interpolate(frame, [startFrame, startFrame + 25], [20, 0], {
-      extrapolateLeft: 'clamp',
-      extrapolateRight: 'clamp',
-    })}px)`,
-  });
+  const makeStyle = (index: number) => {
+    const startFrame = index * 35;
+    const isLast = index === lines.length - 1;
+    return {
+      opacity: interpolate(frame, [startFrame, startFrame + 25, fadeOutStart], [0, 1, 1], {
+        extrapolateLeft: 'clamp',
+        extrapolateRight: 'clamp',
+      }),
+      transform: `translateY(${interpolate(frame, [startFrame, startFrame + 25], [18, 0], {
+        extrapolateLeft: 'clamp',
+        extrapolateRight: 'clamp',
+      })}px)`,
+      fontSize: isLast ? 58 : 38,
+      fontWeight: isLast ? 700 : 400,
+      color: isLast ? '#C9A84C' : index < 2 ? '#3A2E1E' : '#5A4A32',
+      letterSpacing: isLast ? '0.22em' : '0.1em',
+      marginTop: isLast ? 24 : 0,
+      marginBottom: isLast ? 0 : 8,
+      marginLeft: 0,
+      marginRight: 0,
+    };
+  };
 
   return (
     <div
@@ -43,62 +64,34 @@ export const OutroScene: React.FC<OutroSceneProps> = ({ line1, line2, line3 }) =
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
+        opacity: containerOpacity,
         position: 'relative',
         fontFamily: '"Noto Sans TC", "Microsoft JhengHei", "PingFang TC", sans-serif',
       }}
     >
-      <div style={{ ...makeLineStyle(0), textAlign: 'center', marginBottom: 24 }}>
-        <p
-          style={{
-            fontSize: 44,
-            fontWeight: 500,
-            color: '#3A2E1E',
-            letterSpacing: '0.1em',
-            margin: 0,
-          }}
-        >
-          {line1}
-        </p>
-      </div>
+      {/* Gold divider */}
+      <div style={{
+        width: 80,
+        height: 2,
+        background: 'linear-gradient(to right, transparent, #C9A84C, transparent)',
+        marginBottom: 36,
+        opacity: interpolate(frame, [10, 25], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }),
+      }} />
 
-      <div style={{ ...makeLineStyle(30), textAlign: 'center', marginBottom: 24 }}>
-        <p
-          style={{
-            fontSize: 38,
-            fontWeight: 400,
-            color: '#5A4A32',
-            letterSpacing: '0.08em',
-            margin: 0,
-          }}
-        >
-          {line2}
+      {lines.map((line, i) => (
+        <p key={i} style={{ margin: 0, textAlign: 'center', ...makeStyle(i) }}>
+          {line}
         </p>
-      </div>
+      ))}
 
-      <div style={{ ...makeLineStyle(60), textAlign: 'center', marginTop: 16 }}>
-        <p
-          style={{
-            fontSize: 56,
-            fontWeight: 700,
-            color: '#C9A84C',
-            letterSpacing: '0.2em',
-            margin: 0,
-          }}
-        >
-          {line3}
-        </p>
-      </div>
-
-      {/* White fade overlay */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          backgroundColor: '#fff',
-          opacity: overlayOpacity,
-          pointerEvents: 'none',
-        }}
-      />
+      {/* White fade-to-white overlay */}
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        backgroundColor: '#fff',
+        opacity: whiteOverlay,
+        pointerEvents: 'none',
+      }} />
     </div>
   );
 };

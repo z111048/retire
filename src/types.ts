@@ -54,6 +54,7 @@ export interface CopywritingSection {
   id: string;
   title: string;
   subtitle: string;
+  lyric?: string;
 }
 
 export interface Copywriting {
@@ -62,10 +63,13 @@ export interface Copywriting {
     subtitle: string;
     date: string;
   };
+  openingLyric?: string;
   sections: CopywritingSection[];
   outro: {
     line1: string;
     line2: string;
     line3: string;
+    line4?: string;
+    line5?: string;
   };
 }
