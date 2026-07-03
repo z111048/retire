@@ -15,8 +15,8 @@ import lyricsTiming from '../data/lyrics-timing.json';
 import type { RetirementVideoProps } from './types';
 
 const BGM_VOLUME = 0.65;
-// 影片片段播放時背景音樂完全靜音（前後 0.5 秒淡入淡出），只留片段原音
-const BGM_DUCK = 0;
+// 影片片段播放時保留片段原音，背景音樂壓到 10%
+const BGM_DUCK = 0.10;
 const DUCK_RAMP_FRAMES = 15;
 
 export const RetirementVideo: React.FC<RetirementVideoProps> = ({ timeline, copywriting, audioSrc }) => {
