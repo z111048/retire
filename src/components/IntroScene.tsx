@@ -10,6 +10,7 @@ interface IntroSceneProps {
   date: string;
 }
 
+// 開場：16:9 全幅水彩底圖（人物在右側），標題文字置於左側留白區
 export const IntroScene: React.FC<IntroSceneProps> = ({ title, subtitle, date }) => {
   const frame = useCurrentFrame();
   const { durationInFrames } = useVideoConfig();
@@ -17,10 +18,16 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ title, subtitle, date })
   const fadeOut = FRAME_RATE * 0.8;
   const containerOpacity = interpolate(
     frame,
-    [durationInFrames - fadeOut, durationInFrames],
-    [1, 0],
+    [0, 15, durationInFrames - fadeOut, durationInFrames],
+    [0, 1, 1, 0],
     { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
   );
+
+  // 底圖緩慢放大，讓畫面有生命力
+  const bgScale = interpolate(frame, [0, durationInFrames], [1.0, 1.05], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
 
   const makeTextStyle = (startFrame: number) => ({
     opacity: interpolate(frame, [startFrame, startFrame + 20], [0, 1], {
@@ -41,107 +48,94 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ title, subtitle, date })
         position: 'relative',
         overflow: 'hidden',
         opacity: containerOpacity,
+        backgroundColor: '#f6ead9',
       }}
     >
-      {/* Blurred background */}
+      {/* 16:9 全幅底圖（右側人物） */}
       <Img
-        src={photoSrc('cover.jpg')}
+        src={photoSrc('cover-wide.jpg')}
         style={{
           position: 'absolute',
           inset: 0,
           width: '100%',
           height: '100%',
           objectFit: 'cover',
-          filter: 'blur(12px) brightness(0.4)',
-          transform: 'scale(1.1)',
+          transform: `scale(${bgScale})`,
+          transformOrigin: '70% 50%',
         }}
       />
 
-      {/* Cover photo centered */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Img
-          src={photoSrc('cover.jpg')}
-          style={{
-            maxWidth: '50%',
-            maxHeight: '60%',
-            objectFit: 'contain',
-            borderRadius: 12,
-            boxShadow: '0 8px 40px rgba(0,0,0,0.6)',
-            opacity: interpolate(frame, [0, 20], [0, 1], {
-              extrapolateLeft: 'clamp',
-              extrapolateRight: 'clamp',
-            }),
-          }}
-        />
-      </div>
-
-      {/* Overlay gradient */}
+      {/* 左側輕柔提亮，讓文字更清楚 */}
       <div
         style={{
           position: 'absolute',
           inset: 0,
           background:
-            'linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.75) 100%)',
+            'linear-gradient(to right, rgba(255,250,240,0.55) 0%, rgba(255,250,240,0.25) 40%, transparent 62%)',
         }}
       />
 
       {/* Floating bokeh particles */}
-      <FloatingParticles count={6} opacityScale={0.65} />
+      <FloatingParticles count={6} opacityScale={0.5} />
 
-      {/* Text block */}
+      {/* 文字區：置於左側留白 */}
       <div
         style={{
           position: 'absolute',
-          bottom: 120,
-          left: 0,
-          right: 0,
+          left: '6.5%',
+          top: 0,
+          bottom: 0,
+          width: '52%',
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'center',
-          gap: 16,
+          justifyContent: 'center',
+          alignItems: 'flex-start',
+          gap: 26,
           fontFamily: '"Noto Sans TC", "Microsoft JhengHei", "PingFang TC", sans-serif',
         }}
       >
         <h1
           style={{
             ...makeTextStyle(0),
-            fontSize: 90,
+            fontSize: 100,
             fontWeight: 700,
-            color: '#fff',
-            letterSpacing: '0.2em',
+            color: '#6d532a',
+            letterSpacing: '0.18em',
             margin: 0,
-            textShadow: '0 3px 12px rgba(0,0,0,0.8)',
+            textShadow: '0 2px 14px rgba(255,255,255,0.9), 0 1px 2px rgba(109,83,42,0.25)',
           }}
         >
           {title}
         </h1>
+        <div
+          style={{
+            ...makeTextStyle(22),
+            width: 340,
+            height: 3,
+            background: 'linear-gradient(to right, #C9A84C, rgba(201,168,76,0))',
+            borderRadius: 2,
+          }}
+        />
         <p
           style={{
-            ...makeTextStyle(25),
-            fontSize: 46,
-            fontWeight: 400,
-            color: '#F5E6C8',
-            letterSpacing: '0.12em',
+            ...makeTextStyle(28),
+            fontSize: 48,
+            fontWeight: 500,
+            color: '#87683a',
+            letterSpacing: '0.1em',
             margin: 0,
+            textShadow: '0 1px 10px rgba(255,255,255,0.85)',
           }}
         >
           {subtitle}
         </p>
         <p
           style={{
-            ...makeTextStyle(50),
+            ...makeTextStyle(52),
             fontSize: 36,
             fontWeight: 300,
-            color: '#D4C4A0',
-            letterSpacing: '0.1em',
+            color: '#a08a5f',
+            letterSpacing: '0.14em',
             margin: 0,
           }}
         >
