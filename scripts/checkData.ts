@@ -1,12 +1,15 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import dotenv from 'dotenv';
-dotenv.config({ override: true });
+import { execFileSync } from 'child_process';
 
-import type { Timeline, PhotoMetadata, Copywriting } from '../src/types.js';
+import type { Timeline, Copywriting } from '../src/types.js';
 
 const DATA_DIR = path.resolve('data');
 const PUBLIC_PHOTOS_DIR = path.resolve('public/photos');
+const PUBLIC_PHOTOS_ORIG_DIR = path.resolve('public/photos-orig');
+const PUBLIC_VIDEOS_DIR = path.resolve('public/videos');
+
+const FPS = 30;
 
 let errors = 0;
 let warnings = 0;
@@ -25,16 +28,11 @@ function info(msg: string) {
   console.log(`[OK]    ${msg}`);
 }
 
-function checkFileExists(filePath: string, label: string): boolean {
+function parseJsonFile<T>(filePath: string, label: string): T | null {
   if (!fs.existsSync(filePath)) {
     error(`找不到 ${label}：${filePath}`);
-    return false;
+    return null;
   }
-  return true;
-}
-
-function parseJsonFile<T>(filePath: string, label: string): T | null {
-  if (!checkFileExists(filePath, label)) return null;
   try {
     return JSON.parse(fs.readFileSync(filePath, 'utf-8')) as T;
   } catch (e) {
@@ -46,76 +44,85 @@ function parseJsonFile<T>(filePath: string, label: string): T | null {
 function main() {
   console.log('=== 資料驗證開始 ===\n');
 
-  // Check required JSON files
-  const metadataFile = path.join(DATA_DIR, 'photo-metadata.json');
-  const timelineFile = path.join(DATA_DIR, 'timeline.json');
-  const copywritingFile = path.join(DATA_DIR, 'copywriting.json');
-
-  const metadata = parseJsonFile<PhotoMetadata[]>(metadataFile, 'photo-metadata.json');
-  const timeline = parseJsonFile<Timeline>(timelineFile, 'timeline.json');
-  const copywriting = parseJsonFile<Copywriting>(copywritingFile, 'copywriting.json');
-
-  // Validate metadata
-  if (metadata) {
-    info(`photo-metadata.json：${metadata.length} 筆資料`);
-    let missingFields = 0;
-    for (const m of metadata) {
-      if (!m.fileName || !m.scene || typeof m.importanceScore !== 'number') {
-        missingFields++;
-      }
-    }
-    if (missingFields > 0) {
-      warn(`有 ${missingFields} 筆 metadata 缺少必要欄位`);
-    }
-  }
+  const timeline = parseJsonFile<Timeline>(path.join(DATA_DIR, 'timeline.json'), 'timeline.json');
+  const copywriting = parseJsonFile<Copywriting>(path.join(DATA_DIR, 'copywriting.json'), 'copywriting.json');
 
   // Validate timeline
   if (timeline) {
     const totalMin = Math.floor(timeline.totalDuration / 60);
-    const totalSec = timeline.totalDuration % 60;
+    const totalSec = Math.round(timeline.totalDuration % 60);
     info(`timeline.json：總時長 ${totalMin}分 ${totalSec}秒`);
 
-    if (timeline.totalDuration < 300) {
-      warn(`影片時長不足 5 分鐘（${totalMin}分${totalSec}秒），照片數量可能太少`);
-    }
-    if (timeline.totalDuration > 720) {
-      warn(`影片時長超過 12 分鐘（${totalMin}分${totalSec}秒），建議縮短`);
-    }
-
-    const allTimelineFileNames = new Set<string>();
-    let missingPhotos = 0;
+    let missingFiles = 0;
     let captionTooLong = 0;
+    let itemCount = 0;
+    let sumFrames = 0;
 
     for (const section of timeline.sections) {
-      if (section.photos.length < 3) {
-        warn(`段落「${section.title}」照片數量不足（${section.photos.length} 張，建議至少 3 張）`);
+      if (section.photos.length === 0) {
+        warn(`段落「${section.title}」沒有任何項目`);
       }
 
-      for (const photo of section.photos) {
-        const photoPath = path.join(PUBLIC_PHOTOS_DIR, photo.fileName);
-        if (!fs.existsSync(photoPath)) {
-          error(`照片不存在：${photo.fileName}（段落：${section.title}）`);
-          missingPhotos++;
-        }
-        allTimelineFileNames.add(photo.fileName);
+      for (const item of section.photos) {
+        itemCount++;
+        sumFrames += item.durationFrames;
 
-        if (photo.caption && photo.caption.length > 20) {
-          warn(`字幕過長（${photo.caption.length} 字）：${photo.caption}`);
+        if (!Number.isInteger(item.durationFrames) || item.durationFrames <= 0) {
+          error(`durationFrames 無效（${item.durationFrames}）：${item.fileName}`);
+        }
+
+        if (item.type === 'video') {
+          if (!fs.existsSync(path.join(PUBLIC_VIDEOS_DIR, item.fileName))) {
+            error(`影片不存在：videos/${item.fileName}（段落：${section.title}）`);
+            missingFiles++;
+          }
+        } else {
+          if (!fs.existsSync(path.join(PUBLIC_PHOTOS_ORIG_DIR, item.fileName))) {
+            error(`照片不存在：photos-orig/${item.fileName}（段落：${section.title}）`);
+            missingFiles++;
+          }
+          if (!fs.existsSync(path.join(PUBLIC_PHOTOS_DIR, item.fileName))) {
+            warn(`網頁版壓縮照片不存在：photos/${item.fileName}（網頁播放器會缺圖）`);
+          }
+        }
+
+        if (item.caption && item.caption.length > 24) {
+          warn(`字幕過長（${item.caption.length} 字）：${item.caption}`);
           captionTooLong++;
         }
       }
     }
 
-    if (missingPhotos === 0) info(`所有照片檔案存在於 public/photos/`);
-    if (captionTooLong > 0) warn(`${captionTooLong} 個字幕超過 20 字，可能在影片中顯示不佳`);
+    if (missingFiles === 0) info(`所有 ${itemCount} 個項目的檔案都存在`);
+    if (captionTooLong > 0) warn(`${captionTooLong} 個字幕超過 24 字，可能在影片中顯示不佳`);
 
-    // Check for unused photos
-    if (metadata) {
-      const usablePhotos = metadata.filter(m => m.suggestedUse !== 'skip');
-      const unusedCount = usablePhotos.filter(m => !allTimelineFileNames.has(m.fileName)).length;
-      if (unusedCount > 0) {
-        warn(`有 ${unusedCount} 張可用照片未被放入時間軸`);
+    // 時長一致性：intro + titles + items + outro 應等於 totalDuration
+    const expectedFrames = Math.round(timeline.totalDuration * FPS);
+    const fixedFrames = (6 + timeline.sections.length * 2 + 21) * FPS;
+    const actualFrames = fixedFrames + sumFrames;
+    if (actualFrames !== expectedFrames) {
+      warn(`場景總長（${(actualFrames / FPS).toFixed(1)}s）與 totalDuration（${timeline.totalDuration.toFixed(1)}s）不一致，差 ${((actualFrames - expectedFrames) / FPS).toFixed(2)}s`);
+    } else {
+      info(`場景總長與 totalDuration 一致（${(actualFrames / FPS).toFixed(1)}s）`);
+    }
+
+    // 背景音樂長度比對
+    const bgmPath = path.resolve('public/bgm.mp3');
+    if (fs.existsSync(bgmPath)) {
+      try {
+        const out = execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'default=nw=1:nk=1', bgmPath], { encoding: 'utf-8' });
+        const bgmDur = parseFloat(out.trim());
+        const diff = Math.abs(bgmDur - timeline.totalDuration);
+        if (diff > 2) {
+          warn(`背景音樂長度（${bgmDur.toFixed(1)}s）與影片總長（${timeline.totalDuration.toFixed(1)}s）差 ${diff.toFixed(1)}s`);
+        } else {
+          info(`背景音樂長度與影片總長一致（差 ${diff.toFixed(2)}s）`);
+        }
+      } catch {
+        warn('無法用 ffprobe 檢查 bgm.mp3 長度');
       }
+    } else {
+      error('找不到 public/bgm.mp3');
     }
   }
 
@@ -132,11 +139,26 @@ function main() {
   }
 
   // Check cover photo
-  const coverPath = path.join(PUBLIC_PHOTOS_DIR, 'cover.jpg');
-  if (fs.existsSync(coverPath)) {
+  if (fs.existsSync(path.join(PUBLIC_PHOTOS_DIR, 'cover.jpg'))) {
     info('封面圖 cover.jpg 存在');
   } else {
     warn('找不到 public/photos/cover.jpg，開場場景將無法顯示封面圖');
+  }
+
+  // Check lyrics timing
+  const lyrics = parseJsonFile<Array<{ start: number; end: number; text: string }>>(
+    path.join(DATA_DIR, 'lyrics-timing.json'), 'lyrics-timing.json'
+  );
+  if (lyrics) {
+    if (lyrics.length === 0) {
+      warn('lyrics-timing.json 是空的，影片不會顯示歌詞字幕（需提供歌詞後重新對時）');
+    } else {
+      info(`lyrics-timing.json：${lyrics.length} 句歌詞`);
+      for (let i = 0; i < lyrics.length; i++) {
+        if (lyrics[i].end <= lyrics[i].start) error(`歌詞第 ${i + 1} 句 end <= start`);
+        if (i > 0 && lyrics[i].start < lyrics[i - 1].end) warn(`歌詞第 ${i + 1} 句與前一句時間重疊`);
+      }
+    }
   }
 
   console.log(`\n=== 驗證結束 ===`);

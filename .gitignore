@@ -2,8 +2,17 @@ node_modules/
 out/
 dist/
 
-# 原始大圖不加入版控（已在 images/ 保留）
-# public/photos/ 加入版控（壓縮後的版本）
+# 原始素材與封存不加入版控
+assets/
+archive/
+*.zip
+*.mp3
+!public/bgm.mp3
+!docs/bgm.mp3
+
+# 全解析度照片不加入版控（可由 assets/ 重新產生）
+public/photos-orig/
+# public/photos/（壓縮版）與 public/videos/（剪輯片段）加入版控
 
 # 環境變數（保留 .env.example）
 .env
@@ -11,3 +20,7 @@ dist/
 # OS
 .DS_Store
 Thumbs.db
+*:Zone.Identifier
+
+# Logs
+data/artistic-gen.log

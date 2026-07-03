@@ -9,7 +9,9 @@ interface CaptionTextProps {
 export const CaptionText: React.FC<CaptionTextProps> = ({ text, position = 'bottom' }) => {
   const frame = useCurrentFrame();
 
-  const opacity = interpolate(frame, [0, 20, 80, 100], [0, 1, 1, 0], {
+  // 只淡入不淡出——場景元件（PhotoScene/VideoScene）會對整個畫面做淡出，
+  // 場景時長從 2 秒到 19 秒不等，字幕須全程可見
+  const opacity = interpolate(frame, [0, 20], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });

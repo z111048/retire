@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>歌詞對時工具</title>
+<style>
+  :root {
+    --bg: #14120e;
+    --panel: #1e1b15;
+    --panel2: #262218;
+    --gold: #C9A84C;
+    --text: #FFF8EC;
+    --dim: #9a8f78;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  header {
+    padding: 10px 16px;
+    background: var(--panel);
+    border-bottom: 1px solid #3a3428;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  h1 { font-size: 16px; color: var(--gold); white-space: nowrap; }
+  .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  button {
+    background: var(--panel2);
+    color: var(--text);
+    border: 1px solid #4a4232;
+    border-radius: 6px;
+    padding: 7px 14px;
+    font-size: 14px;
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+  }
+  button:hover { border-color: var(--gold); }
+  button.primary { background: var(--gold); color: #1a1409; font-weight: 700; }
+  button.danger:hover { border-color: #d06050; color: #f0a090; }
+  button.toggled { background: #4a3d1d; border-color: var(--gold); }
+  select, input[type=number] {
+    background: var(--panel2); color: var(--text);
+    border: 1px solid #4a4232; border-radius: 6px; padding: 6px; font-size: 14px;
+  }
+  #timeNow {
+    font-variant-numeric: tabular-nums;
+    font-size: 20px; color: var(--gold); min-width: 96px; text-align: center;
+    background: var(--panel2); border-radius: 6px; padding: 4px 8px;
+  }
+
+  /* ===== 波形時間軸 ===== */
+  #waveWrap {
+    background: var(--panel);
+    border-bottom: 2px solid var(--gold);
+    overflow-x: auto;
+    overflow-y: hidden;
+    position: relative;
+    flex-shrink: 0;
+    user-select: none;
+  }
+  #waveCanvas { display: block; cursor: crosshair; }
+  #waveTip {
+    position: fixed; display: none; pointer-events: none;
+    background: rgba(0,0,0,0.85); border: 1px solid var(--gold);
+    border-radius: 6px; padding: 4px 10px; font-size: 13px; z-index: 50;
+    white-space: nowrap;
+  }
+  #waveHint { font-size: 12px; color: var(--dim); padding: 2px 16px 6px; background: var(--panel); flex-shrink: 0; }
+
+  main { flex: 1; display: flex; overflow: hidden; }
+  #lineList { flex: 1; overflow-y: auto; padding: 12px; }
+  .line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 10px;
+    border-radius: 8px;
+    margin-bottom: 3px;
+    background: var(--panel);
+    border: 1px solid transparent;
+    cursor: pointer;
+  }
+  .line.current { border-color: var(--gold); background: #2c2517; }
+  .line.playing { background: #3d3012; box-shadow: inset 3px 0 0 var(--gold); }
+  .line.untimed { opacity: 0.55; }
+  .line.overlap .t { border-color: #d06050; }
+  .line .idx { width: 34px; text-align: right; color: var(--dim); font-size: 12px; flex-shrink: 0; }
+  .line .text { flex: 1; font-size: 17px; letter-spacing: 0.05em; }
+  .line .times { display: flex; gap: 4px; align-items: center; flex-shrink: 0; }
+  .line input.t {
+    width: 76px; text-align: center; font-variant-numeric: tabular-nums;
+    background: var(--panel2); color: var(--text);
+    border: 1px solid #4a4232; border-radius: 5px; padding: 4px 2px; font-size: 13px;
+  }
+  .line .nudge { display: flex; flex-direction: column; gap: 1px; }
+  .line .nudge button, .line .times > button { padding: 2px 7px; font-size: 11px; border-radius: 4px; }
+  aside {
+    width: 290px;
+    background: var(--panel);
+    border-left: 1px solid #3a3428;
+    padding: 14px;
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+  aside h2 { font-size: 14px; color: var(--gold); margin: 14px 0 8px; }
+  aside h2:first-child { margin-top: 0; }
+  aside p, aside li { font-size: 13px; color: var(--dim); line-height: 1.7; }
+  aside kbd {
+    background: var(--panel2); border: 1px solid #4a4232; border-radius: 4px;
+    padding: 1px 7px; font-size: 12px; color: var(--text);
+  }
+  #preview {
+    position: fixed;
+    bottom: 14px; left: 0; right: 290px;
+    display: flex; justify-content: center;
+    pointer-events: none;
+    z-index: 40;
+  }
+  #preview span {
+    background: rgba(0,0,0,0.85);
+    border-left: 3px solid var(--gold);
+    border-right: 3px solid var(--gold);
+    border-radius: 8px;
+    padding: 8px 30px;
+    font-size: 24px;
+    letter-spacing: 0.1em;
+    color: var(--text);
+  }
+  #status { font-size: 13px; color: var(--dim); }
+  textarea#lyricsInput {
+    width: 100%; height: 120px; background: var(--panel2); color: var(--text);
+    border: 1px solid #4a4232; border-radius: 6px; padding: 8px; font-size: 13px;
+    font-family: inherit;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>🎤 歌詞對時</h1>
+  <span id="timeNow">0:00.0</span>
+  <audio id="audio" controls style="height:34px;max-width:300px"></audio>
+  <input type="file" id="audioFile" accept="audio/*" title="選擇音樂檔" style="display:none">
+  <div class="controls">
+    <button id="playBtn">▶／⏸（P）</button>
+    <button id="back3">◀ 3s（←）</button>
+    <button id="fwd3">3s ▶（→）</button>
+    <label style="font-size:13px;color:var(--dim)">速度
+      <select id="rate">
+        <option value="0.5">0.5×</option>
+        <option value="0.75">0.75×</option>
+        <option value="1" selected>1×</option>
+      </select>
+    </label>
+    <span style="color:var(--dim);font-size:13px">縮放</span>
+    <button class="zoomBtn" data-z="6">1×</button>
+    <button class="zoomBtn" data-z="12">2×</button>
+    <button class="zoomBtn" data-z="24">4×</button>
+    <button class="zoomBtn" data-z="48">8×</button>
+    <button id="followBtn" class="toggled" title="播放時自動捲動波形">跟隨播放</button>
+    <button id="tapBtn" class="primary">⏱ 標記（Space）</button>
+    <button id="exportBtn" class="primary">💾 匯出</button>
+    <button id="copyBtn">📋 複製</button>
+    <span id="status"></span>
+  </div>
+</header>
+
+<div id="waveWrap"><canvas id="waveCanvas" height="120"></canvas></div>
+<div id="waveHint">波形：<b>點一下＝跳到該時間</b>｜<b>雙擊＝跳過去並播放</b>｜<b>拖曳金色旗標＝整句平移</b>（滑到旗標上會顯示歌詞）</div>
+<div id="waveTip"></div>
+
+<main>
+  <div id="lineList"></div>
+  <aside>
+    <h2>快速上手</h2>
+    <p>
+      1. 按 <kbd>P</kbd> 播放，聽到<b>反白句</b>開唱瞬間按 <kbd>Space</kbd>，會自動跳下一句。<br>
+      2. 想重標某句：<b>點列表那一句</b>（會自動跳到它前 1.5 秒），按 <kbd>P</kbd> 聽、<kbd>Space</kbd> 重標。<br>
+      3. 波形上<b>點哪播哪</b>；金色旗標可以直接<b>左右拖</b>調時間。<br>
+      4. 標完按「匯出」，存成 <b>data/lyrics-timing.json</b>。
+    </p>
+    <h2>快速鍵</h2>
+    <p>
+      <kbd>Space</kbd> 標記目前句開始<br>
+      <kbd>P</kbd> 播放／暫停<br>
+      <kbd>←</kbd>/<kbd>→</kbd> 倒退／快轉 3 秒<br>
+      <kbd>↑</kbd>/<kbd>↓</kbd> 選上一句／下一句（含跳時間）<br>
+      <kbd>Enter</kbd> 從目前句前 1.5 秒播放
+    </p>
+    <h2>整體平移</h2>
+    <p style="display:flex;gap:6px;align-items:center;">
+      <input type="number" id="shiftVal" value="0.5" step="0.1" style="width:70px">秒
+      <button id="shiftMinus">全部 −</button>
+      <button id="shiftPlus">全部 ＋</button>
+    </p>
+    <h2>歌詞文本（可重貼）</h2>
+    <textarea id="lyricsInput" placeholder="一行一句，[標記] 行會自動忽略"></textarea>
+    <p style="display:flex;gap:6px;margin-top:6px;">
+      <button id="reloadLyrics">重新載入歌詞</button>
+      <button id="clearTimes" class="danger">清除時間</button>
+    </p>
+    <h2>匯入已有 JSON</h2>
+    <input type="file" id="importFile" accept=".json" style="font-size:12px;color:var(--dim)">
+  </aside>
+</main>
+
+<div id="preview"><span id="previewText" style="display:none"></span></div>
+
+<script>
+const RAW_LYRICS = `[Intro]
+秀燕姐 退休快樂
+都發局花 永遠美麗綻放
+[Verse 1]
+親愛的秀燕姐
+轉眼走過好多年
+四十七年的青春
+寫成最溫暖的奉獻
+在都發局的每一天
+有妳就有笑聲蔓延
+尾牙舞台一站上去
+大家都跟著妳發光發電
+[Pre-Chorus]
+妳的認真 妳的真誠
+妳把溫暖送給身邊的人
+妳的善良 妳的熱情
+是我們心中最美的風景
+[Chorus]
+秀出精彩每一天
+燕語歡聲伴流年
+美好人生新啟程
+女神自在樂悠然
+不是告別 是新的開始
+把忙碌的時間還給自己
+去旅行 去微笑 去擁抱
+過每一個妳喜歡的日子
+[Verse 2]
+總是自帶舞台效果
+帶來歡笑的妳
+竟然也要退休了
+真的好捨不得妳
+想起當年被妳拐去
+尾牙一起表演回憶
+嘴上說是被妳騙去
+心裡卻感謝有妳
+[Pre-Chorus]
+那些迎新送舊的日子
+那些笑到流淚的故事
+因為妳變得珍貴
+因為妳變得難忘美麗
+[Chorus]
+秀出精彩每一天
+燕語歡聲伴流年
+美好人生新啟程
+女神自在樂悠然
+不是告別 是新的開始
+把忙碌的時間還給自己
+去旅行 去微笑 去擁抱
+過每一個妳喜歡的日子
+[Bridge]
+親愛可愛活潑的秀燕姐
+退休也要像影后般耀眼
+拿下人生的終身成就獎
+第二人生比舞台還精彩
+當個快樂的包租女王
+天天唱歌 天天開心
+幸福快樂每一天
+愛妳的人都在這裡
+[Verse 3]
+總是笑咪咪的秀燕姐
+數饅頭的日子終於結束了
+豪爽又真誠的個性
+幽默玩笑最讓人記得
+沒有妳的都發局
+怎麼可以叫都發局
+想到以後少了妳身影
+我們心裡真的捨不得妳
+[Final Chorus]
+秀出精彩每一天
+燕語歡聲伴流年
+美好人生新啟程
+女神自在樂悠然
+繼續精彩 繼續美美
+繼續把日子過得動人
+不管未來在哪裡
+妳都會美艷又閃耀動人
+[Outro]
+當然退休後別太忙著享福
+還要記得回來看看我們
+都發局花 永遠綻放
+秀燕姐 祝妳退休快樂
+退休快樂
+幸福滿滿
+第二人生
+比夢還精彩`;
+
+const audio = document.getElementById('audio');
+const listEl = document.getElementById('lineList');
+const statusEl = document.getElementById('status');
+const previewEl = document.getElementById('previewText');
+const canvas = document.getElementById('waveCanvas');
+const waveWrap = document.getElementById('waveWrap');
+const tipEl = document.getElementById('waveTip');
+const ctx = canvas.getContext('2d');
+
+let lines = [];
+let current = 0;
+let duration = 0;          // 歌曲長度（秒）
+let peaks = null;          // 波形峰值，PEAK_RES 筆/秒
+let pxPerSec = 6;          // 縮放
+let follow = true;         // 播放時自動捲動
+
+const PEAK_RES = 25;
+const DEFAULT_GAP = 0.15;
+const LAST_LINE_LEN = 4.0;
+const WAVE_H = 120;
+const RULER_H = 18;
+
+// ---------- 音訊來源 ----------
+const AUDIO_CANDIDATES = ['../bgm.mp3', '../public/bgm.mp3', '/retire/bgm.mp3', '/bgm.mp3'];
+let audioIdx = 0;
+function tryNextAudio() {
+  if (audioIdx < AUDIO_CANDIDATES.length) {
+    audio.src = AUDIO_CANDIDATES[audioIdx++];
+  } else {
+    document.getElementById('audioFile').style.display = '';
+    statusEl.textContent = '找不到 bgm.mp3，請手動選擇音樂檔 →';
+  }
+}
+audio.addEventListener('error', tryNextAudio);
+audio.addEventListener('loadedmetadata', () => {
+  duration = audio.duration;
+  buildWaveform(audio.currentSrc);
+  drawWave();
+});
+document.getElementById('audioFile').addEventListener('change', (e) => {
+  const f = e.target.files[0];
+  if (f) {
+    audio.src = URL.createObjectURL(f);
+    f.arrayBuffer().then(decodePeaks);
+  }
+});
+tryNextAudio();
+
+async function buildWaveform(url) {
+  try {
+    const buf = await (await fetch(url)).arrayBuffer();
+    await decodePeaks(buf);
+  } catch (e) {
+    peaks = null; // 波形抓不到也不影響操作，仍可點擊跳轉
+    drawWave();
+  }
+}
+async function decodePeaks(arrayBuffer) {
+  try {
+    const ac = new (window.AudioContext || window.webkitAudioContext)();
+    const ab = await ac.decodeAudioData(arrayBuffer);
+    const ch = ab.getChannelData(0);
+    const total = Math.ceil(ab.duration * PEAK_RES);
+    const step = Math.floor(ch.length / total);
+    peaks = new Float32Array(total);
+    for (let i = 0; i < total; i++) {
+      let max = 0;
+      const off = i * step;
+      for (let j = 0; j < step; j += 8) {
+        const v = Math.abs(ch[off + j] || 0);
+        if (v > max) max = v;
+      }
+      peaks[i] = max;
+    }
+    ac.close();
+  } catch (e) { peaks = null; }
+  drawWave();
+}
+
+// ---------- 波形繪製 ----------
+function timeToX(t) { return t * pxPerSec; }
+function xToTime(x) { return Math.max(0, Math.min(duration, x / pxPerSec)); }
+function fmtClock(t) {
+  const m = Math.floor(t / 60), s = t % 60;
+  return `${m}:${s < 10 ? '0' : ''}${s.toFixed(1)}`;
+}
+
+function drawWave() {
+  if (!duration) return;
+  const w = Math.ceil(duration * pxPerSec);
+  if (canvas.width !== w) canvas.width = w;
+  ctx.clearRect(0, 0, w, WAVE_H);
+
+  // 背景
+  ctx.fillStyle = '#1a1712';
+  ctx.fillRect(0, 0, w, WAVE_H);
+
+  // 波形
+  const midY = RULER_H + (WAVE_H - RULER_H) / 2;
+  const amp = (WAVE_H - RULER_H) / 2 - 4;
+  if (peaks) {
+    const played = audio.currentTime;
+    for (let x = 0; x < w; x++) {
+      const t = x / pxPerSec;
+      const p = peaks[Math.floor(t * PEAK_RES)] || 0;
+      const h = Math.max(1, p * amp);
+      ctx.fillStyle = t <= played ? '#C9A84C' : '#5a4e33';
+      ctx.fillRect(x, midY - h, 1, h * 2);
+    }
+  } else {
+    ctx.fillStyle = '#3a3428';
+    ctx.fillRect(0, midY - 1, w, 2);
+  }
+
+  // 時間尺標
+  ctx.fillStyle = '#0f0d0a';
+  ctx.fillRect(0, 0, w, RULER_H);
+  ctx.fillStyle = '#9a8f78';
+  ctx.font = '11px sans-serif';
+  const tick = pxPerSec >= 24 ? 5 : 10;
+  for (let t = 0; t <= duration; t += tick) {
+    const x = timeToX(t);
+    ctx.fillRect(x, RULER_H - 5, 1, 5);
+    ctx.fillText(fmtClock(t), x + 3, 12);
+  }
+
+  // 歌詞旗標
+  lines.forEach((l, i) => {
+    if (l.start == null) return;
+    const x = timeToX(l.start);
+    const sel = i === current;
+    // 句子區間底色
+    if (l.end != null) {
+      ctx.fillStyle = sel ? 'rgba(201,168,76,0.22)' : 'rgba(201,168,76,0.10)';
+      ctx.fillRect(x, RULER_H, timeToX(l.end) - x, WAVE_H - RULER_H);
+    }
+    ctx.fillStyle = sel ? '#FFD86B' : '#C9A84C';
+    ctx.fillRect(x, RULER_H, 2, WAVE_H - RULER_H);
+    // 旗標頭
+    ctx.beginPath();
+    ctx.moveTo(x, RULER_H);
+    ctx.lineTo(x + 14, RULER_H + 7);
+    ctx.lineTo(x, RULER_H + 14);
+    ctx.fill();
+    ctx.fillStyle = '#1a1409';
+    ctx.font = 'bold 9px sans-serif';
+    ctx.fillText(i + 1, x + 2, RULER_H + 10);
+  });
+
+  // 播放頭
+  const px = timeToX(audio.currentTime);
+  ctx.fillStyle = '#FFF8EC';
+  ctx.fillRect(px - 1, 0, 2, WAVE_H);
+}
+
+// 播放頭動畫 + 自動捲動
+function raf() {
+  if (duration) {
+    drawWave();
+    if (follow && !audio.paused && !dragging) {
+      const px = timeToX(audio.currentTime);
+      const vis = waveWrap.clientWidth;
+      if (px < waveWrap.scrollLeft + 40 || px > waveWrap.scrollLeft + vis - 80) {
+        waveWrap.scrollLeft = px - vis * 0.3;
+      }
+    }
+    document.getElementById('timeNow').textContent = fmtClock(audio.currentTime);
+  }
+  requestAnimationFrame(raf);
+}
+requestAnimationFrame(raf);
+
+// ---------- 波形互動 ----------
+let dragging = null;       // { lineIdx, grabOffset }
+let mouseDownX = null;
+
+function canvasEventTime(e) {
+  const rect = canvas.getBoundingClientRect();
+  return xToTime(e.clientX - rect.left);
+}
+function findMarkerNear(e) {
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  let best = -1, bestDist = 8; // 8px 內算抓到
+  lines.forEach((l, i) => {
+    if (l.start == null) return;
+    const d = Math.abs(timeToX(l.start) - x);
+    // 旗標頭區域再寬一點
+    const inFlagHead = e.clientY - rect.top < RULER_H + 16 && x - timeToX(l.start) > -4 && x - timeToX(l.start) < 16;
+    if (d < bestDist || inFlagHead && d < 18) { best = i; bestDist = d; }
+  });
+  return best;
+}
+
+canvas.addEventListener('mousedown', (e) => {
+  mouseDownX = e.clientX;
+  const idx = findMarkerNear(e);
+  if (idx >= 0) {
+    dragging = { lineIdx: idx, grabOffset: canvasEventTime(e) - lines[idx].start };
+    current = idx;
+    renderList();
+  }
+});
+window.addEventListener('mousemove', (e) => {
+  if (dragging) {
+    const l = lines[dragging.lineIdx];
+    const len = (l.end != null && l.start != null) ? l.end - l.start : null;
+    l.start = +(Math.max(0, canvasEventTime(e) - dragging.grabOffset)).toFixed(2);
+    if (len != null) l.end = +(l.start + len).toFixed(2);
+    renderList(false);
+    return;
+  }
+  // tooltip
+  if (e.target === canvas) {
+    const idx = findMarkerNear(e);
+    const t = canvasEventTime(e);
+    tipEl.style.display = '';
+    tipEl.style.left = (e.clientX + 14) + 'px';
+    tipEl.style.top = (e.clientY + 14) + 'px';
+    tipEl.textContent = idx >= 0
+      ? `#${idx + 1} ${lines[idx].text}（${fmtClock(lines[idx].start)}）←可拖曳`
+      : fmtClock(t);
+    canvas.style.cursor = idx >= 0 ? 'ew-resize' : 'crosshair';
+  } else {
+    tipEl.style.display = 'none';
+  }
+});
+window.addEventListener('mouseup', (e) => {
+  if (dragging) {
+    dragging = null;
+    renderList();
+    return;
+  }
+  // 一般點擊 = 跳時間（限 canvas 上、且沒拖動超過 3px）
+  if (e.target === canvas && mouseDownX != null && Math.abs(e.clientX - mouseDownX) < 3) {
+    audio.currentTime = canvasEventTime(e);
+  }
+  mouseDownX = null;
+});
+canvas.addEventListener('mouseleave', () => { tipEl.style.display = 'none'; });
+canvas.addEventListener('dblclick', (e) => {
+  audio.currentTime = canvasEventTime(e);
+  audio.play();
+});
+
+// 縮放
+document.querySelectorAll('.zoomBtn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const anchor = audio.currentTime;
+    pxPerSec = +btn.dataset.z;
+    drawWave();
+    waveWrap.scrollLeft = timeToX(anchor) - waveWrap.clientWidth / 2;
+  });
+});
+document.getElementById('followBtn').addEventListener('click', (e) => {
+  follow = !follow;
+  e.target.classList.toggle('toggled', follow);
+});
+
+// ---------- 歌詞列表 ----------
+function parseLyrics(raw) {
+  return raw.split('\n')
+    .map(l => l.trim())
+    .filter(l => l && !/^\[.*\]$/.test(l))
+    .map(text => ({ text, start: null, end: null }));
+}
+function fmt(t) { return t == null ? '' : t.toFixed(2); }
+
+function seekToLine(i, preRoll = 1.5, play = false) {
+  const l = lines[i];
+  if (l && l.start != null) {
+    audio.currentTime = Math.max(0, l.start - preRoll);
+    if (play) audio.play();
+    waveWrap.scrollLeft = timeToX(l.start) - waveWrap.clientWidth * 0.3;
+  }
+}
+
+function renderList(scroll = true) {
+  listEl.innerHTML = '';
+  lines.forEach((line, i) => {
+    const overlap = i > 0 && line.start != null && lines[i - 1].end != null && line.start < lines[i - 1].end;
+    const div = document.createElement('div');
+    div.className = 'line' + (i === current ? ' current' : '') +
+      (line.start == null ? ' untimed' : '') + (overlap ? ' overlap' : '');
+    div.dataset.i = i;
+
+    div.innerHTML = `
+      <span class="idx">${i + 1}</span>
+      <span class="text">${line.text}</span>
+      <span class="times">
+        <input class="t" data-f="start" value="${fmt(line.start)}" placeholder="開始">
+        <input class="t" data-f="end" value="${fmt(line.end)}" placeholder="結束">
+        <span class="nudge">
+          <button data-n="0.2" title="+0.2s">▲</button>
+          <button data-n="-0.2" title="−0.2s">▼</button>
+        </span>
+        <button data-play="1" title="從這句前 1.5s 播放">▶</button>
+      </span>`;
+
+    // 單擊 = 選為目前句 + 跳到它的時間；雙擊 = 跳過去直接播
+    div.addEventListener('click', (e) => {
+      if (e.target.closest('input,button')) return;
+      current = i;
+      seekToLine(i);
+      renderList();
+    });
+    div.addEventListener('dblclick', (e) => {
+      if (e.target.closest('input,button')) return;
+      current = i;
+      seekToLine(i, 1.5, true);
+      renderList();
+    });
+    div.querySelectorAll('input.t').forEach(inp => {
+      inp.addEventListener('change', () => {
+        const v = parseFloat(inp.value);
+        line[inp.dataset.f] = Number.isFinite(v) ? v : null;
+        renderList();
+      });
+      inp.addEventListener('click', e => e.stopPropagation());
+    });
+    div.querySelectorAll('[data-n]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const d = parseFloat(btn.dataset.n);
+        if (line.start != null) line.start = Math.max(0, +(line.start + d).toFixed(2));
+        if (line.end != null) line.end = Math.max(0, +(line.end + d).toFixed(2));
+        e.target.blur();
+        renderList();
+      });
+    });
+    div.querySelector('[data-play]').addEventListener('click', (e) => {
+      e.stopPropagation();
+      current = i;
+      seekToLine(i, 1.5, true);
+      e.target.blur();
+      renderList();
+    });
+
+    listEl.appendChild(div);
+  });
+  if (scroll) {
+    const el = listEl.querySelector('.line.current');
+    if (el) el.scrollIntoView({ block: 'nearest' });
+  }
+  updateStatus();
+  drawWave();
+}
+
+function updateStatus() {
+  const done = lines.filter(l => l.start != null).length;
+  statusEl.textContent = `已標 ${done}/${lines.length} 句`;
+}
+
+function tap() {
+  if (current >= lines.length) return;
+  const t = +audio.currentTime.toFixed(2);
+  lines[current].start = t;
+  if (current > 0) {
+    const prev = lines[current - 1];
+    if (prev.start != null && (prev.end == null || prev.end > t - DEFAULT_GAP || prev.end <= prev.start)) {
+      prev.end = Math.max(prev.start + 0.5, +(t - DEFAULT_GAP).toFixed(2));
+    }
+  }
+  lines[current].end = +(t + LAST_LINE_LEN).toFixed(2);
+  current = Math.min(current + 1, lines.length - 1);
+  renderList();
+  const el = listEl.querySelector(`[data-i="${current}"]`);
+  if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+}
+
+// 正在唱的句子反白 + 預覽
+setInterval(() => {
+  const t = audio.currentTime;
+  let playing = -1;
+  lines.forEach((l, i) => {
+    if (l.start != null && l.end != null && t >= l.start && t <= l.end) playing = i;
+  });
+  listEl.querySelectorAll('.line').forEach(el => {
+    el.classList.toggle('playing', +el.dataset.i === playing);
+  });
+  if (playing >= 0) {
+    previewEl.textContent = lines[playing].text;
+    previewEl.style.display = '';
+  } else {
+    previewEl.style.display = 'none';
+  }
+}, 100);
+
+// ---------- 匯出入 ----------
+function buildJson() {
+  const out = lines
+    .filter(l => l.start != null && l.end != null && l.end > l.start)
+    .map(l => ({ start: l.start, end: l.end, text: l.text }));
+  return JSON.stringify(out, null, 2);
+}
+document.getElementById('exportBtn').addEventListener('click', () => {
+  const blob = new Blob([buildJson()], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'lyrics-timing.json';
+  a.click();
+});
+document.getElementById('copyBtn').addEventListener('click', async () => {
+  await navigator.clipboard.writeText(buildJson());
+  statusEl.textContent = '已複製到剪貼簿 ✓';
+});
+document.getElementById('importFile').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const data = JSON.parse(await file.text());
+  lines = data.map(d => ({ text: d.text, start: d.start, end: d.end }));
+  current = 0;
+  renderList();
+});
+
+// ---------- 其他控制 ----------
+document.getElementById('tapBtn').addEventListener('click', (e) => { tap(); e.target.blur(); });
+document.getElementById('playBtn').addEventListener('click', (e) => { audio.paused ? audio.play() : audio.pause(); e.target.blur(); });
+document.getElementById('back3').addEventListener('click', (e) => { audio.currentTime = Math.max(0, audio.currentTime - 3); e.target.blur(); });
+document.getElementById('fwd3').addEventListener('click', (e) => { audio.currentTime = Math.min(duration, audio.currentTime + 3); e.target.blur(); });
+document.getElementById('rate').addEventListener('change', (e) => { audio.playbackRate = parseFloat(e.target.value); });
+
+document.getElementById('shiftPlus').addEventListener('click', () => shiftAll(+parseFloat(document.getElementById('shiftVal').value || 0)));
+document.getElementById('shiftMinus').addEventListener('click', () => shiftAll(-parseFloat(document.getElementById('shiftVal').value || 0)));
+function shiftAll(d) {
+  lines.forEach(l => {
+    if (l.start != null) l.start = Math.max(0, +(l.start + d).toFixed(2));
+    if (l.end != null) l.end = Math.max(0, +(l.end + d).toFixed(2));
+  });
+  renderList();
+}
+
+document.getElementById('reloadLyrics').addEventListener('click', () => {
+  const raw = document.getElementById('lyricsInput').value.trim();
+  if (!raw) return;
+  if (!confirm('重新載入會清掉現有時間標記，確定？')) return;
+  lines = parseLyrics(raw);
+  current = 0;
+  renderList();
+});
+document.getElementById('clearTimes').addEventListener('click', () => {
+  if (!confirm('清除所有時間標記？')) return;
+  lines.forEach(l => { l.start = null; l.end = null; });
+  current = 0;
+  renderList();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.target.matches('input,textarea,select')) return;
+  if (e.code === 'Space') { e.preventDefault(); tap(); }
+  else if (e.key === 'ArrowDown') { e.preventDefault(); current = Math.min(current + 1, lines.length - 1); seekToLine(current); renderList(); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); current = Math.max(current - 1, 0); seekToLine(current); renderList(); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); audio.currentTime = Math.max(0, audio.currentTime - 3); }
+  else if (e.key === 'ArrowRight') { e.preventDefault(); audio.currentTime = Math.min(duration, audio.currentTime + 3); }
+  else if (e.key === 'p' || e.key === 'P') { e.preventDefault(); audio.paused ? audio.play() : audio.pause(); }
+  else if (e.key === 'Enter') { e.preventDefault(); seekToLine(current, 1.5, true); }
+});
+
+// ---------- 自動儲存 ----------
+setInterval(() => {
+  localStorage.setItem('lyric-timer-state', JSON.stringify({ lines, current }));
+}, 2000);
+
+const saved = localStorage.getItem('lyric-timer-state');
+if (saved) {
+  try {
+    const s = JSON.parse(saved);
+    if (Array.isArray(s.lines) && s.lines.length && s.lines.some(l => l.start != null) &&
+        confirm('偵測到上次未完成的進度，要繼續嗎？')) {
+      lines = s.lines;
+      current = s.current || 0;
+    }
+  } catch {}
+}
+if (!lines.length) lines = parseLyrics(RAW_LYRICS);
+document.getElementById('lyricsInput').value = RAW_LYRICS;
+renderList();
+</script>
+</body>
+</html>

@@ -1,228 +1,685 @@
 {
-  "totalDuration": 148,
+  "totalDuration": 296.2,
   "sections": [
     {
-      "id": "career-journey",
-      "section": "一路走來",
-      "title": "一路走來",
-      "subtitle": "每一步都是歷史的印記",
+      "id": "youth",
+      "section": "十八姑娘一朵花",
+      "title": "十八姑娘一朵花",
+      "subtitle": "公務生涯的起點，青春正盛",
       "photos": [
         {
-          "fileName": "104_11_14-4.jpg",
-          "caption": "昔日回憶，點滴情誼永存心。",
-          "duration": 3
+          "type": "photo",
+          "fileName": "s1-01.jpg",
+          "caption": "公務生涯起點從68年國民住宅處開始",
+          "durationFrames": 77
         },
         {
-          "fileName": "2D63E874-4F44-47E7-AF31-C7353BB1FA4D.jpg",
-          "caption": "謝謝有你相伴",
-          "duration": 3
+          "type": "photo",
+          "fileName": "s1-02.jpg",
+          "caption": "年輕時的秀燕姐就已經有帶領大家一同歡樂聚餐的本領",
+          "durationFrames": 77
         },
         {
-          "fileName": "BCC5D070-EBFF-4DDC-8B2B-0AF5C846D5A2.jpg",
-          "caption": "共事歲月，珍貴情誼",
-          "duration": 3
+          "type": "photo",
+          "fileName": "s1-03.jpg",
+          "caption": "文蘭與秀燕",
+          "durationFrames": 77
         },
         {
-          "fileName": "IMG_5950.jpg",
-          "caption": "公職生涯，同事情誼永誌不忘",
-          "duration": 3
+          "type": "photo",
+          "fileName": "s1-04.jpg",
+          "caption": "出遊不忘帶收音機炒熱氣氛",
+          "durationFrames": 77
         },
         {
-          "fileName": "LINE_ALBUM_260427_1_71145b.jpg",
-          "caption": "最溫馨的辦公室時光",
-          "duration": 3
+          "type": "photo",
+          "fileName": "s1-05.jpg",
+          "caption": "與同事一同參加聯誼活動",
+          "durationFrames": 77
+        },
+        {
+          "type": "photo",
+          "fileName": "s1-06.jpg",
+          "caption": "猜猜三大美女是(文蘭、秀燕、梁姐)",
+          "durationFrames": 77
+        },
+        {
+          "type": "photo",
+          "fileName": "s1-07.jpg",
+          "caption": "海生館郊遊(秀燕、裴、文蘭、建華)",
+          "durationFrames": 77
+        },
+        {
+          "type": "photo",
+          "fileName": "s1-08.jpg",
+          "caption": "我們一起擁有過許多美好時光",
+          "durationFrames": 77
+        },
+        {
+          "type": "photo",
+          "fileName": "s1-09.jpg",
+          "caption": "參加田姐女兒婚禮",
+          "durationFrames": 77
         }
       ]
     },
     {
-      "id": "teamwork",
-      "section": "一起努力的日子",
-      "title": "一起努力的日子",
-      "subtitle": "因為有妳，工作更有意義",
+      "id": "gatherings",
+      "section": "歡樂聚會都有你在",
+      "title": "歡樂聚會都有你在",
+      "subtitle": "有妳在的地方，就有笑聲",
       "photos": [
         {
-          "fileName": "F9DA86B5-8E61-48C6-A3AB-431BDEA59B1D.jpg",
-          "caption": "青春歲月有妳相伴，真好！",
-          "duration": 3
+          "type": "photo",
+          "fileName": "s2-01.jpg",
+          "caption": "老同事聚餐",
+          "durationFrames": 59
         },
         {
-          "fileName": "LINE_ALBUM_260427_5_ba5237.jpg",
-          "caption": "美好時光，開心留影。",
-          "duration": 3
+          "type": "photo",
+          "fileName": "s2-02.jpg",
+          "caption": "老同事聚餐",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s2-03.jpg",
+          "caption": "老同事嫁女兒",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s2-04.jpg",
+          "caption": "秘書室聚餐",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s2-05.jpg",
+          "caption": "田姐回國團聚",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s2-06.jpg",
+          "caption": "秘書室聚餐",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s2-07.jpg",
+          "caption": "秘書室聚餐",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s2-08.jpg",
+          "caption": "秘書室慶生",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s2-09.jpg",
+          "caption": "秘書室慶生",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s2-10.jpg",
+          "caption": "都設科聚餐",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s2-11.jpg",
+          "caption": "都設科聚餐",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s2-12.jpg",
+          "caption": "怡君喜宴",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s2-13.jpg",
+          "caption": "阿迪喜宴",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s2-14.jpg",
+          "caption": "阿迪喜宴",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s2-15.jpg",
+          "caption": "怡嘉喜宴",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s2-16.jpg",
+          "caption": "凱媚喜宴",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s2-17.jpg",
+          "caption": "秀燕姐嫁女兒",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s2-18.jpg",
+          "caption": "秀燕姐嫁女兒",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s2-19.jpg",
+          "caption": "017聚餐",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s2-20.jpg",
+          "caption": "為元旦生日的屯電副座慶生",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s2-21.jpg",
+          "caption": "都更科聚餐",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s2-22.jpg",
+          "caption": "都更科聚餐",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s2-23.jpg",
+          "caption": "都更科聚餐",
+          "durationFrames": 59
         }
       ]
     },
     {
-      "id": "events",
-      "section": "每一次活動都有妳的笑容",
-      "title": "每一次活動都有妳的笑容",
-      "subtitle": "妳的笑容是最美的風景",
+      "id": "outings",
+      "section": "快樂出遊去",
+      "title": "快樂出遊去",
+      "subtitle": "一起走過的風景，最美",
       "photos": [
         {
-          "fileName": "00370BC2-4048-456A-94E8-D1DED736B2CC.jpg",
-          "caption": "相伴多年，情誼永存。",
-          "duration": 3
+          "type": "photo",
+          "fileName": "s3-01.jpg",
+          "caption": "台北花博博覽會-1",
+          "durationFrames": 59
         },
         {
-          "fileName": "106_6_10-24_0.jpg",
-          "caption": "歡聲笑語，共創美好回憶。",
-          "duration": 3
+          "type": "photo",
+          "fileName": "s3-02.jpg",
+          "caption": "台北花博博覽會",
+          "durationFrames": 59
         },
         {
-          "fileName": "1DFADFA8-B17B-480A-8F9D-8EDE93BD52ED.jpg",
-          "caption": "一路走來的溫馨相伴",
-          "duration": 3
+          "type": "photo",
+          "fileName": "s3-03.jpg",
+          "caption": "大樹舊鐵橋",
+          "durationFrames": 59
         },
         {
-          "fileName": "2015-3-28_049.jpg",
-          "caption": "珍貴的情誼，永遠在心。",
-          "duration": 3
+          "type": "photo",
+          "fileName": "s3-04.jpg",
+          "caption": "大樹舊鐵橋",
+          "durationFrames": 59
         },
         {
-          "fileName": "4E8840DA-9A03-4DEA-9C36-BEBBAF7FC69C.jpg",
-          "caption": "充滿愛的大家庭，溫暖永存。",
-          "duration": 3
+          "type": "photo",
+          "fileName": "s3-05.jpg",
+          "caption": "樹谷生活科學館",
+          "durationFrames": 59
         },
         {
-          "fileName": "6887B7C2-0A2A-4553-98E7-8AA336C41D3F.jpg",
-          "caption": "歡樂時光，情誼永存",
-          "duration": 3
+          "type": "photo",
+          "fileName": "s3-06.jpg",
+          "caption": "住發處集盒",
+          "durationFrames": 59
         },
         {
-          "fileName": "A75C1821.jpg",
-          "caption": "珍貴時刻，笑容永存心底",
-          "duration": 3
+          "type": "photo",
+          "fileName": "s3-07.jpg",
+          "caption": "海生館環境教育",
+          "durationFrames": 59
         },
         {
-          "fileName": "B0AE52E0-70F2-4B9C-8E7E-5050C7FE48DE.jpg",
-          "caption": "忠義長存，情誼永恆的歲月。",
-          "duration": 3
+          "type": "photo",
+          "fileName": "s3-08.jpg",
+          "caption": "棧二庫燈會值班",
+          "durationFrames": 59
         },
         {
-          "fileName": "B36B22CC-0110-4F5D-A334-9406472AC488.jpg",
-          "caption": "與摯愛同事們的溫馨相聚，情誼永存。",
-          "duration": 3
-        },
-        {
-          "fileName": "D6C05E6D-8A3C-44C2-B561-DEDB59300760.jpg",
-          "caption": "美好的時光，感謝有你！",
-          "duration": 3
+          "type": "photo",
+          "fileName": "s3-09.jpg",
+          "caption": "哈瑪星馬賽克磚再生開幕",
+          "durationFrames": 59
         }
       ]
     },
     {
-      "id": "colleagues",
-      "section": "同事情誼",
-      "title": "同事情誼",
-      "subtitle": "相識是緣，共事是福",
+      "id": "fanclub",
+      "section": "阿迪的頭號粉絲",
+      "title": "阿迪的頭號粉絲",
+      "subtitle": "追星路上，妳最忠實",
       "photos": [
         {
-          "fileName": "076D595E-F71B-4B96-A615-531B80CBFC74.jpg",
-          "caption": "歡樂時光，留下珍貴回憶。",
-          "duration": 3
+          "type": "photo",
+          "fileName": "s4-01.jpg",
+          "caption": "104年-菜鳥警察押解老扒手",
+          "durationFrames": 77
         },
         {
-          "fileName": "1030502-_13.jpg",
-          "caption": "感謝您與我們一同走過這段溫馨的歲月",
-          "duration": 3
+          "type": "photo",
+          "fileName": "s4-02.jpg",
+          "caption": "104年-菜鳥警察押解老扒手",
+          "durationFrames": 77
         },
         {
-          "fileName": "16460.jpg",
-          "caption": "歡聲笑語，永存心底。",
-          "duration": 3
+          "type": "photo",
+          "fileName": "s4-03.jpg",
+          "caption": "106年-人間條件六未來主人翁",
+          "durationFrames": 77
         },
         {
-          "fileName": "16573028-D277-4A97-A878-1B7A6FAE27F7.jpg",
-          "caption": "與您共創美好時光",
-          "duration": 3
+          "type": "photo",
+          "fileName": "s4-04.jpg",
+          "caption": "親民的阿迪還跟我們吃火鍋",
+          "durationFrames": 77
         },
         {
-          "fileName": "684B13B0-F9B6-4FDA-BBEA-DC1B0A9DFBD2.jpg",
-          "caption": "歡樂時光，永存心間",
-          "duration": 3
-        },
-        {
-          "fileName": "6DD26E1A-FA8C-4394-9314-20642A680A30.jpg",
-          "caption": "溫馨合影，滿載歡樂回憶",
-          "duration": 3
-        },
-        {
-          "fileName": "A2C49F0C-F2B1-449A-9FBC-ECEDCD4BD226.jpg",
-          "caption": "同仁情誼永在，笑容滿滿",
-          "duration": 3
-        },
-        {
-          "fileName": "D5B5DB93-7926-4CBC-AABB-B07DE8499578.jpg",
-          "caption": "珍貴友情，常伴左右。",
-          "duration": 3
-        },
-        {
-          "fileName": "IMAG3518.jpg",
-          "caption": "笑容紀錄美好時光",
-          "duration": 3
-        },
-        {
-          "fileName": "IMG_0905.jpg",
-          "caption": "笑容滿盈，情誼長存",
-          "duration": 3
+          "type": "photo",
+          "fileName": "s4-05.jpg",
+          "caption": "恭喜星媽，我們以你為榮",
+          "durationFrames": 77
         }
       ]
     },
     {
-      "id": "farewell",
-      "section": "帶著祝福",
-      "title": "帶著祝福",
-      "subtitle": "感謝妳的付出，一路順風",
+      "id": "yearend-show",
+      "section": "尾牙精彩表演",
+      "title": "尾牙精彩表演",
+      "subtitle": "舞台上的妳，永遠發光",
       "photos": [
         {
-          "fileName": "9C5BC6D8-F8A8-4EDF-B163-4C30A405DCBF.jpg",
-          "caption": "同事情誼，點滴在心頭",
-          "duration": 3
+          "type": "photo",
+          "fileName": "s5-01.jpg",
+          "caption": "104年尾牙表演，臨危授命，我們練習不到一個禮拜就上台了",
+          "durationFrames": 59
         },
         {
-          "fileName": "DSC08506.jpg",
-          "caption": "歡送同仁榮退，溫馨永留心底。",
-          "duration": 3
+          "type": "video",
+          "fileName": "s5-02v1.mp4",
+          "caption": "104年尾牙表演",
+          "durationFrames": 450
         },
         {
-          "fileName": "DSC08556.jpg",
-          "caption": "歡送會上的溫馨合影，情誼永存",
-          "duration": 3
+          "type": "video",
+          "fileName": "s5-02v2.mp4",
+          "caption": "104年尾牙表演",
+          "durationFrames": 300
         },
         {
-          "fileName": "DSC08585.jpg",
-          "caption": "感謝多年相伴，美好回憶永存",
-          "duration": 3
+          "type": "photo",
+          "fileName": "s5-03.jpg",
+          "caption": "105年尾牙主持人出場",
+          "durationFrames": 59
         },
         {
-          "fileName": "DSCN4528.jpg",
-          "caption": "永遠的夥伴，感謝有您！",
-          "duration": 3
+          "type": "photo",
+          "fileName": "s5-04.jpg",
+          "caption": "105年尾牙與史哲副市長合唱",
+          "durationFrames": 59
         },
         {
-          "fileName": "IMG_5586_0.jpg",
-          "caption": "感謝有您，共創精彩。",
-          "duration": 3
+          "type": "photo",
+          "fileName": "s5-05.jpg",
+          "caption": "105年尾牙戴著局長的面具與副座跳舞",
+          "durationFrames": 59
         },
         {
-          "fileName": "IMG_9484.jpg",
-          "caption": "珍貴合影，情誼永存心底。",
-          "duration": 3
+          "type": "video",
+          "fileName": "s5-06v1.mp4",
+          "caption": "107年尾牙表演，當時流行斗肩舞",
+          "durationFrames": 570
         },
         {
-          "fileName": "S_14598157_0.jpg",
-          "caption": "感謝有您，美好回憶永存心中。",
-          "duration": 3
+          "type": "photo",
+          "fileName": "s5-07.jpg",
+          "caption": "107年尾牙-最美主持人與副座合影",
+          "durationFrames": 59
         },
         {
-          "fileName": "S_14598158_0.jpg",
-          "caption": "感謝有您，美好回憶永存心中。",
-          "duration": 3
+          "type": "photo",
+          "fileName": "s5-08.jpg",
+          "caption": "107年尾牙-最美主持人與表演者合影",
+          "durationFrames": 59
         },
         {
-          "fileName": "S_827489.jpg",
-          "caption": "感謝有您，歡樂相聚",
-          "duration": 3
+          "type": "photo",
+          "fileName": "s5-09.jpg",
+          "caption": "107年尾牙幕後彩排花絮",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s5-10.jpg",
+          "caption": "107年尾牙幕後彩排花絮",
+          "durationFrames": 59
+        }
+      ]
+    },
+    {
+      "id": "farewells",
+      "section": "歡送長官同仁",
+      "title": "歡送長官同仁",
+      "subtitle": "每一次道別，都有妳溫暖相送",
+      "photos": [
+        {
+          "type": "photo",
+          "fileName": "s6-01.jpg",
+          "caption": "歡送文海榮退休",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s6-02.jpg",
+          "caption": "歡送志明科長高升",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s6-03.jpg",
+          "caption": "歡送周姐退休",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s6-04.jpg",
+          "caption": "歡送阿財主秘退休",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s6-05.jpg",
+          "caption": "歡送淑芬退休",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s6-06.jpg",
+          "caption": "歡送替代役晉傑退伍",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s6-07.jpg",
+          "caption": "歡送麗玉主任",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s6-08.jpg",
+          "caption": "歡送謝淑勤退休",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s6-09.jpg",
+          "caption": "歡送月鳳正工退休",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s6-10.jpg",
+          "caption": "歡送盧維屏局長",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s6-11.jpg",
+          "caption": "歡送啟川局長高升",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s6-12.jpg",
+          "caption": "歡送李怡德局長",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s6-13.jpg",
+          "caption": "歡送林裕益局長",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s6-14.jpg",
+          "caption": "歡送李四川副市長",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s6-15.jpg",
+          "caption": "歡送楊欽富局長",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s6-16.jpg",
+          "caption": "歡送椉元科長高升",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s6-17.jpg",
+          "caption": "歡送翁副總退休",
+          "durationFrames": 59
+        }
+      ]
+    },
+    {
+      "id": "our-turn",
+      "section": "今天換我們歡送你",
+      "title": "今天換我們歡送你",
+      "subtitle": "這一次，換我們對妳說愛你",
+      "photos": [
+        {
+          "type": "photo",
+          "fileName": "s7-01.jpg",
+          "caption": "黃副座愛你~~",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s7-02.jpg",
+          "caption": "秀芬愛你~~",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s7-03.jpg",
+          "caption": "廣梅、昱伶愛你~~",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s7-04.jpg",
+          "caption": "子茜愛你~~",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s7-05.jpg",
+          "caption": "文蘭愛你~~",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s7-06.jpg",
+          "caption": "廣梅、阿美愛你~",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s7-07.jpg",
+          "caption": "力甄、大哲愛你~~",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s7-08.jpg",
+          "caption": "怡君愛你~~",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s7-09.jpg",
+          "caption": "黃玉、文蘭愛你~",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s7-10.jpg",
+          "caption": "副祕愛你~~",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s7-11.jpg",
+          "caption": "炳鴻愛你~~",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s7-12.jpg",
+          "caption": "承學愛你~~",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s7-13.jpg",
+          "caption": "佩琪、凱仁愛你~~",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s7-14.jpg",
+          "caption": "椉元愛你~~",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s7-15.jpg",
+          "caption": "錫嫚愛你~~",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s7-16.jpg",
+          "caption": "雅惠愛你~~",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s7-17.jpg",
+          "caption": "毓權愛你~~",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s7-18.jpg",
+          "caption": "怡嘉愛你~~",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s7-19.jpg",
+          "caption": "瑞婷愛你~~",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s7-20.jpg",
+          "caption": "季持愛你~~",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s7-21.jpg",
+          "caption": "文彥愛你~~",
+          "durationFrames": 59
+        },
+        {
+          "type": "photo",
+          "fileName": "s7-22.jpg",
+          "caption": "欣愉、凱媚、欣芸、薇謹愛你~~我們永遠愛你~~~",
+          "durationFrames": 59
+        }
+      ]
+    },
+    {
+      "id": "tribute",
+      "section": "致永遠的都發局花，青春永駐常在我心",
+      "title": "致永遠的都發局花",
+      "subtitle": "青春永駐，常在我心",
+      "photos": [
+        {
+          "type": "photo",
+          "fileName": "s8-01.jpg",
+          "caption": "致最可愛的秀燕姐",
+          "durationFrames": 77
+        },
+        {
+          "type": "photo",
+          "fileName": "s8-02.jpg",
+          "caption": "致最溫柔的秀燕姐",
+          "durationFrames": 77
+        },
+        {
+          "type": "photo",
+          "fileName": "s8-03.jpg",
+          "caption": "致最善良的秀燕姐",
+          "durationFrames": 77
+        },
+        {
+          "type": "photo",
+          "fileName": "s8-04.jpg",
+          "caption": "致最妖嬌的秀燕姐",
+          "durationFrames": 77
+        },
+        {
+          "type": "photo",
+          "fileName": "s8-05.jpg",
+          "caption": "致最美麗的秀燕姐",
+          "durationFrames": 77
+        },
+        {
+          "type": "photo",
+          "fileName": "s8-06.jpg",
+          "caption": "祝福你未來的日子更精彩~",
+          "durationFrames": 76
+        },
+        {
+          "type": "photo",
+          "fileName": "s8-07.jpg",
+          "caption": "永遠的都發局花~我們愛你~永遠美麗綻放~~~",
+          "durationFrames": 76
         }
       ]
     }

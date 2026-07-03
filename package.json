@@ -5,22 +5,21 @@
   "scripts": {
     "dev": "remotion studio",
     "render": "remotion render RetirementVideo out/retirement.mp4",
-    "analyze-photos": "tsx scripts/analyzePhotos.ts",
-    "build-timeline": "tsx scripts/buildTimeline.ts",
+    "import-assets": "tsx scripts/importAssets.ts",
     "check-data": "tsx scripts/checkData.ts",
     "typecheck": "tsc --noEmit",
     "compress-photos": "tsx scripts/compressForWeb.ts",
-    "player:build": "vite build",
+    "player:build": "vite build && rm -rf docs/photos-orig",
     "player:dev": "vite dev"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
-    "@remotion/cli": "4.0.272",
+    "@remotion/cli": "^4.0.479",
     "@remotion/player": "^4.0.479",
     "dotenv": "^16.4.7",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "remotion": "4.0.272",
+    "remotion": "^4.0.479",
     "zod": "^3.22.3"
   },
   "devDependencies": {

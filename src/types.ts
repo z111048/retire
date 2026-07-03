@@ -27,18 +27,23 @@ export interface PhotoMetadata {
   confidence: number;
 }
 
-export interface TimelinePhoto {
+export interface TimelineItem {
+  /** 'photo'（預設）或 'video'（public/videos/ 下的剪輯片段） */
+  type?: 'photo' | 'video';
   fileName: string;
   caption: string;
-  duration: number;
+  durationFrames: number;
 }
+
+/** @deprecated 舊名稱，改用 TimelineItem */
+export type TimelinePhoto = TimelineItem;
 
 export interface TimelineSection {
   id: string;
   section: string;
   title: string;
   subtitle: string;
-  photos: TimelinePhoto[];
+  photos: TimelineItem[];
 }
 
 export interface Timeline {
