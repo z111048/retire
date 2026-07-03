@@ -9,7 +9,7 @@
     "check-data": "tsx scripts/checkData.ts",
     "typecheck": "tsc --noEmit",
     "compress-photos": "tsx scripts/compressForWeb.ts",
-    "player:build": "vite build && rm -rf docs/photos-orig",
+    "player:build": "vite build && rm -rf docs/photos-orig && bash scripts/optimize-web-videos.sh",
     "player:dev": "vite dev"
   },
   "dependencies": {
