@@ -14,7 +14,7 @@ interface LyricsOverlayProps {
   suppressRanges?: [number, number][];
 }
 
-const FADE_S = 0.25;
+const FADE_S = 0.4;
 
 export const LyricsOverlay: React.FC<LyricsOverlayProps> = ({ lyrics, suppressRanges }) => {
   const frame = useCurrentFrame();
@@ -36,20 +36,6 @@ export const LyricsOverlay: React.FC<LyricsOverlayProps> = ({ lyrics, suppressRa
     { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
   );
 
-  const translateY = interpolate(
-    currentSec,
-    [active.start, fadeInEnd],
-    [16, 0],
-    { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
-  );
-
-  const scale = interpolate(
-    currentSec,
-    [active.start, fadeInEnd],
-    [0.88, 1],
-    { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
-  );
-
   return (
     <div style={{
       position: 'absolute',
@@ -57,13 +43,12 @@ export const LyricsOverlay: React.FC<LyricsOverlayProps> = ({ lyrics, suppressRa
       display: 'flex',
       alignItems: 'flex-end',
       justifyContent: 'center',
-      paddingBottom: 72,
+      paddingBottom: 28,
       pointerEvents: 'none',
     }}>
       <div style={{
+        // 只做淡入淡出，不縮放不位移，避免每句出現時的閃爍彈跳感
         opacity,
-        transform: `translateY(${translateY}px) scale(${scale})`,
-        transformOrigin: 'bottom center',
         // backdropFilter removed — triggers full-frame compositing every frame on mobile
         backgroundColor: 'rgba(0, 0, 0, 0.72)',
         borderRadius: 10,

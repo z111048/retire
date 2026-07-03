@@ -24,7 +24,7 @@ import type { Copywriting, Timeline, TimelineItem, TimelineSection } from '../sr
 
 const FPS = 30;
 const INTRO_S = 6;
-const TITLE_S = 2;
+const TITLE_S = 3.5; // 需與 src/constants.ts 的 SECTION_TITLE_DURATION_S 一致
 const OUTRO_S = 21;
 
 // 敘事型章節（照片較少、情感較重）放慢節奏

@@ -117,7 +117,7 @@ export const PhotoScene: React.FC<PhotoSceneProps> = ({ photo, index }) => {
       {/* Floating bokeh particles — keep count low for mobile perf */}
       <FloatingParticles count={6} opacityScale={0.8} />
 
-      {photo.caption && <CaptionText text={photo.caption} position="top" />}
+      {photo.caption && <CaptionText text={photo.caption} position="top-right" />}
     </div>
   );
 };

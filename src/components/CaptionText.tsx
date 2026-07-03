@@ -4,7 +4,7 @@ import { KAI_FONT } from '../utils/fonts';
 
 interface CaptionTextProps {
   text: string;
-  position?: 'top' | 'bottom';
+  position?: 'top' | 'bottom' | 'top-right';
 }
 
 export const CaptionText: React.FC<CaptionTextProps> = ({ text, position = 'bottom' }) => {
@@ -18,15 +18,16 @@ export const CaptionText: React.FC<CaptionTextProps> = ({ text, position = 'bott
   });
 
   const offset = 48;
-  const translateY = position === 'top'
+  const isTop = position === 'top' || position === 'top-right';
+  const translateY = isTop
     ? interpolate(frame, [0, 20], [-12, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' })
     : interpolate(frame, [0, 20], [16, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
-  const positionStyle = position === 'top'
+  const positionStyle = isTop
     ? { top: offset }
     : { bottom: offset };
 
-  const gradientStyle = position === 'top'
+  const gradientStyle = isTop
     ? { background: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 100%)' }
     : { background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 100%)' };
 
@@ -38,7 +39,8 @@ export const CaptionText: React.FC<CaptionTextProps> = ({ text, position = 'bott
         right: 0,
         ...positionStyle,
         display: 'flex',
-        justifyContent: 'center',
+        justifyContent: position === 'top-right' ? 'flex-end' : 'center',
+        paddingRight: position === 'top-right' ? 44 : 0,
         opacity,
         transform: `translateY(${translateY}px)`,
         pointerEvents: 'none',

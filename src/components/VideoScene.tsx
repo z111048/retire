@@ -55,7 +55,7 @@ export const VideoScene: React.FC<VideoSceneProps> = ({ item }) => {
         pointerEvents: 'none',
       }} />
 
-      {item.caption && <CaptionText text={item.caption} position="top" />}
+      {item.caption && <CaptionText text={item.caption} position="top-right" />}
     </div>
   );
 };

@@ -98,7 +98,7 @@ function main() {
 
     // 時長一致性：intro + titles + items + outro 應等於 totalDuration
     const expectedFrames = Math.round(timeline.totalDuration * FPS);
-    const fixedFrames = (6 + timeline.sections.length * 2 + 21) * FPS;
+    const fixedFrames = (6 + timeline.sections.length * 3.5 + 21) * FPS;
     const actualFrames = fixedFrames + sumFrames;
     if (actualFrames !== expectedFrames) {
       warn(`場景總長（${(actualFrames / FPS).toFixed(1)}s）與 totalDuration（${timeline.totalDuration.toFixed(1)}s）不一致，差 ${((actualFrames - expectedFrames) / FPS).toFixed(2)}s`);
