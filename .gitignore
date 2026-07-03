@@ -2,9 +2,9 @@ node_modules/
 out/
 dist/
 
-# 原始素材與封存不加入版控
-assets/
-archive/
+# 原始素材與封存不加入版控（限專案根目錄，勿匹配 docs/assets/）
+/assets/
+/archive/
 *.zip
 *.mp3
 !public/bgm.mp3
