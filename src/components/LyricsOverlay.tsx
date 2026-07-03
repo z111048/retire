@@ -1,6 +1,7 @@
 import React from 'react';
 import { useCurrentFrame, interpolate } from 'remotion';
 import { FRAME_RATE } from '../constants';
+import { KAI_FONT } from '../utils/fonts';
 
 interface LyricLine {
   start: number;
@@ -74,8 +75,8 @@ export const LyricsOverlay: React.FC<LyricsOverlayProps> = ({ lyrics, suppressRa
       }}>
         <span style={{
           color: '#FFF8EC',
-          fontSize: 52,
-          fontFamily: '"Noto Sans TC", "Microsoft JhengHei", "PingFang TC", sans-serif',
+          fontSize: 54,
+          fontFamily: KAI_FONT,
           fontWeight: 500,
           letterSpacing: '0.1em',
           textShadow: '0 2px 8px rgba(0,0,0,0.9), 0 0 20px rgba(201,168,76,0.35), 0 0 40px rgba(201,168,76,0.15)',

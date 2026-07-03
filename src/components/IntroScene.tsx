@@ -3,6 +3,7 @@ import { useCurrentFrame, useVideoConfig, interpolate, Img } from 'remotion';
 import { photoSrc } from '../utils/photoSrc';
 import { FRAME_RATE } from '../constants';
 import { FloatingParticles } from './FloatingParticles';
+import { HANDWRITING_FONT, KAI_FONT } from '../utils/fonts';
 
 interface IntroSceneProps {
   title: string;
@@ -91,16 +92,18 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ title, subtitle, date })
           justifyContent: 'center',
           alignItems: 'flex-start',
           gap: 26,
-          fontFamily: '"Noto Sans TC", "Microsoft JhengHei", "PingFang TC", sans-serif',
+          fontFamily: KAI_FONT,
         }}
       >
         <h1
           style={{
             ...makeTextStyle(0),
+            fontFamily: HANDWRITING_FONT,
             fontSize: 100,
-            fontWeight: 700,
+            fontWeight: 400,
             color: '#6d532a',
-            letterSpacing: '0.18em',
+            letterSpacing: '0.12em',
+            whiteSpace: 'nowrap',
             margin: 0,
             textShadow: '0 2px 14px rgba(255,255,255,0.9), 0 1px 2px rgba(109,83,42,0.25)',
           }}
@@ -120,7 +123,7 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ title, subtitle, date })
           style={{
             ...makeTextStyle(28),
             fontSize: 48,
-            fontWeight: 500,
+            fontWeight: 600,
             color: '#87683a',
             letterSpacing: '0.1em',
             margin: 0,

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useCurrentFrame, useVideoConfig, interpolate } from 'remotion';
+import { HANDWRITING_FONT, KAI_FONT } from '../utils/fonts';
 
 interface SectionTitleSceneProps {
   title: string;
@@ -151,9 +152,9 @@ export const SectionTitleScene: React.FC<SectionTitleSceneProps> = ({ title, sub
 
       <h2
         style={{
-          fontFamily: '"Noto Sans TC", "Microsoft JhengHei", "PingFang TC", sans-serif',
-          fontSize: 80,
-          fontWeight: 700,
+          fontFamily: HANDWRITING_FONT,
+          fontSize: 96,
+          fontWeight: 400,
           color: '#3A2E1E',
           letterSpacing: '0.15em',
           margin: 0,
@@ -168,9 +169,9 @@ export const SectionTitleScene: React.FC<SectionTitleSceneProps> = ({ title, sub
 
       <p
         style={{
-          fontFamily: '"Noto Sans TC", "Microsoft JhengHei", "PingFang TC", sans-serif',
+          fontFamily: KAI_FONT,
           fontSize: 42,
-          fontWeight: 400,
+          fontWeight: 500,
           color: '#7A6A52',
           letterSpacing: '0.1em',
           marginTop: 20,

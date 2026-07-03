@@ -2,6 +2,7 @@ import React from 'react';
 import { useCurrentFrame, useVideoConfig, interpolate } from 'remotion';
 import { FRAME_RATE } from '../constants';
 import { FloatingParticles } from './FloatingParticles';
+import { HANDWRITING_FONT } from '../utils/fonts';
 
 interface OutroSceneProps {
   line1: string;
@@ -44,8 +45,8 @@ export const OutroScene: React.FC<OutroSceneProps> = ({ line1, line2, line3, lin
         extrapolateLeft: 'clamp',
         extrapolateRight: 'clamp',
       })}px)`,
-      fontSize: isLast ? 72 : 50,
-      fontWeight: isLast ? 700 : 400,
+      fontSize: isLast ? 84 : 56,
+      fontWeight: 400,
       color: isLast ? '#C9A84C' : index < 2 ? '#3A2E1E' : '#5A4A32',
       letterSpacing: isLast ? '0.22em' : '0.1em',
       marginTop: isLast ? 24 : 0,
@@ -67,7 +68,7 @@ export const OutroScene: React.FC<OutroSceneProps> = ({ line1, line2, line3, lin
         justifyContent: 'center',
         opacity: containerOpacity,
         position: 'relative',
-        fontFamily: '"Noto Sans TC", "Microsoft JhengHei", "PingFang TC", sans-serif',
+        fontFamily: HANDWRITING_FONT,
       }}
     >
       {/* Gold divider */}

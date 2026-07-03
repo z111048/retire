@@ -76,6 +76,20 @@ retire/
 `npm run player:dev` 後開 `http://localhost:5173/retire/tools/lyric-timer.html`，
 邊聽邊按空白鍵標記，匯出後存成 `data/lyrics-timing.json`。
 
+## 字體
+
+影片使用兩款開源字體（SIL OFL 授權）：
+
+- **辰宇落雁體**（手寫感）— 開場標題、章節標題、結尾
+- **霞鶩文楷 TC**（楷書）— 照片字幕、歌詞、副標題
+
+完整字型檔在 `assets/fonts/`（不入版控），`public/fonts/` 只放子集化後的小檔。
+**文案、字幕或歌詞改字後**，重跑子集化以免缺字 fallback 成黑體：
+
+```bash
+python3 scripts/subset-fonts.py
+```
+
 ## WSL2 注意事項
 
 - 輸出影片位置：`out/retirement.mp4`

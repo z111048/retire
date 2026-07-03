@@ -4,6 +4,7 @@ import { Player } from '@remotion/player';
 import { RetirementVideo } from './RetirementVideo';
 import type { Timeline, Copywriting } from './types';
 import { FRAME_RATE } from './constants';
+import { loadCustomFonts } from './utils/fonts';
 
 import timelineData from '../data/timeline.json';
 import copywritingData from '../data/copywriting.json';
@@ -18,6 +19,9 @@ const totalFrames = Math.max(
 
 const BASE = import.meta.env.BASE_URL;
 window.__REMOTION_BASE__ = BASE;
+
+// 載入影片用的開源字體（辰宇落雁體、霞鶩文楷 TC）
+loadCustomFonts().catch((err) => console.error('字型載入失敗', err));
 
 const totalPhotos = timeline.sections.reduce((s, sec) => s + sec.photos.length, 0);
 const durationMin = Math.floor(timeline.totalDuration / 60);

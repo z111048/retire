@@ -4,6 +4,7 @@ import { RetirementVideo } from './RetirementVideo';
 import timeline from '../data/timeline.json';
 import copywriting from '../data/copywriting.json';
 import { FRAME_RATE } from './constants';
+import { loadCustomFonts } from './utils/fonts';
 import type { Timeline, Copywriting } from './types';
 
 const typedTimeline = timeline as unknown as Timeline;
@@ -18,9 +19,9 @@ fontStyle.textContent = `
 `;
 document.head.appendChild(fontStyle);
 
-document.fonts.ready.then(() => {
-  continueRender(fontHandle);
-});
+Promise.all([document.fonts.ready, loadCustomFonts()])
+  .catch((err) => console.error('字型載入失敗，將使用備用字體', err))
+  .finally(() => continueRender(fontHandle));
 
 const totalFrames = Math.max(
   Math.ceil(typedTimeline.totalDuration * FRAME_RATE),

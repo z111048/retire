@@ -1,5 +1,6 @@
 import React from 'react';
 import { useCurrentFrame, interpolate } from 'remotion';
+import { KAI_FONT } from '../utils/fonts';
 
 interface CaptionTextProps {
   text: string;
@@ -54,9 +55,9 @@ export const CaptionText: React.FC<CaptionTextProps> = ({ text, position = 'bott
         <span
           style={{
             color: '#F5E6C8',
-            fontSize: 38,
-            fontFamily: '"Noto Sans TC", "Microsoft JhengHei", "PingFang TC", sans-serif',
-            fontWeight: 400,
+            fontSize: 40,
+            fontFamily: KAI_FONT,
+            fontWeight: 500,
             letterSpacing: '0.1em',
             textShadow: '0 2px 10px rgba(0,0,0,0.95)',
             lineHeight: 1.5,
