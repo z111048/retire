@@ -96,9 +96,9 @@ retire/
 python3 scripts/subset-fonts.py
 ```
 
-## 人臉馬賽克拼貼（籌備中）
+## 人臉愛心拼貼
 
-目標：把所有同仁的人臉從照片中抓出來，拼成一張秀燕姐肖像的馬賽克。目前進度：
+「今天換我們歡送你」章節結尾有一張由全體同仁大頭貼拼成的愛心圖（`assets/new/7-今天換我們歡送你/23-...(x4).jpg`）。
 
 ```bash
 pip install opencv-python-headless numpy   # 本機另裝，不隨 npm install
@@ -107,17 +107,25 @@ python3 scripts/detectFaces.py             # 掃描 public/photos-orig/，輸出
 
 `detectFaces.py` 用 OpenCV YuNet 偵測人臉，依「偵測信心值＋尺寸＋清晰度＋五官比例」算出綜合品質分數
 由高到低排序，並自動去除重複偵測（同一張臉偶爾會被判斷成兩筆，取品質分數較高者），
-寫入 `data/face-detections.json`（81 張照片全掃過一輪，678 張人臉）。
-
-品質分數是給人工複審用的**建議值**，不是自動刪除的門檻——實際保留哪些臉是用一個獨立的
-HTML 複審工具逐張確認（大圖＋保留/排除按鈕＋鍵盤快捷鍵，一次看一張），確認結果目前還在人工過一遍中，
-尚未定案要保留的清單、也還沒實作最後的馬賽克拼貼演算法。
+寫入 `data/face-detections.json`。品質分數是給人工複審用的**建議值**，不是自動刪除門檻——
+實際保留哪些臉是人工用一個逐張確認的網頁工具過一遍（大圖＋保留/排除按鈕＋鍵盤快捷鍵），
+結果存成 `data/face-selection.json`（格式：`{ keepFiles: [{file, box}] }`）。
 
 裁切人臉小圖時用 `scripts/faceCrop.py` 的 `crop_face_tile()`：合照人臉密集時，裁切範圍常會帶到
-旁邊其他人的臉，這個函式會把範圍內「非目標本人」的其他人臉框自動模糊，複審工具與最終馬賽克
-產出都共用這個函式，確保看到的跟最後拼貼用的是同一份處理結果。
+旁邊其他人的臉，這個函式會把範圍內「非目標本人」的其他人臉框自動模糊。複審工具與最終拼貼
+都共用這個函式，確保看到的跟最後拼貼用的是同一份處理結果。
 
-下一步（確認保留清單後）：選一張秀燕姐的目標肖像照，用色調比對演算法把保留的人臉排列組合成她的肖像。
+確認保留清單後，用 `scripts/buildHeartCollage.py` 把人臉排成愛心形狀，輸出成一張圖直接放進
+`assets/new/` 走正常的 `import-assets` 流程：
+
+```bash
+python3 scripts/buildHeartCollage.py   # 讀 data/face-selection.json，輸出到 assets/new/7-.../
+npm run import-assets
+```
+
+檔名裡的 `(x4)` 是新的通用標記語法：讓這張照片分到「一般照片 4 倍」的播放時長
+（因為內容資訊量比一般單人照多，需要更長時間讓觀眾看清楚）。這個標記在 `importAssets.ts`
+的 `parseItem()` 解析，跟 `(刪)` 排除標記是同一套慣例，其他照片也能用。
 
 ## WSL2 注意事項
 

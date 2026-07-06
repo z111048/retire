@@ -6,6 +6,8 @@
  *   - 照片檔名：`{流水號}-{播放時顯示的字幕}.jpg`
  *   - 影片檔名：`{流水號}-{字幕}(剪輯HHMMSS至HHMMSS[及HHMMSS至HHMMSS...]).mov|mp4`
  *   - `0-影片封面-*.png`：封面圖
+ *   - 檔名含 `(刪)`：排除該項目，不進入時間軸
+ *   - 檔名含 `(xN)`：該張照片分到 N 倍於一般照片的播放時長（如 `(x4)`）
  *
  * 產出：
  *   - public/photos-orig/sN-NN.jpg   全解析度（render 用）
@@ -47,7 +49,11 @@ interface RawItem {
   caption: string;
   isVideo: boolean;
   clipRanges: Array<{ start: number; end: number }>; // 秒
+  itemWeight: number; // 檔名含 (xN) 標記時 = N，用來讓單張照片分到 N 倍時長
 }
+
+// 用物件參照記錄「單張加權」，不寫進 TimelineItem/timeline.json（那只是資料模型，不需要這個匯入期的中繼資訊）
+const itemWeights = new Map<TimelineItem, number>();
 
 function hhmmssToSeconds(s: string): number {
   const h = parseInt(s.slice(0, 2), 10);
@@ -74,6 +80,13 @@ function parseItem(fileName: string): RawItem | null {
   let caption = m[2];
   const isVideo = /^(mov|mp4)$/i.test(m[3]);
 
+  let itemWeight = 1;
+  const weightMatch = caption.match(/[（(]x(\d+(?:\.\d+)?)[)）]/i);
+  if (weightMatch) {
+    itemWeight = parseFloat(weightMatch[1]);
+    caption = caption.replace(weightMatch[0], '');
+  }
+
   const clipRanges: Array<{ start: number; end: number }> = [];
   if (isVideo) {
     const clipMatch = caption.match(/[（(]剪輯([^)）]*)[)）]/);
@@ -85,7 +98,7 @@ function parseItem(fileName: string): RawItem | null {
     }
     caption = caption.replace(/\s+/g, '');
   }
-  return { ordinal, file: fileName, caption: caption.trim(), isVideo, clipRanges };
+  return { ordinal, file: fileName, caption: caption.trim(), isVideo, clipRanges, itemWeight };
 }
 
 // 同一章節若有多支影片被照片隔開，把它們挪成連續播放（接在第一支影片原本的位置），
@@ -204,12 +217,14 @@ async function main() {
         fs.copyFileSync(srcPath, path.join(PHOTOS_ORIG_DIR, newName));
         await compressToWeb(srcPath, path.join(PHOTOS_DIR, newName));
         filenameMap[newName] = path.join(dir, item.file);
-        timelineItems.push({
+        const photoItem: TimelineItem = {
           type: 'photo',
           fileName: newName,
           caption: item.caption,
           durationFrames: 0, // 稍後配平
-        });
+        };
+        if (item.itemWeight !== 1) itemWeights.set(photoItem, item.itemWeight);
+        timelineItems.push(photoItem);
         photoCount++;
       }
     }
@@ -241,9 +256,12 @@ async function main() {
   interface Slot { item: TimelineItem; weight: number }
   const slots: Slot[] = [];
   sections.forEach((sec, i) => {
-    const weight = SECTION_WEIGHTS[sectionDirs[i].num] ?? 1;
+    const sectionWeight = SECTION_WEIGHTS[sectionDirs[i].num] ?? 1;
     for (const item of sec.photos) {
-      if (item.type !== 'video') slots.push({ item, weight });
+      if (item.type !== 'video') {
+        const weight = sectionWeight * (itemWeights.get(item) ?? 1);
+        slots.push({ item, weight });
+      }
     }
   });
   const totalWeight = slots.reduce((s, x) => s + x.weight, 0);
