@@ -164,7 +164,7 @@
         {
           "type": "photo",
           "fileName": "s3-01.jpg",
-          "caption": "台北花博博覽會-1",
+          "caption": "台北花博博覽會",
           "durationFrames": 73
         },
         {
@@ -268,6 +268,12 @@
           "durationFrames": 300
         },
         {
+          "type": "video",
+          "fileName": "s5-06v1.mp4",
+          "caption": "107年尾牙表演，當時流行斗肩舞",
+          "durationFrames": 210
+        },
+        {
           "type": "photo",
           "fileName": "s5-03.jpg",
           "caption": "105年尾牙主持人出場",
@@ -284,12 +290,6 @@
           "fileName": "s5-05.jpg",
           "caption": "105年尾牙戴著局長的面具與副座跳舞",
           "durationFrames": 73
-        },
-        {
-          "type": "video",
-          "fileName": "s5-06v1.mp4",
-          "caption": "107年尾牙表演，當時流行斗肩舞",
-          "durationFrames": 210
         },
         {
           "type": "photo",
@@ -496,7 +496,7 @@
         {
           "type": "photo",
           "fileName": "s7-16.jpg",
-          "caption": "瑞婷愛你~~",
+          "caption": "雅惠、瑞婷愛你~~",
           "durationFrames": 62
         },
         {

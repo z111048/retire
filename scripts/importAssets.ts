@@ -88,6 +88,16 @@ function parseItem(fileName: string): RawItem | null {
   return { ordinal, file: fileName, caption: caption.trim(), isVideo, clipRanges };
 }
 
+// 同一章節若有多支影片被照片隔開，把它們挪成連續播放（接在第一支影片原本的位置），
+// 讓現場音一次播完、比較不會一直被打斷。片段間的相對順序保持不變。
+function groupVideosConsecutively(items: TimelineItem[]): TimelineItem[] {
+  const firstVideoIdx = items.findIndex((i) => i.type === 'video');
+  if (firstVideoIdx === -1) return items;
+  const videos = items.filter((i) => i.type === 'video');
+  const rest = items.filter((i) => i.type !== 'video');
+  return [...rest.slice(0, firstVideoIdx), ...videos, ...rest.slice(firstVideoIdx)];
+}
+
 function cutClip(src: string, dest: string, start: number, end: number) {
   if (fs.existsSync(dest)) {
     console.log(`  ↷ 已存在，略過剪輯：${path.basename(dest)}`);
@@ -209,7 +219,7 @@ async function main() {
       section: title,
       title: meta?.title ?? title,
       subtitle: meta?.subtitle ?? '',
-      photos: timelineItems,
+      photos: groupVideosConsecutively(timelineItems),
     });
     console.log(`章節 ${num}「${title}」：${timelineItems.length} 個項目`);
   }

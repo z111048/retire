@@ -56,7 +56,6 @@ retire/
 │   ├── timeline.json         影片時間軸（import-assets 產生，可人工修正）
 │   ├── copywriting.json      文案：開場、章節標題副標、結尾
 │   ├── lyrics-timing.json    歌詞時間軸（用 tools/lyric-timer.html 製作）
-│   ├── video-captions.json   影片片段對話字幕（Whisper 轉錄，可人工修正）
 │   ├── face-detections.json  人臉偵測結果＋品質分數（scripts/detectFaces.py 產生）
 │   └── filename-map.json     新檔名 → 原始檔名對照表
 ├── tools/lyric-timer.html    歌詞對時工具
@@ -77,11 +76,6 @@ retire/
 ### 歌詞對時
 `npm run player:dev` 後開 `http://localhost:5173/retire/tools/lyric-timer.html`，
 邊聽邊按空白鍵標記，匯出後存成 `data/lyrics-timing.json`。
-
-### 影片片段字幕
-`data/video-captions.json` 是三段尾牙影片的對話字幕（用 OpenAI Whisper API 轉錄後人工校對），
-`VideoCaptionOverlay` 元件依 Remotion Sequence 的本地 frame 自動對時，不需另外配時間軸。
-轉錄文字有出入的話直接編輯這個 JSON 的 `start`/`end`/`text`。
 
 ## 字體
 

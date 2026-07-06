@@ -1,7 +1,6 @@
 import React from 'react';
 import { useCurrentFrame, useVideoConfig, interpolate, OffthreadVideo } from 'remotion';
 import { CaptionText } from './CaptionText';
-import { VideoCaptionOverlay } from './VideoCaptionOverlay';
 import type { TimelineItem } from '../types';
 import { FRAME_RATE } from '../constants';
 import { videoSrc } from '../utils/photoSrc';
@@ -57,7 +56,6 @@ export const VideoScene: React.FC<VideoSceneProps> = ({ item }) => {
       }} />
 
       {item.caption && <CaptionText text={item.caption} position="top-right" />}
-      <VideoCaptionOverlay fileName={item.fileName} />
     </div>
   );
 };
