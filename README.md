@@ -56,6 +56,8 @@ retire/
 │   ├── timeline.json         影片時間軸（import-assets 產生，可人工修正）
 │   ├── copywriting.json      文案：開場、章節標題副標、結尾
 │   ├── lyrics-timing.json    歌詞時間軸（用 tools/lyric-timer.html 製作）
+│   ├── video-captions.json   影片片段對話字幕（Whisper 轉錄，可人工修正）
+│   ├── face-detections.json  人臉偵測結果＋品質分數（scripts/detectFaces.py 產生）
 │   └── filename-map.json     新檔名 → 原始檔名對照表
 ├── tools/lyric-timer.html    歌詞對時工具
 ├── src/              Remotion 元件
@@ -76,6 +78,11 @@ retire/
 `npm run player:dev` 後開 `http://localhost:5173/retire/tools/lyric-timer.html`，
 邊聽邊按空白鍵標記，匯出後存成 `data/lyrics-timing.json`。
 
+### 影片片段字幕
+`data/video-captions.json` 是三段尾牙影片的對話字幕（用 OpenAI Whisper API 轉錄後人工校對），
+`VideoCaptionOverlay` 元件依 Remotion Sequence 的本地 frame 自動對時，不需另外配時間軸。
+轉錄文字有出入的話直接編輯這個 JSON 的 `start`/`end`/`text`。
+
 ## 字體
 
 影片使用兩款開源字體（SIL OFL 授權）：
@@ -89,6 +96,24 @@ retire/
 ```bash
 python3 scripts/subset-fonts.py
 ```
+
+## 人臉馬賽克拼貼（籌備中）
+
+目標：把所有同仁的人臉從照片中抓出來，拼成一張秀燕姐肖像的馬賽克。目前進度：
+
+```bash
+pip install opencv-python-headless numpy   # 本機另裝，不隨 npm install
+python3 scripts/detectFaces.py             # 掃描 public/photos-orig/，輸出 data/face-detections.json
+```
+
+`detectFaces.py` 用 OpenCV YuNet 偵測人臉，並依「偵測信心值＋尺寸＋清晰度＋五官比例」算出綜合品質分數，
+由高到低排序寫入 `data/face-detections.json`（841 張人臉，100 張照片全掃過一輪的結果）。
+
+品質分數是給人工複審用的**建議值**，不是自動刪除的門檻——實際保留哪些臉是用一個獨立的
+HTML 複審工具逐張確認（大圖＋保留/排除按鈕＋鍵盤快捷鍵，一次看一張），確認結果目前還在人工過一遍中，
+尚未定案要保留的清單、也還沒實作最後的馬賽克拼貼演算法。
+
+下一步（確認保留清單後）：選一張秀燕姐的目標肖像照，用色調比對演算法把保留的人臉排列組合成她的肖像。
 
 ## WSL2 注意事項
 

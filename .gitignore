@@ -24,3 +24,6 @@ Thumbs.db
 
 # Logs
 data/artistic-gen.log
+
+# 下載的模型檔（scripts/detectFaces.py 首次執行自動抓取）
+data/.cache/
