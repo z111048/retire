@@ -32,7 +32,6 @@ export const PhotoScene: React.FC<PhotoSceneProps> = ({ photo, index }) => {
   const frame = useCurrentFrame();
   const { durationInFrames } = useVideoConfig();
 
-  const type = index % 4;
   const kb = KB_CONFIGS[index % KB_CONFIGS.length];
   const fadeOutStart = durationInFrames - Math.min(FRAME_RATE * 0.45, 13);
 
@@ -50,33 +49,15 @@ export const PhotoScene: React.FC<PhotoSceneProps> = ({ photo, index }) => {
     extrapolateRight: 'clamp',
   });
 
-  // --- Entrance transform per type ---
-  let translateX = 0;
-  let translateY = 0;
-  let entryScale = 1;
-
+  // --- Entrance：純 fade + 極輕微 zoom（節奏快時大幅 slide 會顯得躁動）---
   const enterProgress = interpolate(frame, [0, ENTER_FRAMES], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
     easing: (t) => 1 - Math.pow(1 - t, 3), // ease-out cubic
   });
+  const entryScale = interpolate(enterProgress, [0, 1], [0.975, 1]);
 
-  if (type === 0) {
-    // Slide from right
-    translateX = interpolate(enterProgress, [0, 1], [80, 0]);
-  } else if (type === 1) {
-    // Slide from left
-    translateX = interpolate(enterProgress, [0, 1], [-80, 0]);
-  } else if (type === 2) {
-    // Scale up reveal
-    entryScale = interpolate(enterProgress, [0, 1], [0.94, 1]);
-  } else {
-    // Slide from bottom
-    translateY = interpolate(enterProgress, [0, 1], [60, 0]);
-  }
-
-  const finalScale = kbScale * entryScale;
-  const transform = `translate(${translateX}px, ${translateY}px) scale(${finalScale})`;
+  const transform = `scale(${kbScale * entryScale})`;
 
   return (
     <div style={{

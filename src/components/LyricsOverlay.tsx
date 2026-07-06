@@ -60,7 +60,7 @@ export const LyricsOverlay: React.FC<LyricsOverlayProps> = ({ lyrics, suppressRa
       }}>
         <span style={{
           color: '#FFF8EC',
-          fontSize: 54,
+          fontSize: 46,
           fontFamily: KAI_FONT,
           fontWeight: 500,
           letterSpacing: '0.1em',

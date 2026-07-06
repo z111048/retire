@@ -27,9 +27,9 @@ const INTRO_S = 6;
 const TITLE_S = 3.5; // 需與 src/constants.ts 的 SECTION_TITLE_DURATION_S 一致
 const OUTRO_S = 21;
 
-// 敘事型章節（照片較少、情感較重）放慢節奏
-const SLOW_SECTIONS = new Set([1, 4, 8]);
-const SLOW_WEIGHT = 1.3;
+// 各章節照片節奏權重（1 = 基準，配平後仍貼齊歌曲總長）
+// 1 十八姑娘（起點回憶）與 4 阿迪粉絲放慢、8 致局花（情緒收束）最慢、7 換我們歡送你（同質祝福照多）加快
+const SECTION_WEIGHTS: Record<number, number> = { 1: 1.35, 4: 1.3, 7: 0.85, 8: 1.45 };
 
 const ASSETS_DIR = path.resolve('assets/new');
 const PHOTOS_DIR = path.resolve('public/photos');
@@ -227,9 +227,9 @@ async function main() {
   interface Slot { item: TimelineItem; weight: number }
   const slots: Slot[] = [];
   sections.forEach((sec, i) => {
-    const slow = SLOW_SECTIONS.has(sectionDirs[i].num);
+    const weight = SECTION_WEIGHTS[sectionDirs[i].num] ?? 1;
     for (const item of sec.photos) {
-      if (item.type !== 'video') slots.push({ item, weight: slow ? SLOW_WEIGHT : 1 });
+      if (item.type !== 'video') slots.push({ item, weight });
     }
   });
   const totalWeight = slots.reduce((s, x) => s + x.weight, 0);
