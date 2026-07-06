@@ -64,6 +64,10 @@ function probeDuration(file: string): number {
 }
 
 function parseItem(fileName: string): RawItem | null {
+  if (fileName.includes('(刪)')) {
+    console.log(`  🚫 標記排除：${fileName}`);
+    return null;
+  }
   const m = fileName.match(/^(\d+)-(.+)\.(jpe?g|png|mov|mp4)$/i);
   if (!m) return null;
   const ordinal = parseInt(m[1], 10);
