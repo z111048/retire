@@ -1,5 +1,5 @@
 import React from 'react';
-import { Composition, continueRender, delayRender, staticFile } from 'remotion';
+import { Composition, staticFile } from 'remotion';
 import { RetirementVideo } from './RetirementVideo';
 import timeline from '../data/timeline.json';
 import copywriting from '../data/copywriting.json';
@@ -10,18 +10,10 @@ import type { Timeline, Copywriting } from './types';
 const typedTimeline = timeline as unknown as Timeline;
 const typedCopywriting = copywriting as unknown as Copywriting;
 
-// Wait for fonts to load before rendering
-const fontHandle = delayRender('Loading fonts');
-
-const fontStyle = document.createElement('style');
-fontStyle.textContent = `
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
-`;
-document.head.appendChild(fontStyle);
-
-Promise.all([document.fonts.ready, loadCustomFonts()])
-  .catch((err) => console.error('字型載入失敗，將使用備用字體', err))
-  .finally(() => continueRender(fontHandle));
+// 不用 delayRender 阻塞等待字型（試過幾種寫法都可能讓高併發 render 卡死甚至當機，
+// 詳見 utils/fonts.ts 的說明）。只註冊 @font-face 並提前觸發載入，讓瀏覽器自己
+// 用 font-display: block 處理，換取 render 可靠度。
+loadCustomFonts();
 
 // Credits 是疊在絕對時間點播放（見 constants.ts CREDITS_START_S），不是接在內容之後，
 // 所以總長取「內容本身」跟「Credits 結束時間」兩者較大值，而非相加

@@ -24,7 +24,7 @@ const BASE = import.meta.env.BASE_URL;
 window.__REMOTION_BASE__ = BASE;
 
 // 載入影片用的開源字體（辰宇落雁體、霞鶩文楷 TC）
-loadCustomFonts().catch((err) => console.error('字型載入失敗', err));
+loadCustomFonts();
 
 const totalPhotos = timeline.sections.reduce((s, sec) => s + sec.photos.length, 0);
 const durationMin = Math.floor(timeline.totalDuration / 60);
@@ -172,7 +172,6 @@ function App() {
       </div>
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap');
         * { box-sizing: border-box; }
         body { margin: 0; background: #111; }
         @keyframes spin { to { transform: rotate(360deg); } }
