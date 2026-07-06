@@ -138,11 +138,11 @@ function main() {
     }
   }
 
-  // Check cover photo
-  if (fs.existsSync(path.join(PUBLIC_PHOTOS_DIR, 'cover.jpg'))) {
-    info('封面圖 cover.jpg 存在');
+  // Check cover photo（開場用 cover-wide.jpg，一次性手動產生，見 scripts/importAssets.ts 註解）
+  if (fs.existsSync(path.join(PUBLIC_PHOTOS_DIR, 'cover-wide.jpg'))) {
+    info('封面圖 cover-wide.jpg 存在');
   } else {
-    warn('找不到 public/photos/cover.jpg，開場場景將無法顯示封面圖');
+    warn('找不到 public/photos/cover-wide.jpg，開場場景將無法顯示封面圖');
   }
 
   // Check lyrics timing

@@ -36,7 +36,7 @@ function App() {
 
   useEffect(() => {
     const img = new Image();
-    img.src = `${BASE}photos/cover.jpg`;
+    img.src = `${BASE}photos/cover-wide.jpg`;
     img.onload = () => setReady(true);
     img.onerror = () => setReady(true);
   }, []);

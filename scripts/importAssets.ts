@@ -11,7 +11,7 @@
  *
  * 產出：
  *   - public/photos-orig/sN-NN.jpg   全解析度（render 用）
- *   - public/photos/sN-NN.jpg        壓縮版（網頁播放器用）+ cover.jpg
+ *   - public/photos/sN-NN.jpg        壓縮版（網頁播放器用）
  *   - public/videos/sN-NNvK.mp4      依剪輯資訊切出的影片片段
  *   - data/timeline.json             照片時長自動配平至歌曲總長
  *   - data/filename-map.json         新檔名 → 原始檔名對照
@@ -157,15 +157,9 @@ async function main() {
 
   const filenameMap: Record<string, string> = {};
 
-  // ---- 封面 ----
-  const coverFile = fs.readdirSync(ASSETS_DIR).find(f => /^0-.*封面.*\.(png|jpe?g)$/i.test(f));
-  if (coverFile) {
-    await compressToWeb(path.join(ASSETS_DIR, coverFile), path.join(PHOTOS_DIR, 'cover.jpg'), 1920, 88);
-    filenameMap['cover.jpg'] = coverFile;
-    console.log(`封面：${coverFile} → photos/cover.jpg`);
-  } else {
-    console.warn('⚠ 找不到封面檔（0-影片封面-*.png）');
-  }
+  // 注意：開場封面用的是 public/photos/cover-wide.jpg（AI 圖生圖產生的 16:9 水彩底圖，
+  // 來源存底於 assets/generated/cover-wide.png），是一次性手動產生的素材，不隨這裡的
+  // 匯入流程重新產生。assets/new/ 裡的「0-影片封面-*.png」只是當初生成它時的參考圖。
 
   // ---- 掃描章節資料夾 ----
   const sectionDirs = fs.readdirSync(ASSETS_DIR)
