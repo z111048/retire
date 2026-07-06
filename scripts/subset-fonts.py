@@ -35,7 +35,7 @@ def collect_chars() -> set[str]:
             for v in x:
                 walk(v)
 
-    for name in ('timeline.json', 'copywriting.json', 'lyrics-timing.json'):
+    for name in ('timeline.json', 'copywriting.json', 'lyrics-timing.json', 'video-captions.json'):
         walk(json.loads((ROOT / 'data' / name).read_text(encoding='utf-8')))
 
     # ASCII、全形標點、常用符號（含播放器 UI 會出現的字）
