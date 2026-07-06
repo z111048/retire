@@ -2,7 +2,7 @@ import React from 'react';
 import { Sequence, useVideoConfig, Audio, interpolate } from 'remotion';
 import {
   FRAME_RATE, INTRO_DURATION_S, OUTRO_DURATION_S,
-  SECTION_TITLE_DURATION_S, CREDITS_DURATION_S,
+  SECTION_TITLE_DURATION_S, CREDITS_START_S, CREDITS_DURATION_S,
 } from './constants';
 import { IntroScene } from './components/IntroScene';
 import { SectionTitleScene } from './components/SectionTitleScene';
@@ -96,12 +96,13 @@ export const RetirementVideo: React.FC<RetirementVideoProps> = ({ timeline, copy
   );
   currentFrame += outroFrames;
 
-  // Credits — 製作團隊名單，接在結尾之後（此時歌曲通常已播畢）
+  // Credits — 製作團隊名單，固定在絕對時間點播放（疊在 Outro 尾段上，此時最後一句祝福語已顯示完畢）
   if (copywriting.credits) {
+    const creditsStartFrame = Math.round(CREDITS_START_S * FRAME_RATE);
     const creditsFrames = CREDITS_DURATION_S * FRAME_RATE;
-    suppressRanges.push([currentFrame / FRAME_RATE, (currentFrame + creditsFrames) / FRAME_RATE]);
+    suppressRanges.push([CREDITS_START_S, CREDITS_START_S + CREDITS_DURATION_S]);
     sequences.push(
-      <Sequence key="credits" from={currentFrame} durationInFrames={creditsFrames}>
+      <Sequence key="credits" from={creditsStartFrame} durationInFrames={creditsFrames}>
         <CreditsScene title={copywriting.credits.title} lines={copywriting.credits.lines} />
       </Sequence>
     );

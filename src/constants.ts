@@ -1,7 +1,8 @@
 export const FRAME_RATE = 30;
 export const INTRO_DURATION_S = 6;
 export const OUTRO_DURATION_S = 21;
-export const CREDITS_DURATION_S = 15;
+export const CREDITS_START_S = 285;  // 4:45，固定絕對時間點（會疊在 Outro 尾段上）
+export const CREDITS_DURATION_S = 15; // 285~300s，即 4:45~5:00
 export const SECTION_TITLE_DURATION_S = 3.5;
 export const LYRIC_DURATION_S = 3;
 export const DEFAULT_PHOTO_DURATION_S = 3;
