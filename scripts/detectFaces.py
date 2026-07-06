@@ -59,6 +59,41 @@ def rank01(vals: np.ndarray) -> np.ndarray:
     return ranks
 
 
+DEDUPE_OVERLAP_THRESHOLD = 0.5  # 重疊面積 / 較小框面積，超過視為同一張臉的重複偵測
+
+
+def _box_overlap_ratio(b1, b2) -> float:
+    x1, y1, w1, h1 = b1
+    x2, y2, w2, h2 = b2
+    ix0, iy0 = max(x1, x2), max(y1, y2)
+    ix1, iy1 = min(x1 + w1, x2 + w2), min(y1 + h1, y2 + h2)
+    if ix1 <= ix0 or iy1 <= iy0:
+        return 0.0
+    inter = (ix1 - ix0) * (iy1 - iy0)
+    return inter / min(w1 * h1, w2 * h2)
+
+
+def dedupe(records: list) -> list:
+    """同一張照片裡，同一張臉偶爾會被偵測兩次（框大小/位置略有差異）。
+    保留品質分數較高的那筆，避免馬賽克把同一個人重複貼成兩個人。"""
+    by_file: dict = {}
+    for r in records:
+        by_file.setdefault(r['file'], []).append(r)
+
+    keep_ids = set(id(r) for r in records)
+    for items in by_file.values():
+        for i in range(len(items)):
+            for j in range(i + 1, len(items)):
+                a, b = items[i], items[j]
+                if id(a) not in keep_ids or id(b) not in keep_ids:
+                    continue
+                if _box_overlap_ratio(a['box'], b['box']) > DEDUPE_OVERLAP_THRESHOLD:
+                    worse = a if a['quality'] < b['quality'] else b
+                    keep_ids.discard(id(worse))
+
+    return [r for r in records if id(r) in keep_ids]
+
+
 def passes_quality_bar(r: dict) -> bool:
     lo, hi = EYE_RATIO_RANGE
     return (
@@ -117,6 +152,9 @@ def main():
     composite = rank01(score) + rank01(minside) + rank01(blur) + rank01(eye_close)
     for i, r in enumerate(records):
         r['quality'] = float(composite[i])
+
+    records = dedupe(records)
+    print(f'去除重複偵測後剩 {len(records)} 張')
 
     records.sort(key=lambda r: -r['quality'])
 

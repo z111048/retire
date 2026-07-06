@@ -100,12 +100,17 @@ pip install opencv-python-headless numpy   # 本機另裝，不隨 npm install
 python3 scripts/detectFaces.py             # 掃描 public/photos-orig/，輸出 data/face-detections.json
 ```
 
-`detectFaces.py` 用 OpenCV YuNet 偵測人臉，並依「偵測信心值＋尺寸＋清晰度＋五官比例」算出綜合品質分數，
-由高到低排序寫入 `data/face-detections.json`（841 張人臉，100 張照片全掃過一輪的結果）。
+`detectFaces.py` 用 OpenCV YuNet 偵測人臉，依「偵測信心值＋尺寸＋清晰度＋五官比例」算出綜合品質分數
+由高到低排序，並自動去除重複偵測（同一張臉偶爾會被判斷成兩筆，取品質分數較高者），
+寫入 `data/face-detections.json`（81 張照片全掃過一輪，678 張人臉）。
 
 品質分數是給人工複審用的**建議值**，不是自動刪除的門檻——實際保留哪些臉是用一個獨立的
 HTML 複審工具逐張確認（大圖＋保留/排除按鈕＋鍵盤快捷鍵，一次看一張），確認結果目前還在人工過一遍中，
 尚未定案要保留的清單、也還沒實作最後的馬賽克拼貼演算法。
+
+裁切人臉小圖時用 `scripts/faceCrop.py` 的 `crop_face_tile()`：合照人臉密集時，裁切範圍常會帶到
+旁邊其他人的臉，這個函式會把範圍內「非目標本人」的其他人臉框自動模糊，複審工具與最終馬賽克
+產出都共用這個函式，確保看到的跟最後拼貼用的是同一份處理結果。
 
 下一步（確認保留清單後）：選一張秀燕姐的目標肖像照，用色調比對演算法把保留的人臉排列組合成她的肖像。
 
