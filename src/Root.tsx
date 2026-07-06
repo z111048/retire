@@ -3,7 +3,7 @@ import { Composition, continueRender, delayRender, staticFile } from 'remotion';
 import { RetirementVideo } from './RetirementVideo';
 import timeline from '../data/timeline.json';
 import copywriting from '../data/copywriting.json';
-import { FRAME_RATE } from './constants';
+import { FRAME_RATE, CREDITS_DURATION_S } from './constants';
 import { loadCustomFonts } from './utils/fonts';
 import type { Timeline, Copywriting } from './types';
 
@@ -23,8 +23,9 @@ Promise.all([document.fonts.ready, loadCustomFonts()])
   .catch((err) => console.error('字型載入失敗，將使用備用字體', err))
   .finally(() => continueRender(fontHandle));
 
+const creditsFrames = typedCopywriting.credits ? Math.ceil(CREDITS_DURATION_S * FRAME_RATE) : 0;
 const totalFrames = Math.max(
-  Math.ceil(typedTimeline.totalDuration * FRAME_RATE),
+  Math.ceil(typedTimeline.totalDuration * FRAME_RATE) + creditsFrames,
   FRAME_RATE * 5 // minimum 5 seconds
 );
 

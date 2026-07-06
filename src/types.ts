@@ -68,6 +68,11 @@ export interface CopywritingSection {
   lyric?: string;
 }
 
+export interface CreditsLine {
+  role: string;
+  names: string;
+}
+
 export interface Copywriting {
   intro: {
     title: string;
@@ -82,5 +87,9 @@ export interface Copywriting {
     line3: string;
     line4?: string;
     line5?: string;
+  };
+  credits?: {
+    title: string;
+    lines: CreditsLine[];
   };
 }

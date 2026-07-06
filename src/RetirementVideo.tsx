@@ -2,13 +2,14 @@ import React from 'react';
 import { Sequence, useVideoConfig, Audio, interpolate } from 'remotion';
 import {
   FRAME_RATE, INTRO_DURATION_S, OUTRO_DURATION_S,
-  SECTION_TITLE_DURATION_S,
+  SECTION_TITLE_DURATION_S, CREDITS_DURATION_S,
 } from './constants';
 import { IntroScene } from './components/IntroScene';
 import { SectionTitleScene } from './components/SectionTitleScene';
 import { PhotoScene } from './components/PhotoScene';
 import { VideoScene } from './components/VideoScene';
 import { OutroScene } from './components/OutroScene';
+import { CreditsScene } from './components/CreditsScene';
 import { LyricsOverlay } from './components/LyricsOverlay';
 import { staticFile } from 'remotion';
 import lyricsTiming from '../data/lyrics-timing.json';
@@ -93,6 +94,18 @@ export const RetirementVideo: React.FC<RetirementVideoProps> = ({ timeline, copy
       />
     </Sequence>
   );
+  currentFrame += outroFrames;
+
+  // Credits — 製作團隊名單，接在結尾之後（此時歌曲通常已播畢）
+  if (copywriting.credits) {
+    const creditsFrames = CREDITS_DURATION_S * FRAME_RATE;
+    suppressRanges.push([currentFrame / FRAME_RATE, (currentFrame + creditsFrames) / FRAME_RATE]);
+    sequences.push(
+      <Sequence key="credits" from={currentFrame} durationInFrames={creditsFrames}>
+        <CreditsScene title={copywriting.credits.title} lines={copywriting.credits.lines} />
+      </Sequence>
+    );
+  }
 
   const bgmSrc = audioSrc ?? staticFile('bgm.mp3');
   const bgmVolume = (f: number): number => {

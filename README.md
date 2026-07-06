@@ -77,6 +77,11 @@ retire/
 `npm run player:dev` 後開 `http://localhost:5173/retire/tools/lyric-timer.html`，
 邊聽邊按空白鍵標記，匯出後存成 `data/lyrics-timing.json`。
 
+### 製作團隊名單（片尾工作人員名單）
+編輯 `data/copywriting.json` 的 `credits`（`title` + `lines: [{role, names}]`），
+接在結尾祝福語之後播放，長度由 `src/constants.ts` 的 `CREDITS_DURATION_S` 控制。
+這段時長是額外加在歌曲總長之外的（此時歌曲通常已播畢），不會影響照片配平。
+
 ## 字體
 
 影片使用兩款開源字體（SIL OFL 授權）：
