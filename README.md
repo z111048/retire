@@ -49,7 +49,7 @@ retire/
 ├── archive/          舊素材封存
 ├── public/
 │   ├── photos-orig/  全解析度照片（render 用）
-│   ├── photos/       壓縮照片（網頁播放器用）＋ cover.jpg
+│   ├── photos/       壓縮照片（網頁播放器用）＋ cover-wide.jpg（開場底圖，見下方）
 │   ├── videos/       依檔名剪輯資訊切出的影片片段
 │   └── bgm.mp3       背景音樂
 ├── data/
