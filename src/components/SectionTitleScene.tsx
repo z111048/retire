@@ -1,15 +1,29 @@
 import React from 'react';
 import { useCurrentFrame, useVideoConfig, interpolate } from 'remotion';
 import { HANDWRITING_FONT, KAI_FONT } from '../utils/fonts';
+import { DEFAULT_SECTION_ACCENT } from '../constants';
+
+function hexToRgb(hex: string): [number, number, number] {
+  const m = hex.replace('#', '');
+  return [parseInt(m.slice(0, 2), 16), parseInt(m.slice(2, 4), 16), parseInt(m.slice(4, 6), 16)];
+}
 
 interface SectionTitleSceneProps {
   title: string;
   subtitle: string;
+  accentColor?: string;
 }
 
-export const SectionTitleScene: React.FC<SectionTitleSceneProps> = ({ title, subtitle }) => {
+export const SectionTitleScene: React.FC<SectionTitleSceneProps> = ({
+  title,
+  subtitle,
+  accentColor = DEFAULT_SECTION_ACCENT,
+}) => {
   const frame = useCurrentFrame();
   const { durationInFrames } = useVideoConfig();
+
+  const [r, g, b] = hexToRgb(accentColor);
+  const accentRgba = (alpha: number) => `rgba(${r},${g},${b},${alpha})`;
 
   const fadeIn = 15;
   const fadeOut = 15;
@@ -38,11 +52,11 @@ export const SectionTitleScene: React.FC<SectionTitleSceneProps> = ({ title, sub
     extrapolateRight: 'clamp',
   });
   const shimmerBar = `linear-gradient(90deg,
-    #C9A84C 0%,
-    #C9A84C ${shimmerPos - 20}%,
+    ${accentColor} 0%,
+    ${accentColor} ${shimmerPos - 20}%,
     #FFE080 ${shimmerPos}%,
-    #C9A84C ${shimmerPos + 20}%,
-    #C9A84C 100%)`;
+    ${accentColor} ${shimmerPos + 20}%,
+    ${accentColor} 100%)`;
 
   // Safe keyframe helper: evenly spread across the active window [fadeIn, durationInFrames - fadeOut]
   const activeStart = fadeIn;
@@ -101,7 +115,7 @@ export const SectionTitleScene: React.FC<SectionTitleSceneProps> = ({ title, sub
         width: '50%',
         height: '50%',
         borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(201,168,76,0.22) 0%, transparent 70%)',
+        background: `radial-gradient(circle, ${accentRgba(0.22)} 0%, transparent 70%)`,
         opacity: glowOpacity,
         pointerEvents: 'none',
       }} />
@@ -112,7 +126,7 @@ export const SectionTitleScene: React.FC<SectionTitleSceneProps> = ({ title, sub
         width: '55%',
         paddingBottom: '55%',
         borderRadius: '50%',
-        border: '1.5px solid rgba(201,168,76,0.9)',
+        border: `1.5px solid ${accentRgba(0.9)}`,
         transform: `scale(${ring1Scale})`,
         opacity: ring1Opacity,
         pointerEvents: 'none',
@@ -128,7 +142,7 @@ export const SectionTitleScene: React.FC<SectionTitleSceneProps> = ({ title, sub
         width: '55%',
         paddingBottom: '55%',
         borderRadius: '50%',
-        border: '1px solid rgba(201,168,76,0.7)',
+        border: `1px solid ${accentRgba(0.7)}`,
         transform: `scale(${ring2Scale})`,
         opacity: ring2Opacity,
         pointerEvents: 'none',
@@ -161,7 +175,7 @@ export const SectionTitleScene: React.FC<SectionTitleSceneProps> = ({ title, sub
           transform: `translateY(${titleY}px)`,
           position: 'relative',
           zIndex: 1,
-          textShadow: '0 2px 20px rgba(201,168,76,0.25)',
+          textShadow: `0 2px 20px ${accentRgba(0.25)}`,
         }}
       >
         {title}

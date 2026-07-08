@@ -4,6 +4,7 @@ import {
   FRAME_RATE, INTRO_DURATION_S, OUTRO_DURATION_S,
   SECTION_TITLE_DURATION_S, CREDITS_START_S, CREDITS_DURATION_S,
   FINALE_START_S, FINALE_DURATION_S, AVATAR_COUNT,
+  SECTION_ACCENTS, DEFAULT_SECTION_ACCENT,
 } from './constants';
 import { IntroScene } from './components/IntroScene';
 import { SectionTitleScene } from './components/SectionTitleScene';
@@ -56,7 +57,11 @@ export const RetirementVideo: React.FC<RetirementVideoProps> = ({ timeline, copy
     suppressRanges.push([titleStartSec, titleStartSec + SECTION_TITLE_DURATION_S]);
     sequences.push(
       <Sequence key={`title-${section.id}`} from={currentFrame} durationInFrames={titleFrames}>
-        <SectionTitleScene title={section.title} subtitle={section.subtitle} />
+        <SectionTitleScene
+          title={section.title}
+          subtitle={section.subtitle}
+          accentColor={SECTION_ACCENTS[section.id] ?? DEFAULT_SECTION_ACCENT}
+        />
       </Sequence>
     );
     currentFrame += titleFrames;
@@ -81,7 +86,7 @@ export const RetirementVideo: React.FC<RetirementVideoProps> = ({ timeline, copy
       } else {
         sequences.push(
           <Sequence key={`${section.id}-${item.fileName}`} from={currentFrame} durationInFrames={itemFrames}>
-            <PhotoScene photo={item} index={globalPhotoIndex} />
+            <PhotoScene photo={item} index={globalPhotoIndex} sectionId={section.id} />
           </Sequence>
         );
         globalPhotoIndex++;

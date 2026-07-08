@@ -26,11 +26,18 @@ const KB_CONFIGS = [
 interface PhotoSceneProps {
   photo: TimelinePhoto;
   index: number;
+  sectionId?: string;
 }
 
-export const PhotoScene: React.FC<PhotoSceneProps> = ({ photo, index }) => {
+export const PhotoScene: React.FC<PhotoSceneProps> = ({ photo, index, sectionId }) => {
   const frame = useCurrentFrame();
   const { durationInFrames } = useVideoConfig();
+
+  // "今天換我們歡送你" 章節正好是全曲副歌高潮（見 data/lyrics-timing.json 204~247s），
+  // 畫面氛圍稍微加強一點粒子數量呼應情緒最高點，其他章節維持原本的低耗能數量
+  const particleCount = sectionId === 'our-turn' ? 8 : 6;
+  // 每 4 張輪替一次字幕位置，避免 82 張照片全程都固定同一個角落
+  const captionPosition = index % 4 === 3 ? 'bottom' : 'top-right';
 
   const kb = KB_CONFIGS[index % KB_CONFIGS.length];
   const fadeOutStart = durationInFrames - Math.min(FRAME_RATE * 0.45, 13);
@@ -96,9 +103,9 @@ export const PhotoScene: React.FC<PhotoSceneProps> = ({ photo, index }) => {
       }} />
 
       {/* Floating bokeh particles — keep count low for mobile perf */}
-      <FloatingParticles count={6} opacityScale={0.8} />
+      <FloatingParticles count={particleCount} opacityScale={0.8} />
 
-      {photo.caption && <CaptionText text={photo.caption} position="top-right" />}
+      {photo.caption && <CaptionText text={photo.caption} position={captionPosition} />}
     </div>
   );
 };

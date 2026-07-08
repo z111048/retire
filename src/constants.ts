@@ -11,3 +11,17 @@ export const LYRIC_DURATION_S = 3;
 export const DEFAULT_PHOTO_DURATION_S = 3;
 export const HIGH_IMPORTANCE_PHOTO_DURATION_S = 3;
 export const MONTAGE_PHOTO_DURATION_S = 1.5;
+
+// 章節標題主題色（同一套暖色系家族微調色相），讓 8 個章節從明亮金→溫暖玫瑰金
+// 隨劇情推進到情緒高點，不用預設 gold 那麼單一。找不到對應 id 時 fallback 用預設金色。
+export const SECTION_ACCENTS: Record<string, string> = {
+  youth: '#D4AF37',
+  gatherings: '#D9A05B',
+  outings: '#DFAE4A',
+  fanclub: '#D9A66E',
+  'yearend-show': '#C98C4A',
+  farewells: '#C99070',
+  'our-turn': '#C97F6B',
+  tribute: '#B97A5C',
+};
+export const DEFAULT_SECTION_ACCENT = '#C9A84C';
