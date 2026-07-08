@@ -37,7 +37,10 @@
      不要讓 img 用 height:auto 撐開父層高度再讓 svg 用 height:100% 去繼承——
      absolutely-positioned 子元素的百分比高度，在「父層高度由auto內容決定」時，
      不同瀏覽器引擎（尤其 iOS Safari）計算結果不一致，手機版標註框跑掉就是這樣來的 */
-  .imgwrap { position:relative; flex:1 1 auto; min-width:0; background:#000; line-height:0; }
+  /* 預設先給一個比例，圖片真正載入前容器就不會是0高度——
+     img 改成 absolute 後不再靠自己撐開父層，若容器是0高度，
+     loading="lazy" 的瀏覽器判斷邏輯甚至可能永遠不觸發載入（雞生蛋問題） */
+  .imgwrap { position:relative; flex:1 1 auto; min-width:0; background:#000; line-height:0; aspect-ratio: 4 / 3; }
   .imgwrap img { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; display:block; }
   .imgwrap svg { position:absolute; inset:0; width:100%; height:100%; }
   .thumb-col {
@@ -162,7 +165,8 @@ async function main() {
       imgwrap.className = 'imgwrap';
       const img = document.createElement('img');
       img.src = `../photos/${file}`;
-      img.loading = 'lazy';
+      // 主要照片不用 lazy——跟 aspect-ratio 預設值一起是雙重保險，
+      // 避免圖片本身尺寸未知時瀏覽器誤判「不在可視範圍」而卡住不載入
       imgwrap.appendChild(img);
       body.appendChild(imgwrap);
 
