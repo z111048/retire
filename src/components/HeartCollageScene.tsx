@@ -30,18 +30,15 @@ function seededRandom(seed: number): number {
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 }
 
-// 這次改成依 durationInFrames 比例計算，而非寫死 frame 數——
-// 場景時長已經改過好幾次（407→293→現在的 4s=120 frames），每次都要手動等比例
-// 重算很容易出錯，乾脆讓節奏隨時長自動縮放。比例基準取自最早用 407 frames 調校出來的版本：
-// containerFadeIn 15/407、containerFadeOut 25/407、STAGGER 260/407、FLY 26/407、
-// jitter 20/407、CAPTION_START 320/407、captionFadeIn 25/407。
-const CONTAINER_FADE_IN_RATIO = 15 / 407;
-const CONTAINER_FADE_OUT_RATIO = 25 / 407;
-const STAGGER_RATIO = 260 / 407;
-const FLY_RATIO = 26 / 407;
-const JITTER_RATIO = 20 / 407;
-const CAPTION_START_RATIO = 320 / 407;
-const CAPTION_FADE_IN_RATIO = 25 / 407;
+// 場景時長已經改過好幾次（407→293→4s），純比例縮放在時長很短（4s）時會讓
+// 字幕只剩不到半秒的完整顯示時間，幾乎一閃而過。改成：飛入動畫用比例（但設上限，
+// 不會拖太久），字幕則保證有固定的最短完整顯示時間（不管總時長多長都至少有這麼久）。
+const FLY_FRAMES = 12; // 單顆頭像飛入所需時間（固定，跟時長無關）
+const JITTER_FRAMES = 12; // 飛入起始時間的隨機抖動範圍（固定）
+const CAPTION_FADE_FRAMES = 8; // 字幕淡入/淡出各自的時間
+const CAPTION_MIN_HOLD_FRAMES = 20; // 字幕至少要能完整顯示這麼久，不能一閃而過
+const CONTAINER_FADE_IN_FRAMES = 8;
+const CONTAINER_FADE_OUT_FRAMES = 15;
 
 export const HeartCollageScene: React.FC<HeartCollageSceneProps> = ({ avatarCount, caption }) => {
   const frame = useCurrentFrame();
@@ -49,15 +46,19 @@ export const HeartCollageScene: React.FC<HeartCollageSceneProps> = ({ avatarCoun
 
   const slots = React.useMemo(() => computeHeartSlots(avatarCount), [avatarCount]);
 
-  const containerFadeIn = Math.max(4, Math.round(durationInFrames * CONTAINER_FADE_IN_RATIO));
-  const containerFadeOutWindow = Math.max(6, Math.round(durationInFrames * CONTAINER_FADE_OUT_RATIO));
-  const STAGGER_FRAMES = durationInFrames * STAGGER_RATIO;
-  const FLY_FRAMES = durationInFrames * FLY_RATIO;
-  const JITTER_FRAMES = durationInFrames * JITTER_RATIO;
-  const CAPTION_START = durationInFrames * CAPTION_START_RATIO;
-  const captionFadeIn = Math.max(6, Math.round(durationInFrames * CAPTION_FADE_IN_RATIO));
-
+  const containerFadeIn = CONTAINER_FADE_IN_FRAMES;
+  const containerFadeOutWindow = CONTAINER_FADE_OUT_FRAMES;
   const fadeOutStart = durationInFrames - containerFadeOutWindow;
+
+  // 頭像飛入的總時間窗：依時長比例（上限220 frames），但要留夠空間給字幕，
+  // 所以最多只能佔用到「淡出開始前，扣掉字幕淡入+最短顯示+淡出」之前
+  const captionBlockFrames = CAPTION_FADE_FRAMES * 2 + CAPTION_MIN_HOLD_FRAMES;
+  const maxStagger = Math.max(20, fadeOutStart - captionBlockFrames - JITTER_FRAMES - FLY_FRAMES - 5);
+  const STAGGER_FRAMES = Math.min(durationInFrames * 0.4, 220, maxStagger);
+
+  const avatarsCompleteBy = STAGGER_FRAMES + JITTER_FRAMES + FLY_FRAMES;
+  const captionFadeIn = CAPTION_FADE_FRAMES;
+  const CAPTION_START = Math.min(avatarsCompleteBy + 5, fadeOutStart - captionFadeIn - CAPTION_MIN_HOLD_FRAMES);
   const containerOpacity = interpolate(
     frame,
     [0, containerFadeIn, fadeOutStart, durationInFrames],
