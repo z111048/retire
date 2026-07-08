@@ -12,7 +12,12 @@ export const HEART_DURATION_S = 293 / 30;  // ≈9.77s（原13.57s，等比例�
 export const CREDITS_START_S = HEART_START_S + HEART_DURATION_S; // 愛心拼貼結束後緊接
 export const CREDITS_DURATION_S = 195 / 30; // ≈6.5s（原9s，等比例縮短）
 export const FINALE_START_S = CREDITS_START_S + CREDITS_DURATION_S; // Credits 結束後緊接
-export const FINALE_DURATION_S = 562 / 30; // ≈18.73s（原26s，等比例縮短）
+export const FINALE_DURATION_S = 412 / 30; // ≈13.73s（原18.73s，再讓給片尾愛心手勢片段5秒）
+
+// 片尾彩蛋之後的最後一顆鏡頭：秀燕姐Q版插畫比愛心手勢（Google Flow 生成），
+// 固定 5 秒，緊接在 Finale 之後，是全片最後一顆鏡頭
+export const FINAL_CLIP_START_S = FINALE_START_S + FINALE_DURATION_S;
+export const FINAL_CLIP_DURATION_S = 5;
 export const SECTION_TITLE_DURATION_S = 3.5;
 export const LYRIC_DURATION_S = 3;
 export const DEFAULT_PHOTO_DURATION_S = 3;

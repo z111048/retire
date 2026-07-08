@@ -5,6 +5,7 @@ import {
   SECTION_TITLE_DURATION_S, HEART_START_S, HEART_DURATION_S,
   CREDITS_START_S, CREDITS_DURATION_S,
   FINALE_START_S, FINALE_DURATION_S, AVATAR_COUNT,
+  FINAL_CLIP_START_S, FINAL_CLIP_DURATION_S,
   SECTION_ACCENTS, DEFAULT_SECTION_ACCENT,
 } from './constants';
 import { IntroScene } from './components/IntroScene';
@@ -136,7 +137,17 @@ export const RetirementVideo: React.FC<RetirementVideoProps> = ({ timeline, copy
   suppressRanges.push([FINALE_START_S, FINALE_START_S + FINALE_DURATION_S]);
   sequences.push(
     <Sequence key="finale" from={finaleStartFrame} durationInFrames={finaleFrames}>
-      <FinaleAvatarWallScene avatarCount={AVATAR_COUNT} caption="感謝這些年，有你們真好" />
+      <FinaleAvatarWallScene avatarCount={AVATAR_COUNT} caption="感謝這些年，有妳真好" />
+    </Sequence>
+  );
+
+  // 全片最後一顆鏡頭：秀燕姐Q版插畫比愛心手勢（Google Flow 生成），緊接在 Finale 之後
+  const finalClipStartFrame = Math.round(FINAL_CLIP_START_S * FRAME_RATE);
+  const finalClipFrames = Math.round(FINAL_CLIP_DURATION_S * FRAME_RATE);
+  suppressRanges.push([FINAL_CLIP_START_S, FINAL_CLIP_START_S + FINAL_CLIP_DURATION_S]);
+  sequences.push(
+    <Sequence key="final-clip" from={finalClipStartFrame} durationInFrames={finalClipFrames}>
+      <VideoScene item={{ type: 'video', fileName: 'finale-heart-gesture.mp4', caption: '', durationFrames: finalClipFrames }} />
     </Sequence>
   );
 

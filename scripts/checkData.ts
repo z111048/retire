@@ -154,6 +154,13 @@ function main() {
     error('找不到 public/qavatars/，愛心拼貼與片尾彩蛋將無法顯示');
   }
 
+  // Check 片尾最後一顆鏡頭（秀燕姐比愛心手勢，固定絕對時間場景，不屬於任何 TimelineItem）
+  if (fs.existsSync(path.join(PUBLIC_VIDEOS_DIR, 'finale-heart-gesture.mp4'))) {
+    info('片尾愛心手勢片段存在');
+  } else {
+    error('找不到 public/videos/finale-heart-gesture.mp4，片尾最後一顆鏡頭將無法顯示');
+  }
+
   // Check lyrics timing
   const lyrics = parseJsonFile<Array<{ start: number; end: number; text: string }>>(
     path.join(DATA_DIR, 'lyrics-timing.json'), 'lyrics-timing.json'
