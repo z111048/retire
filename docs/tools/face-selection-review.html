@@ -62,6 +62,11 @@
   .thumb-arrow { color:var(--dim); font-size:18px; }
   @media (max-width: 900px) {
     .card-body { flex-direction:column; }
+    /* .card-body 的 align-items:flex-start 在 column 模式下管的是「橫軸」(寬度)，
+       預設不會 stretch。.thumb-col 本來就有明確設定 width:100% 才能正常顯示，
+       .imgwrap 漏了同樣設定，寬度會塌陷成0，aspect-ratio 也就跟著算成0——
+       這就是主圖在手機版完全消失的真正原因 */
+    .imgwrap { width:100%; }
     .thumb-col { flex:1 1 auto; width:100%; max-height:none; border-left:none; border-top:1px solid #3a3428; }
   }
   .rect-keep { fill:none; stroke:var(--keep); stroke-width:6; }
