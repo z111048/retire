@@ -118,9 +118,12 @@ function paddedCropRect(box) {
 }
 
 async function main() {
-  const [detections, selection] = await Promise.all([
+  const [detections, selection, photoDims] = await Promise.all([
     fetch('../data/face-detections.json').then(r => r.json()),
     fetch('../data/face-selection.json').then(r => r.json()),
+    // 框選座標是對「原圖」算出來的，但這裡載入的是網頁壓縮版照片（解析度不同，
+    // 只是同比例縮小），要用原圖尺寸當 SVG viewBox 座標系，框才不會偏移到畫面外
+    fetch('../data/photo-dimensions.json').then(r => r.json()),
   ]);
 
   // key -> keepFiles 陣列中的原始 index，對應公開的
@@ -206,8 +209,11 @@ async function main() {
         // width:100%/height:100% 疊在一起，不受「auto高度容器的百分比高度」
         // 這種跨瀏覽器計算差異影響（手機版標註跑掉的成因）
         imgwrap.style.aspectRatio = `${w} / ${h}`;
+        // viewBox 要用「原圖」尺寸（框選座標算出來的座標系），不是這裡載入的
+        // 網頁壓縮版照片尺寸——兩者比例相同但像素數不同，用錯了框會整個偏出畫面外
+        const [origW, origH] = photoDims[file] || [w, h];
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+        svg.setAttribute('viewBox', `0 0 ${origW} ${origH}`);
         svg.setAttribute('preserveAspectRatio', 'none');
 
         // 先算每個「已選臉」的裁切範圍與其他臉的重疊(模糊)區域
