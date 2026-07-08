@@ -3,8 +3,9 @@ import { createRoot } from 'react-dom/client';
 import { Player } from '@remotion/player';
 import { RetirementVideo } from './RetirementVideo';
 import type { Timeline, Copywriting } from './types';
-import { FRAME_RATE, FINALE_START_S, FINALE_DURATION_S } from './constants';
+import { FRAME_RATE } from './constants';
 import { loadCustomFonts } from './utils/fonts';
+import { getOutputDurationS } from './utils/duration';
 
 import timelineData from '../data/timeline.json';
 import copywritingData from '../data/copywriting.json';
@@ -12,11 +13,9 @@ import copywritingData from '../data/copywriting.json';
 const timeline = timelineData as unknown as Timeline;
 const copywriting = copywritingData as unknown as Copywriting;
 
-// Credits／Finale 疊在絕對時間點播放（見 constants.ts），不是接在內容之後
-const finaleEndS = FINALE_START_S + FINALE_DURATION_S;
+const outputDurationS = getOutputDurationS(timeline);
 const totalFrames = Math.max(
-  Math.ceil(timeline.totalDuration * FRAME_RATE),
-  Math.ceil(finaleEndS * FRAME_RATE),
+  Math.ceil(outputDurationS * FRAME_RATE),
   FRAME_RATE * 5
 );
 
@@ -27,8 +26,8 @@ window.__REMOTION_BASE__ = BASE;
 loadCustomFonts();
 
 const totalPhotos = timeline.sections.reduce((s, sec) => s + sec.photos.length, 0);
-const durationMin = Math.floor(timeline.totalDuration / 60);
-const durationSec = Math.round(timeline.totalDuration % 60);
+const durationMin = Math.floor(outputDurationS / 60);
+const durationSec = Math.round(outputDurationS % 60);
 
 function App() {
   const [ready, setReady] = useState(false);
