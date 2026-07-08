@@ -1,3 +1,9 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>人臉框選標註檢視</title>
 <style>
   :root { --bg:#14120e; --panel:#1e1b15; --panel2:#262218; --gold:#C9A84C; --text:#FFF8EC; --dim:#9a8f78;
           --keep:#5ad06a; --rej:#e05a4a; --blur:#ff8a3d; }
@@ -26,9 +32,31 @@
     font-size:13px; color:var(--dim); border-bottom:1px solid #3a3428;
   }
   .card-head b { color:var(--text); font-family:monospace; }
-  .imgwrap { position:relative; width:100%; background:#000; line-height:0; }
+  .card-body { display:flex; align-items:flex-start; }
+  .imgwrap { position:relative; flex:1 1 auto; min-width:0; background:#000; line-height:0; }
   .imgwrap img { width:100%; height:auto; display:block; }
   .imgwrap svg { position:absolute; inset:0; width:100%; height:100%; }
+  .thumb-col {
+    flex:0 0 320px; width:320px; max-height:640px; overflow-y:auto;
+    display:flex; flex-direction:column; gap:10px; padding:14px; border-left:1px solid #3a3428;
+  }
+  .thumb-pair { display:flex; align-items:center; gap:6px; }
+  .thumb-item { display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .thumb-item img {
+    width:84px; height:84px; object-fit:cover; border-radius:8px; border:2px solid var(--keep); background:#000;
+  }
+  .thumb-item:first-child img { border-color:var(--gold); }
+  .thumb-item span { font-size:10px; color:var(--dim); }
+  .thumb-item.missing img { display:none; }
+  .thumb-item.missing::before {
+    content:'找不到圖片'; display:block; width:84px; height:84px; line-height:84px; text-align:center;
+    font-size:11px; color:var(--rej); background:var(--panel2); border-radius:8px;
+  }
+  .thumb-arrow { color:var(--dim); font-size:18px; }
+  @media (max-width: 900px) {
+    .card-body { flex-direction:column; }
+    .thumb-col { flex:1 1 auto; width:100%; max-height:none; border-left:none; border-top:1px solid #3a3428; }
+  }
   .rect-keep { fill:none; stroke:var(--keep); stroke-width:6; }
   .rect-rej { fill:none; stroke:var(--rej); stroke-width:5; stroke-dasharray:14 10; }
   .rect-crop { fill:none; stroke:var(--gold); stroke-width:3; stroke-dasharray:6 8; opacity:0.85; }
@@ -37,6 +65,8 @@
   .label-text { fill:#fff; font-size:34px; font-family:monospace; }
   #empty { text-align:center; color:var(--dim); padding:60px 20px; }
 </style>
+</head>
+<body>
 
 <header>
   <h1>🔍 人臉框選標註檢視</h1>
@@ -81,13 +111,21 @@ async function main() {
     fetch('../data/face-selection.json').then(r => r.json()),
   ]);
 
-  const keepSet = new Set(selection.keepFiles.map(f => f.file + '|' + JSON.stringify(f.box)));
+  // key -> keepFiles 陣列中的原始 index，對應 scripts/generateQAvatars.py 產生的
+  // assets/generated/qavatar-crops/<idx>.jpg 與 assets/generated/qavatars/<idx>.png
+  const idxByKey = new Map();
+  selection.keepFiles.forEach((f, i) => idxByKey.set(f.file + '|' + JSON.stringify(f.box), i));
+
   const byFile = {};
   for (const d of detections) {
     (byFile[d.file] ??= { keep: [], reject: [] });
     const key = d.file + '|' + JSON.stringify(d.box);
-    if (keepSet.has(key)) byFile[d.file].keep.push(d);
-    else byFile[d.file].reject.push(d);
+    if (idxByKey.has(key)) {
+      d.avatarIdx = idxByKey.get(key);
+      byFile[d.file].keep.push(d);
+    } else {
+      byFile[d.file].reject.push(d);
+    }
   }
 
   const files = Object.keys(byFile).sort();
@@ -112,13 +150,41 @@ async function main() {
       head.innerHTML = `<span>檔名：<b>${file}</b></span><span>已選 ${keep.length} ／ 未選 ${reject.length}</span>`;
       card.appendChild(head);
 
+      const body = document.createElement('div');
+      body.className = 'card-body';
+      card.appendChild(body);
+
       const imgwrap = document.createElement('div');
       imgwrap.className = 'imgwrap';
       const img = document.createElement('img');
       img.src = `../public/photos-orig/${file}`;
       img.loading = 'lazy';
       imgwrap.appendChild(img);
-      card.appendChild(imgwrap);
+      body.appendChild(imgwrap);
+
+      if (keep.length) {
+        const thumbCol = document.createElement('div');
+        thumbCol.className = 'thumb-col';
+        for (const k of keep) {
+          const pair = document.createElement('div');
+          pair.className = 'thumb-pair';
+          const cropIdx = String(k.avatarIdx).padStart(4, '0');
+          pair.innerHTML = `
+            <div class="thumb-item">
+              <img src="../assets/generated/qavatar-crops/${cropIdx}.jpg" loading="lazy" onerror="this.closest('.thumb-item').classList.add('missing')">
+              <span>候選裁切</span>
+            </div>
+            <div class="thumb-arrow">→</div>
+            <div class="thumb-item">
+              <img src="../assets/generated/qavatars/${cropIdx}.png" loading="lazy" onerror="this.closest('.thumb-item').classList.add('missing')">
+              <span>Q版 #${cropIdx}</span>
+            </div>
+          `;
+          thumbCol.appendChild(pair);
+        }
+        body.appendChild(thumbCol);
+      }
+
       main.appendChild(card);
 
       img.addEventListener('load', () => {
@@ -197,3 +263,5 @@ main().catch(err => {
     `<p style="color:#e05a4a;padding:20px">載入失敗：${err.message}（需透過 HTTP 伺服器開啟此頁，不能直接雙擊開檔案）</p>`;
 });
 </script>
+</body>
+</html>

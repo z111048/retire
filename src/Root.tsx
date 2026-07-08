@@ -3,7 +3,7 @@ import { Composition, staticFile } from 'remotion';
 import { RetirementVideo } from './RetirementVideo';
 import timeline from '../data/timeline.json';
 import copywriting from '../data/copywriting.json';
-import { FRAME_RATE, CREDITS_START_S, CREDITS_DURATION_S } from './constants';
+import { FRAME_RATE, FINALE_START_S, FINALE_DURATION_S } from './constants';
 import { loadCustomFonts } from './utils/fonts';
 import type { Timeline, Copywriting } from './types';
 
@@ -15,12 +15,12 @@ const typedCopywriting = copywriting as unknown as Copywriting;
 // 用 font-display: block 處理，換取 render 可靠度。
 loadCustomFonts();
 
-// Credits 是疊在絕對時間點播放（見 constants.ts CREDITS_START_S），不是接在內容之後，
-// 所以總長取「內容本身」跟「Credits 結束時間」兩者較大值，而非相加
-const creditsEndS = typedCopywriting.credits ? CREDITS_START_S + CREDITS_DURATION_S : 0;
+// Credits／Finale 都是疊在絕對時間點播放，不是接在內容之後，
+// 所以總長取「內容本身」跟「Finale 結束時間」（目前最晚的區塊）兩者較大值，而非相加
+const finaleEndS = FINALE_START_S + FINALE_DURATION_S;
 const totalFrames = Math.max(
   Math.ceil(typedTimeline.totalDuration * FRAME_RATE),
-  Math.ceil(creditsEndS * FRAME_RATE),
+  Math.ceil(finaleEndS * FRAME_RATE),
   FRAME_RATE * 5 // minimum 5 seconds
 );
 

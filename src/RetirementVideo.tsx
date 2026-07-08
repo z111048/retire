@@ -3,13 +3,16 @@ import { Sequence, useVideoConfig, Audio, interpolate } from 'remotion';
 import {
   FRAME_RATE, INTRO_DURATION_S, OUTRO_DURATION_S,
   SECTION_TITLE_DURATION_S, CREDITS_START_S, CREDITS_DURATION_S,
+  FINALE_START_S, FINALE_DURATION_S, AVATAR_COUNT,
 } from './constants';
 import { IntroScene } from './components/IntroScene';
 import { SectionTitleScene } from './components/SectionTitleScene';
 import { PhotoScene } from './components/PhotoScene';
 import { VideoScene } from './components/VideoScene';
+import { HeartCollageScene } from './components/HeartCollageScene';
 import { OutroScene } from './components/OutroScene';
 import { CreditsScene } from './components/CreditsScene';
+import { FinaleAvatarWallScene } from './components/FinaleAvatarWallScene';
 import { LyricsOverlay } from './components/LyricsOverlay';
 import { staticFile } from 'remotion';
 import lyricsTiming from '../data/lyrics-timing.json';
@@ -68,6 +71,13 @@ export const RetirementVideo: React.FC<RetirementVideoProps> = ({ timeline, copy
             <VideoScene item={item} />
           </Sequence>
         );
+      } else if (item.type === 'heart-collage') {
+        suppressRanges.push([currentFrame / FRAME_RATE, (currentFrame + itemFrames) / FRAME_RATE]);
+        sequences.push(
+          <Sequence key={`${section.id}-heart`} from={currentFrame} durationInFrames={itemFrames}>
+            <HeartCollageScene avatarCount={AVATAR_COUNT} caption={item.caption} />
+          </Sequence>
+        );
       } else {
         sequences.push(
           <Sequence key={`${section.id}-${item.fileName}`} from={currentFrame} durationInFrames={itemFrames}>
@@ -107,6 +117,16 @@ export const RetirementVideo: React.FC<RetirementVideoProps> = ({ timeline, copy
       </Sequence>
     );
   }
+
+  // Finale — 片尾彩蛋，全體Q版大頭貼跑馬燈，固定在絕對時間點（Credits 結束後，此時歌曲已播畢）
+  const finaleStartFrame = Math.round(FINALE_START_S * FRAME_RATE);
+  const finaleFrames = FINALE_DURATION_S * FRAME_RATE;
+  suppressRanges.push([FINALE_START_S, FINALE_START_S + FINALE_DURATION_S]);
+  sequences.push(
+    <Sequence key="finale" from={finaleStartFrame} durationInFrames={finaleFrames}>
+      <FinaleAvatarWallScene avatarCount={AVATAR_COUNT} caption="感謝這些年，有你們真好" />
+    </Sequence>
+  );
 
   const bgmSrc = audioSrc ?? staticFile('bgm.mp3');
   const bgmVolume = (f: number): number => {

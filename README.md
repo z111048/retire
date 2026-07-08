@@ -96,36 +96,56 @@ retire/
 python3 scripts/subset-fonts.py
 ```
 
-## 人臉愛心拼貼
+## 人臉愛心拼貼與 Q 版大頭貼
 
-「今天換我們歡送你」章節結尾有一張由全體同仁大頭貼拼成的愛心圖（`assets/new/7-今天換我們歡送你/23-...(x4).jpg`）。
+「今天換我們歡送你」章節結尾是一場動態愛心拼貼動畫（`HeartCollageScene`）：
+全體同仁的 **Q 版大頭貼**從四面八方飛入定位組成愛心。片尾 Credits 之後（5:00~5:20）
+還有一段彩蛋 `FinaleAvatarWallScene`：580 張 Q 版大頭貼像電影片尾名單一樣捲動。
+
+### 1. 偵測＋複審人臉
 
 ```bash
-pip install opencv-python-headless numpy   # 本機另裝，不隨 npm install
+pip install opencv-python-headless numpy requests   # 本機另裝，不隨 npm install
 python3 scripts/detectFaces.py             # 掃描 public/photos-orig/，輸出 data/face-detections.json
 ```
 
 `detectFaces.py` 用 OpenCV YuNet 偵測人臉，依「偵測信心值＋尺寸＋清晰度＋五官比例」算出綜合品質分數
-由高到低排序，並自動去除重複偵測（同一張臉偶爾會被判斷成兩筆，取品質分數較高者），
-寫入 `data/face-detections.json`。品質分數是給人工複審用的**建議值**，不是自動刪除門檻——
-實際保留哪些臉是人工用一個逐張確認的網頁工具過一遍（大圖＋保留/排除按鈕＋鍵盤快捷鍵），
-結果存成 `data/face-selection.json`（格式：`{ keepFiles: [{file, box}] }`）。
+由高到低排序，並自動去除重複偵測（同一張臉偶爾會被判斷成兩筆，取品質分數較高者）。
+品質分數是給人工複審用的**建議值**，不是自動刪除門檻——實際保留哪些臉是人工用一個逐張確認的
+網頁工具過一遍（大圖＋保留/排除按鈕＋鍵盤快捷鍵），結果存成 `data/face-selection.json`
+（格式：`{ keepFiles: [{file, box}] }`）。
 
-裁切人臉小圖時用 `scripts/faceCrop.py` 的 `crop_face_tile()`：合照人臉密集時，裁切範圍常會帶到
-旁邊其他人的臉，這個函式會把範圍內「非目標本人」的其他人臉框自動模糊。複審工具與最終拼貼
-都共用這個函式，確保看到的跟最後拼貼用的是同一份處理結果。
-
-確認保留清單後，用 `scripts/buildHeartCollage.py` 把人臉排成愛心形狀，輸出成一張圖直接放進
-`assets/new/` 走正常的 `import-assets` 流程：
+`tools/face-selection-review.html` 可視覺化檢查框選結果（含裁切範圍與會被模糊的重疊區域），
+也會列出每張已選臉「候選裁切 → Q版成品」的對照縮圖：
 
 ```bash
-python3 scripts/buildHeartCollage.py   # 讀 data/face-selection.json，輸出到 assets/new/7-.../
-npm run import-assets
+python3 -m http.server 8790   # 從專案根目錄啟動，開 tools/face-selection-review.html
 ```
 
-檔名裡的 `(x4)` 是新的通用標記語法：讓這張照片分到「一般照片 4 倍」的播放時長
-（因為內容資訊量比一般單人照多，需要更長時間讓觀眾看清楚）。這個標記在 `importAssets.ts`
-的 `parseItem()` 解析，跟 `(刪)` 排除標記是同一套慣例，其他照片也能用。
+裁切人臉小圖時用 `scripts/faceCrop.py` 的 `crop_face_tile()`：合照人臉密集時，裁切範圍常會帶到
+旁邊其他人的臉，這個函式會把範圍內「非目標本人」的其他人臉框自動模糊。
+
+### 2. 轉成 Q 版大頭貼
+
+```bash
+pip install requests
+python3 scripts/generateQAvatars.py   # 逐張呼叫本機圖生圖服務，可中斷續跑，見腳本內註解
+```
+
+580 張全跑約需 14-20 小時（服務單張序列處理，每張 1-3 分鐘）。結果存進
+`assets/generated/qavatars/`，`data/qavatar-manifest.json` 記錄每張的成功/失敗狀態方便續跑。
+`public/qavatars/` 是縮小到 140x140 給 Remotion 動畫場景用的版本（見下方 `resize` 步驟，
+`generateQAvatars.py` 完成後需自行縮圖複製一份到這裡，或直接用 `cv2.resize` 批次處理）。
+
+### 3. 動態場景
+
+`src/utils/heartLayout.ts` 是愛心排列演算法（隱式愛心公式），`HeartCollageScene.tsx` 用它
+算出每張大頭貼的目標位置，配合決定性偽隨機（Remotion 禁止 `Math.random()`）算出各自的
+飛入起始位置與延遲，做出從四面八方聚攏成愛心的動畫。`FinaleAvatarWallScene.tsx` 則是
+把全部大頭貼排成網格、整體向上捲動的片尾彩蛋。
+
+兩者的時長與位置都是絕對時間點常數（`src/constants.ts` 的 `FINALE_START_S` 等），
+疊在既有內容之上，不影響歌曲同步的照片配平。
 
 ## WSL2 注意事項
 

@@ -76,6 +76,13 @@ function main() {
             error(`影片不存在：videos/${item.fileName}（段落：${section.title}）`);
             missingFiles++;
           }
+        } else if (item.type === 'heart-collage') {
+          // 動態算繪場景，沒有實體照片檔，只需確認 Q 版大頭貼素材存在
+          const avatarDir = path.resolve('public/qavatars');
+          if (!fs.existsSync(avatarDir) || fs.readdirSync(avatarDir).length === 0) {
+            error(`找不到 Q 版大頭貼素材：public/qavatars/（段落：${section.title}）`);
+            missingFiles++;
+          }
         } else {
           if (!fs.existsSync(path.join(PUBLIC_PHOTOS_ORIG_DIR, item.fileName))) {
             error(`照片不存在：photos-orig/${item.fileName}（段落：${section.title}）`);

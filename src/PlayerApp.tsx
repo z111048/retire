@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { Player } from '@remotion/player';
 import { RetirementVideo } from './RetirementVideo';
 import type { Timeline, Copywriting } from './types';
-import { FRAME_RATE, CREDITS_START_S, CREDITS_DURATION_S } from './constants';
+import { FRAME_RATE, FINALE_START_S, FINALE_DURATION_S } from './constants';
 import { loadCustomFonts } from './utils/fonts';
 
 import timelineData from '../data/timeline.json';
@@ -12,11 +12,11 @@ import copywritingData from '../data/copywriting.json';
 const timeline = timelineData as unknown as Timeline;
 const copywriting = copywritingData as unknown as Copywriting;
 
-// Credits 疊在絕對時間點播放（見 constants.ts CREDITS_START_S），不是接在內容之後
-const creditsEndS = copywriting.credits ? CREDITS_START_S + CREDITS_DURATION_S : 0;
+// Credits／Finale 疊在絕對時間點播放（見 constants.ts），不是接在內容之後
+const finaleEndS = FINALE_START_S + FINALE_DURATION_S;
 const totalFrames = Math.max(
   Math.ceil(timeline.totalDuration * FRAME_RATE),
-  Math.ceil(creditsEndS * FRAME_RATE),
+  Math.ceil(finaleEndS * FRAME_RATE),
   FRAME_RATE * 5
 );
 
