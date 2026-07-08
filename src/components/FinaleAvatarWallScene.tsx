@@ -5,8 +5,6 @@ import { HANDWRITING_FONT } from '../utils/fonts';
 interface FinaleAvatarWallSceneProps {
   avatarCount: number;
   caption: string;
-  /** 捲動跑完後要定格淡出的秒數（不再繼續捲動），讓收尾有停留感，不必硬把捲動拉更慢 */
-  holdSeconds?: number;
 }
 
 declare global {
@@ -27,8 +25,14 @@ const COLS = 14;
 const TILE = 120; // 接近 public/qavatars/ 原始 140px，放大顯示但避免升頻模糊
 const GAP = 10;
 
+// 捲動固定用這個速度（不是用總距離除以總時長反推），時間到就結束，
+// 不需要剛好捲完——580人的頭像牆本來就比畫面能容納的內容多很多，
+// 捲到哪算哪，比硬要在有限時間內全部跑完、被迫加速更自然。
+// 190px/s 是最早（頭像放大之前）設計時就用的舒適速度基準，沿用同一個標準。
+const SCROLL_SPEED_PX_PER_S = 190;
+
 // 片尾彩蛋：全體 Q 版大頭貼像電影演職員名單一樣由下往上緩緩捲動
-export const FinaleAvatarWallScene: React.FC<FinaleAvatarWallSceneProps> = ({ avatarCount, caption, holdSeconds = 0 }) => {
+export const FinaleAvatarWallScene: React.FC<FinaleAvatarWallSceneProps> = ({ avatarCount, caption }) => {
   const frame = useCurrentFrame();
   const { durationInFrames, width, height, fps } = useVideoConfig();
 
@@ -36,12 +40,7 @@ export const FinaleAvatarWallScene: React.FC<FinaleAvatarWallSceneProps> = ({ av
   const gridWidth = COLS * (TILE + GAP);
   const gridHeight = rows * (TILE + GAP);
 
-  // 捲動只跑到 scrollDurationFrames 就結束，剩下的 holdSeconds 定格淡出收尾，
-  // 不必為了撐滿全部時長硬把捲動拉得更慢、更不自然
-  const holdFrames = Math.round(holdSeconds * fps);
-  const scrollDurationFrames = Math.max(1, durationInFrames - holdFrames);
-
-  const fadeOutStart = durationInFrames - Math.max(25, holdFrames);
+  const fadeOutStart = durationInFrames - 25;
   const containerOpacity = interpolate(
     frame,
     [0, 20, fadeOutStart, durationInFrames],
@@ -49,13 +48,9 @@ export const FinaleAvatarWallScene: React.FC<FinaleAvatarWallSceneProps> = ({ av
     { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
   );
 
-  // 從畫面底部下方捲動到頂部上方，經典跑馬燈式尾生名單效果
-  const scrollY = interpolate(
-    frame,
-    [0, scrollDurationFrames],
-    [height + 40, -(gridHeight + 40)],
-    { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
-  );
+  // 從畫面底部下方以固定速度往上捲，捲到哪算哪，不用剛好在場景結束時捲完
+  const pxPerFrame = SCROLL_SPEED_PX_PER_S / fps;
+  const scrollY = Math.max(height + 40 - frame * pxPerFrame, -(gridHeight + 40));
 
   const offsetX = (width - gridWidth) / 2;
 
