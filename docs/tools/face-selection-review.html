@@ -33,8 +33,12 @@
   }
   .card-head b { color:var(--text); font-family:monospace; }
   .card-body { display:flex; align-items:flex-start; }
+  /* imgwrap 的高度改用 JS 算出的 aspect-ratio 明確撐開，
+     不要讓 img 用 height:auto 撐開父層高度再讓 svg 用 height:100% 去繼承——
+     absolutely-positioned 子元素的百分比高度，在「父層高度由auto內容決定」時，
+     不同瀏覽器引擎（尤其 iOS Safari）計算結果不一致，手機版標註框跑掉就是這樣來的 */
   .imgwrap { position:relative; flex:1 1 auto; min-width:0; background:#000; line-height:0; }
-  .imgwrap img { width:100%; height:auto; display:block; }
+  .imgwrap img { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; display:block; }
   .imgwrap svg { position:absolute; inset:0; width:100%; height:100%; }
   .thumb-col {
     flex:0 0 320px; width:320px; max-height:640px; overflow-y:auto;
@@ -189,6 +193,10 @@ async function main() {
 
       img.addEventListener('load', () => {
         const w = img.naturalWidth, h = img.naturalHeight;
+        // 明確用 aspect-ratio 撐開 imgwrap 高度，img 跟 svg 才能穩定用同一份
+        // width:100%/height:100% 疊在一起，不受「auto高度容器的百分比高度」
+        // 這種跨瀏覽器計算差異影響（手機版標註跑掉的成因）
+        imgwrap.style.aspectRatio = `${w} / ${h}`;
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
         svg.setAttribute('preserveAspectRatio', 'none');
