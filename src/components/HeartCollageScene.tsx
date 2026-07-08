@@ -1,6 +1,7 @@
 import React from 'react';
 import { useCurrentFrame, useVideoConfig, interpolate, Img, staticFile } from 'remotion';
-import { computeHeartSlots, HEART_CENTER } from '../utils/heartLayout';
+import { computeHeartSlots, computeSilhouetteRingSlots, HEART_CENTER } from '../utils/heartLayout';
+import type { HeartSlot } from '../utils/heartLayout';
 import { KAI_FONT } from '../utils/fonts';
 
 interface HeartCollageSceneProps {
@@ -33,6 +34,11 @@ function centerPortraitSrc(): string {
 // 中央人像挖空區域尺寸，頭像組成的愛心會繞著這塊區域排列
 const CENTER_PORTRAIT_SIZE = { width: 330, height: 358 }; // 跟 public/images/heart-center-portrait.jpg 等比例(600x650)
 
+// 從 580 顆頭像裡取最後這些數量，改成貼著她輪廓緊密排列（環繞效果），
+// 其餘的仍照原本方式組成外圍愛心形狀
+const RING_COUNT = 56;
+const RING_TILE_SIZE = 24;
+
 // 決定性的假隨機數（Remotion 禁止 Math.random()，每幀重算結果要一致）
 function seededRandom(seed: number): number {
   let t = seed + 0x6d2b79f5;
@@ -44,6 +50,65 @@ function seededRandom(seed: number): number {
 // 字幕要先出現，大頭貼在字幕出現之後才飛入組成愛心，而不是等飛入完成才顯示字幕。
 const FLY_FRAMES = 12; // 單顆頭像飛入所需時間（固定，跟時長無關）
 const JITTER_FRAMES = 12; // 飛入起始時間的隨機抖動範圍（固定）
+
+/** 單顆頭像的飛入動畫＋渲染，愛心外框跟輪廓環繞層共用同一套邏輯 */
+function renderAvatarTile(
+  i: number,
+  slot: HeartSlot,
+  frame: number,
+  avatarCount: number,
+  STAGGER_FRAMES: number,
+  offsetX: number,
+  offsetY: number
+) {
+  const startDelay = (i / avatarCount) * STAGGER_FRAMES + seededRandom(i) * JITTER_FRAMES;
+  const progress = interpolate(frame, [startDelay, startDelay + FLY_FRAMES], [0, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+    easing: (t) => 1 - (1 - t) * (1 - t) * (1 - t), // ease-out cubic
+  });
+
+  // 起始位置：以畫面中心為圓心、大半徑隨機角度散開，像從四面八方聚攏過來
+  const angle = seededRandom(i * 7 + 1) * Math.PI * 2;
+  const dist = 900 + seededRandom(i * 13 + 2) * 500;
+  const startX = 960 + Math.cos(angle) * dist;
+  const startY = 540 + Math.sin(angle) * dist;
+
+  const x = interpolate(progress, [0, 1], [startX, slot.x]);
+  const y = interpolate(progress, [0, 1], [startY, slot.y]);
+  const scale = interpolate(progress, [0, 1], [0.3, 1]);
+  const opacity = interpolate(frame, [startDelay, startDelay + FLY_FRAMES * 0.6], [0, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
+
+  const inner = slot.size - 6;
+  return (
+    <div
+      key={i}
+      style={{
+        position: 'absolute',
+        left: offsetX + x - slot.size / 2,
+        top: offsetY + y - slot.size / 2,
+        width: slot.size,
+        height: slot.size,
+        transform: `scale(${scale})`,
+        opacity,
+        background: '#fff8f0',
+        borderRadius: 4,
+        // 580 顆頭像各自套 boxShadow 會逐一觸發 GPU 合成層（跟 FloatingParticles.tsx
+        // 避免的原因一樣，但這裡數量多了近100倍），改用便宜很多的 border 做邊框效果
+        border: '1px solid rgba(0,0,0,0.12)',
+        padding: 3,
+      }}
+    >
+      <Img
+        src={avatarSrc(i)}
+        style={{ width: inner, height: inner, objectFit: 'cover', borderRadius: 2, display: 'block' }}
+      />
+    </div>
+  );
+}
 const CAPTION_FADE_FRAMES = 8; // 字幕淡入時間
 const CAPTION_START_FRAMES = 10; // 字幕在容器淡入後很快就出現
 const CONTAINER_FADE_IN_FRAMES = 8;
@@ -57,6 +122,11 @@ export const HeartCollageScene: React.FC<HeartCollageSceneProps> = ({ avatarCoun
     () => computeHeartSlots(avatarCount, CENTER_PORTRAIT_SIZE),
     [avatarCount]
   );
+  const ringSlots = React.useMemo(
+    () => computeSilhouetteRingSlots(CENTER_PORTRAIT_SIZE, RING_COUNT, RING_TILE_SIZE),
+    []
+  );
+  const ringStartIndex = avatarCount - RING_COUNT;
 
   const containerFadeIn = CONTAINER_FADE_IN_FRAMES;
   const containerFadeOutWindow = CONTAINER_FADE_OUT_FRAMES;
@@ -99,54 +169,16 @@ export const HeartCollageScene: React.FC<HeartCollageSceneProps> = ({ avatarCoun
       }}
     >
       {slots.map((slot, i) => {
+        // 最後 RING_COUNT 個索引改由貼合輪廓的環繞層負責繪製，這裡略過避免重複顯示
+        if (i >= avatarCount || i >= ringStartIndex) return null;
+        return renderAvatarTile(i, slot, frame, avatarCount, STAGGER_FRAMES, offsetX, offsetY);
+      })}
+
+      {/* 貼合她輪廓緊密排列的環繞頭像層 */}
+      {ringSlots.map((slot, ringI) => {
+        const i = ringStartIndex + ringI;
         if (i >= avatarCount) return null;
-        const startDelay = (i / avatarCount) * STAGGER_FRAMES + seededRandom(i) * JITTER_FRAMES;
-        const progress = interpolate(frame, [startDelay, startDelay + FLY_FRAMES], [0, 1], {
-          extrapolateLeft: 'clamp',
-          extrapolateRight: 'clamp',
-          easing: (t) => 1 - (1 - t) * (1 - t) * (1 - t), // ease-out cubic
-        });
-
-        // 起始位置：以畫面中心為圓心、大半徑隨機角度散開，像從四面八方聚攏過來
-        const angle = seededRandom(i * 7 + 1) * Math.PI * 2;
-        const dist = 900 + seededRandom(i * 13 + 2) * 500;
-        const startX = 960 + Math.cos(angle) * dist;
-        const startY = 540 + Math.sin(angle) * dist;
-
-        const x = interpolate(progress, [0, 1], [startX, slot.x]);
-        const y = interpolate(progress, [0, 1], [startY, slot.y]);
-        const scale = interpolate(progress, [0, 1], [0.3, 1]);
-        const opacity = interpolate(frame, [startDelay, startDelay + FLY_FRAMES * 0.6], [0, 1], {
-          extrapolateLeft: 'clamp',
-          extrapolateRight: 'clamp',
-        });
-
-        const inner = slot.size - 6;
-        return (
-          <div
-            key={i}
-            style={{
-              position: 'absolute',
-              left: offsetX + x - slot.size / 2,
-              top: offsetY + y - slot.size / 2,
-              width: slot.size,
-              height: slot.size,
-              transform: `scale(${scale})`,
-              opacity,
-              background: '#fff8f0',
-              borderRadius: 4,
-              // 580 顆頭像各自套 boxShadow 會逐一觸發 GPU 合成層（跟 FloatingParticles.tsx
-              // 避免的原因一樣，但這裡數量多了近100倍），改用便宜很多的 border 做邊框效果
-              border: '1px solid rgba(0,0,0,0.12)',
-              padding: 3,
-            }}
-          >
-            <Img
-              src={avatarSrc(i)}
-              style={{ width: inner, height: inner, objectFit: 'cover', borderRadius: 2, display: 'block' }}
-            />
-          </div>
-        );
+        return renderAvatarTile(i, slot, frame, avatarCount, STAGGER_FRAMES, offsetX, offsetY);
       })}
 
       {/* 中央人像：秀燕姐本人，已去背取出精確輪廓，直接融入背景不需要卡片外框 */}
