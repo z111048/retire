@@ -46,7 +46,16 @@ export const CreditsScene: React.FC<CreditsSceneProps> = ({ title, lines }) => {
       style={{
         width: '100%',
         height: '100%',
+        // 背景本身永遠不透明——這層蓋在 Outro 尾段上，如果背景也跟著淡入淡出，
+        // 淡出瞬間會讓還沒淡出的 Outro 文字穿透出來（曾經因此出過 bug）
         backgroundColor: '#FFF8F0',
+        position: 'relative',
+      }}
+    >
+    <div
+      style={{
+        width: '100%',
+        height: '100%',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -117,6 +126,7 @@ export const CreditsScene: React.FC<CreditsSceneProps> = ({ title, lines }) => {
       </div>
 
       <FloatingParticles count={6} opacityScale={0.35} />
+    </div>
     </div>
   );
 };

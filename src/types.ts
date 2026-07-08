@@ -28,9 +28,8 @@ export interface PhotoMetadata {
 }
 
 export interface TimelineItem {
-  /** 'photo'（預設）、'video'（public/videos/ 下的剪輯片段），
-   * 或 'heart-collage'（動態Q版大頭貼愛心拼貼，無實體照片檔，見 HeartCollageScene） */
-  type?: 'photo' | 'video' | 'heart-collage';
+  /** 'photo'（預設）或 'video'（public/videos/ 下的剪輯片段） */
+  type?: 'photo' | 'video';
   fileName: string;
   caption: string;
   durationFrames: number;
@@ -92,5 +91,8 @@ export interface Copywriting {
   credits?: {
     title: string;
     lines: CreditsLine[];
+  };
+  heartCollage?: {
+    caption: string;
   };
 }

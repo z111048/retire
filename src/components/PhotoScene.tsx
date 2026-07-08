@@ -36,10 +36,8 @@ export const PhotoScene: React.FC<PhotoSceneProps> = ({ photo, index, sectionId 
   // "今天換我們歡送你" 章節正好是全曲副歌高潮（見 data/lyrics-timing.json 204~247s），
   // 畫面氛圍稍微加強一點粒子數量呼應情緒最高點，其他章節維持原本的低耗能數量
   const particleCount = sectionId === 'our-turn' ? 8 : 6;
-  // 每 4 張輪替一次字幕位置，避免 82 張照片全程都固定同一個角落。
-  // 只在「上方」兩種位置間輪替（右上角／正上方置中）——絕對不能用 'bottom'，
-  // 那會跟畫面下方常駐的 LyricsOverlay 疊在一起互相蓋字（曾經因此出過 bug）。
-  const captionPosition = index % 4 === 3 ? 'top' : 'top-right';
+  // 統一靠右上角，不做位置輪替
+  const captionPosition = 'top-right';
 
   const kb = KB_CONFIGS[index % KB_CONFIGS.length];
   const fadeOutStart = durationInFrames - Math.min(FRAME_RATE * 0.45, 13);

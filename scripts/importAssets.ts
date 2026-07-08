@@ -48,7 +48,6 @@ interface RawItem {
   file: string;      // 原始檔名（含資料夾相對路徑）
   caption: string;
   isVideo: boolean;
-  isHeartCollage: boolean; // 檔名含 (heart) 標記：動態Q版大頭貼愛心拼貼，不需要實體照片檔
   clipRanges: Array<{ start: number; end: number }>; // 秒
   itemWeight: number; // 檔名含 (xN) 標記時 = N，用來讓單張照片分到 N 倍時長
 }
@@ -88,13 +87,6 @@ function parseItem(fileName: string): RawItem | null {
     caption = caption.replace(weightMatch[0], '');
   }
 
-  let isHeartCollage = false;
-  const heartMatch = caption.match(/[（(]heart[)）]/i);
-  if (heartMatch) {
-    isHeartCollage = true;
-    caption = caption.replace(heartMatch[0], '');
-  }
-
   const clipRanges: Array<{ start: number; end: number }> = [];
   if (isVideo) {
     const clipMatch = caption.match(/[（(]剪輯([^)）]*)[)）]/);
@@ -106,7 +98,7 @@ function parseItem(fileName: string): RawItem | null {
     }
     caption = caption.replace(/\s+/g, '');
   }
-  return { ordinal, file: fileName, caption: caption.trim(), isVideo, isHeartCollage, clipRanges, itemWeight };
+  return { ordinal, file: fileName, caption: caption.trim(), isVideo, clipRanges, itemWeight };
 }
 
 // 同一章節若有多支影片被照片隔開，把它們挪成連續播放（接在第一支影片原本的位置），
@@ -197,19 +189,7 @@ async function main() {
       seq++;
       const srcPath = path.join(ASSETS_DIR, dir, item.file);
 
-      if (item.isHeartCollage) {
-        // 動態Q版大頭貼愛心拼貼：不需要複製/壓縮任何照片檔，畫面由 HeartCollageScene 即時算繪
-        filenameMap[`heart-collage-${seq}`] = path.join(dir, item.file);
-        const heartItem: TimelineItem = {
-          type: 'heart-collage',
-          fileName: 'heart-collage',
-          caption: item.caption,
-          durationFrames: 0, // 稍後配平（跟一般照片同一套加權系統）
-        };
-        if (item.itemWeight !== 1) itemWeights.set(heartItem, item.itemWeight);
-        timelineItems.push(heartItem);
-        photoCount++; // 併入配平計算，跟其他照片共用同一個時間預算池
-      } else if (item.isVideo) {
+      if (item.isVideo) {
         if (item.clipRanges.length === 0) {
           const dur = probeDuration(srcPath);
           item.clipRanges.push({ start: 0, end: Math.min(dur, 30) });

@@ -76,13 +76,6 @@ function main() {
             error(`影片不存在：videos/${item.fileName}（段落：${section.title}）`);
             missingFiles++;
           }
-        } else if (item.type === 'heart-collage') {
-          // 動態算繪場景，沒有實體照片檔，只需確認 Q 版大頭貼素材存在
-          const avatarDir = path.resolve('public/qavatars');
-          if (!fs.existsSync(avatarDir) || fs.readdirSync(avatarDir).length === 0) {
-            error(`找不到 Q 版大頭貼素材：public/qavatars/（段落：${section.title}）`);
-            missingFiles++;
-          }
         } else {
           if (!fs.existsSync(path.join(PUBLIC_PHOTOS_ORIG_DIR, item.fileName))) {
             error(`照片不存在：photos-orig/${item.fileName}（段落：${section.title}）`);
@@ -150,6 +143,15 @@ function main() {
     info('封面圖 cover-wide.jpg 存在');
   } else {
     warn('找不到 public/photos/cover-wide.jpg，開場場景將無法顯示封面圖');
+  }
+
+  // Check Q 版大頭貼素材（HeartCollageScene／FinaleAvatarWallScene 用，固定絕對時間場景，
+  // 不屬於任何 TimelineItem，見 src/RetirementVideo.tsx 的 heart-collage／finale 區塊）
+  const avatarDir = path.resolve('public/qavatars');
+  if (fs.existsSync(avatarDir) && fs.readdirSync(avatarDir).length > 0) {
+    info(`Q 版大頭貼素材存在（${fs.readdirSync(avatarDir).length} 張）`);
+  } else {
+    error('找不到 public/qavatars/，愛心拼貼與片尾彩蛋將無法顯示');
   }
 
   // Check lyrics timing

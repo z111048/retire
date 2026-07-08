@@ -2,7 +2,8 @@ import React from 'react';
 import { Sequence, useVideoConfig, Audio, interpolate } from 'remotion';
 import {
   FRAME_RATE, INTRO_DURATION_S, OUTRO_DURATION_S,
-  SECTION_TITLE_DURATION_S, CREDITS_START_S, CREDITS_DURATION_S,
+  SECTION_TITLE_DURATION_S, HEART_START_S, HEART_DURATION_S,
+  CREDITS_START_S, CREDITS_DURATION_S,
   FINALE_START_S, FINALE_DURATION_S, AVATAR_COUNT,
   SECTION_ACCENTS, DEFAULT_SECTION_ACCENT,
 } from './constants';
@@ -76,13 +77,6 @@ export const RetirementVideo: React.FC<RetirementVideoProps> = ({ timeline, copy
             <VideoScene item={item} />
           </Sequence>
         );
-      } else if (item.type === 'heart-collage') {
-        suppressRanges.push([currentFrame / FRAME_RATE, (currentFrame + itemFrames) / FRAME_RATE]);
-        sequences.push(
-          <Sequence key={`${section.id}-heart`} from={currentFrame} durationInFrames={itemFrames}>
-            <HeartCollageScene avatarCount={AVATAR_COUNT} caption={item.caption} />
-          </Sequence>
-        );
       } else {
         sequences.push(
           <Sequence key={`${section.id}-${item.fileName}`} from={currentFrame} durationInFrames={itemFrames}>
@@ -111,7 +105,20 @@ export const RetirementVideo: React.FC<RetirementVideoProps> = ({ timeline, copy
   );
   currentFrame += outroFrames;
 
-  // Credits — 製作團隊名單，固定在絕對時間點播放（疊在 Outro 尾段上，此時最後一句祝福語已顯示完畢）
+  // 愛心拼貼 — Q版大頭貼飛入組成愛心，固定在絕對時間點播放（疊在 Outro 尾段上，
+  // 此時最後一句祝福語已顯示完畢），緊接在 Credits 之前
+  if (copywriting.heartCollage) {
+    const heartStartFrame = Math.round(HEART_START_S * FRAME_RATE);
+    const heartFrames = Math.round(HEART_DURATION_S * FRAME_RATE);
+    suppressRanges.push([HEART_START_S, HEART_START_S + HEART_DURATION_S]);
+    sequences.push(
+      <Sequence key="heart-collage" from={heartStartFrame} durationInFrames={heartFrames}>
+        <HeartCollageScene avatarCount={AVATAR_COUNT} caption={copywriting.heartCollage.caption} />
+      </Sequence>
+    );
+  }
+
+  // Credits — 製作團隊名單，固定在絕對時間點播放（愛心拼貼結束後緊接）
   if (copywriting.credits) {
     const creditsStartFrame = Math.round(CREDITS_START_S * FRAME_RATE);
     const creditsFrames = CREDITS_DURATION_S * FRAME_RATE;

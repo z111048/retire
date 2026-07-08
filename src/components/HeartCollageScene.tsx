@@ -30,9 +30,11 @@ function seededRandom(seed: number): number {
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 }
 
-const STAGGER_FRAMES = 260; // 580 顆頭像分散開始飛入的總時間窗
-const FLY_FRAMES = 26; // 單顆頭像飛入所需時間
-const CAPTION_START = 320;
+// 場景時長從原本 407 frames 等比例縮短為 293 frames（見 constants.ts 說明），
+// 這三個常數也要跟著等比例縮小（比例 0.7207），維持飛入動畫的節奏比例一致
+const STAGGER_FRAMES = 187; // 580 顆頭像分散開始飛入的總時間窗
+const FLY_FRAMES = 19; // 單顆頭像飛入所需時間
+const CAPTION_START = 231;
 
 export const HeartCollageScene: React.FC<HeartCollageSceneProps> = ({ avatarCount, caption }) => {
   const frame = useCurrentFrame();
@@ -59,8 +61,17 @@ export const HeartCollageScene: React.FC<HeartCollageSceneProps> = ({ avatarCoun
         height: '100%',
         position: 'relative',
         overflow: 'hidden',
-        opacity: containerOpacity,
+        // 背景本身永遠不透明——這層蓋在 Outro 尾段上，如果背景也跟著淡入淡出，
+        // 淡出瞬間會讓還沒淡出的 Outro 文字穿透出來（曾經因此出過 bug）
         background: 'radial-gradient(ellipse 80% 60% at 50% 50%, #FFFDF6 0%, #FFF4E0 45%, #FFF0D8 100%)',
+      }}
+    >
+    <div
+      style={{
+        width: '100%',
+        height: '100%',
+        position: 'relative',
+        opacity: containerOpacity,
       }}
     >
       {slots.map((slot, i) => {
@@ -139,6 +150,7 @@ export const HeartCollageScene: React.FC<HeartCollageSceneProps> = ({ avatarCoun
           {caption}
         </span>
       </div>
+    </div>
     </div>
   );
 };
