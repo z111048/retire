@@ -161,12 +161,13 @@ export function computeConcentricRingSlots(hole: CenterHole, targetCount: number
   // 圈距／角度間距都刻意小於 tileSize，讓相鄰的頭像方塊互相輕微重疊——
   // 實測過：方塊沿著極座標網格排列，就算圈距=tileSize（緊貼不重疊），
   // 曲線邊界跟方塊本身的落差還是會在圈與圈、頭像與頭像之間露出背景色的縫隙
-  // （用 456788px² 的可填區面積實測，圈距0.95/角度1.0 只有約89%覆蓋率）。
-  // 這兩個重疊係數是拿同一份輪廓資料跑覆蓋率模擬找出來的：0.7/0.75 能把覆蓋率
-  // 推到99%，且剛好在 tileSize=40 時湊出跟實際 580 張頭像一致的格數，不需要
-  // 截斷多餘的外圈、也不必重複使用照片。
-  const RING_STEP_FACTOR = 0.7;
-  const ANGULAR_SPACING_FACTOR = 0.75;
+  // （用 456788px² 的可填區面積實測，圈距1.0/角度1.0 只有約88%覆蓋率，是幾何
+  // 形狀造成的上限，跟 tile 大小無關）。0.7/0.75 雖然能衝到99%覆蓋率，但重疊
+  // 幅度太大，頭像方塊會明顯疊到彼此、看起來很雜亂；改用更保守的 0.85/0.9，
+  // 覆蓋率仍有約95%（縫隙由外框那層底色補上），重疊幅度小到肉眼看是「緊貼」
+  // 而不是「疊在一起」。
+  const RING_STEP_FACTOR = 0.85;
+  const ANGULAR_SPACING_FACTOR = 0.9;
 
   function build(tileSize: number): HeartSlot[] {
     const ringStep = tileSize * RING_STEP_FACTOR;
@@ -198,17 +199,18 @@ export function computeConcentricRingSlots(hole: CenterHole, targetCount: number
     return slots;
   }
 
-  // tile 越大格數越少，是單調遞減關係。要選「格數還是 >= targetCount」的最後一個
-  // （也就是最接近但不小於目標的 tile size），格數一旦低於目標就代表頭像會被平白丟掉
-  // ——選「最接近」而不管有沒有低於目標的話，可能選到格數不足的 tile，讓最後幾張大頭貼消失不見。
+  // 挑格數「最接近」targetCount 的 tile size（不要求 >=）——這裡的 targetCount
+  // 是頭像池裡隨機抽出來實際擺放的張數，不必每一張都用到，所以不用像
+  // FinaleAvatarWallScene 那種要塞滿全部 avatarCount 的場景一樣硬求下限。
   let best: { slots: HeartSlot[] } | null = null;
   for (let tileSize = 14; tileSize < 60; tileSize++) {
     const slots = build(tileSize);
+    if (!best || Math.abs(slots.length - targetCount) < Math.abs(best.slots.length - targetCount)) {
+      best = { slots };
+    }
     if (slots.length < targetCount) break;
-    best = { slots };
   }
-  // 理論上 tile=14（最密）都湊不到 targetCount 顆的極端情況，退而求其次選格數最多的一組。
-  const slots = (best ?? { slots: build(14) }).slots;
+  const slots = best!.slots;
 
   // 依「離中心的半徑」由內而外排序，讓飛入動畫從貼身的內圈先組成，外圈才陸續補上，
   // 視覺上呈現「一圈一圈圍繞」逐漸擴散出去的效果。
