@@ -161,6 +161,13 @@ function main() {
     error('找不到 public/videos/finale-heart-gesture.mp4，片尾最後一顆鏡頭將無法顯示');
   }
 
+  // Check 愛心拼貼中央人像（HeartCollageScene 用，頭像組成的愛心繞著這張圖排列）
+  if (fs.existsSync(path.resolve('public/images/heart-center-portrait.jpg'))) {
+    info('愛心拼貼中央人像存在');
+  } else {
+    error('找不到 public/images/heart-center-portrait.jpg，愛心拼貼中央將沒有人像');
+  }
+
   // Check lyrics timing
   const lyrics = parseJsonFile<Array<{ start: number; end: number; text: string }>>(
     path.join(DATA_DIR, 'lyrics-timing.json'), 'lyrics-timing.json'

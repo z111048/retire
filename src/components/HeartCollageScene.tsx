@@ -1,6 +1,6 @@
 import React from 'react';
 import { useCurrentFrame, useVideoConfig, interpolate, Img, staticFile } from 'remotion';
-import { computeHeartSlots } from '../utils/heartLayout';
+import { computeHeartSlots, HEART_CENTER } from '../utils/heartLayout';
 import { KAI_FONT } from '../utils/fonts';
 
 interface HeartCollageSceneProps {
@@ -22,6 +22,17 @@ function avatarSrc(idx: number): string {
   return staticFile(file);
 }
 
+function centerPortraitSrc(): string {
+  const file = 'images/heart-center-portrait.jpg';
+  if (typeof window !== 'undefined' && window.__REMOTION_BASE__) {
+    return window.__REMOTION_BASE__ + file;
+  }
+  return staticFile(file);
+}
+
+// 中央人像挖空區域尺寸，頭像組成的愛心會繞著這塊區域排列
+const CENTER_PORTRAIT_SIZE = { width: 330, height: 358 }; // 跟 public/images/heart-center-portrait.jpg 等比例(600x650)
+
 // 決定性的假隨機數（Remotion 禁止 Math.random()，每幀重算結果要一致）
 function seededRandom(seed: number): number {
   let t = seed + 0x6d2b79f5;
@@ -42,7 +53,10 @@ export const HeartCollageScene: React.FC<HeartCollageSceneProps> = ({ avatarCoun
   const frame = useCurrentFrame();
   const { durationInFrames, width, height } = useVideoConfig();
 
-  const slots = React.useMemo(() => computeHeartSlots(avatarCount), [avatarCount]);
+  const slots = React.useMemo(
+    () => computeHeartSlots(avatarCount, CENTER_PORTRAIT_SIZE),
+    [avatarCount]
+  );
 
   const containerFadeIn = CONTAINER_FADE_IN_FRAMES;
   const containerFadeOutWindow = CONTAINER_FADE_OUT_FRAMES;
@@ -134,6 +148,29 @@ export const HeartCollageScene: React.FC<HeartCollageSceneProps> = ({ avatarCoun
           </div>
         );
       })}
+
+      {/* 中央人像：秀燕姐本人，頭像組成的愛心繞著她排列 */}
+      <div
+        style={{
+          position: 'absolute',
+          left: offsetX + HEART_CENTER.x - CENTER_PORTRAIT_SIZE.width / 2,
+          top: offsetY + HEART_CENTER.y - CENTER_PORTRAIT_SIZE.height / 2,
+          width: CENTER_PORTRAIT_SIZE.width,
+          height: CENTER_PORTRAIT_SIZE.height,
+          borderRadius: 12,
+          overflow: 'hidden',
+          border: '2px solid rgba(255,255,255,0.8)',
+          opacity: interpolate(frame, [CAPTION_START, CAPTION_START + captionFadeIn * 2], [0, 1], {
+            extrapolateLeft: 'clamp',
+            extrapolateRight: 'clamp',
+          }),
+        }}
+      >
+        <Img
+          src={centerPortraitSrc()}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+        />
+      </div>
 
       <div
         style={{
