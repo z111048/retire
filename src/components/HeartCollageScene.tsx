@@ -23,7 +23,7 @@ function avatarSrc(idx: number): string {
 }
 
 function centerPortraitSrc(): string {
-  const file = 'images/heart-center-portrait.jpg';
+  const file = 'images/heart-center-portrait.png';
   if (typeof window !== 'undefined' && window.__REMOTION_BASE__) {
     return window.__REMOTION_BASE__ + file;
   }
@@ -149,7 +149,7 @@ export const HeartCollageScene: React.FC<HeartCollageSceneProps> = ({ avatarCoun
         );
       })}
 
-      {/* 中央人像：秀燕姐本人，頭像組成的愛心繞著她排列 */}
+      {/* 中央人像：秀燕姐本人，已去背取出精確輪廓，直接融入背景不需要卡片外框 */}
       <div
         style={{
           position: 'absolute',
@@ -157,9 +157,6 @@ export const HeartCollageScene: React.FC<HeartCollageSceneProps> = ({ avatarCoun
           top: offsetY + HEART_CENTER.y - CENTER_PORTRAIT_SIZE.height / 2,
           width: CENTER_PORTRAIT_SIZE.width,
           height: CENTER_PORTRAIT_SIZE.height,
-          borderRadius: 12,
-          overflow: 'hidden',
-          border: '2px solid rgba(255,255,255,0.8)',
           opacity: interpolate(frame, [CAPTION_START, CAPTION_START + captionFadeIn * 2], [0, 1], {
             extrapolateLeft: 'clamp',
             extrapolateRight: 'clamp',
@@ -168,7 +165,7 @@ export const HeartCollageScene: React.FC<HeartCollageSceneProps> = ({ avatarCoun
       >
         <Img
           src={centerPortraitSrc()}
-          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
         />
       </div>
 

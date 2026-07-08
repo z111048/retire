@@ -162,10 +162,10 @@ function main() {
   }
 
   // Check 愛心拼貼中央人像（HeartCollageScene 用，頭像組成的愛心繞著這張圖排列）
-  if (fs.existsSync(path.resolve('public/images/heart-center-portrait.jpg'))) {
+  if (fs.existsSync(path.resolve('public/images/heart-center-portrait.png'))) {
     info('愛心拼貼中央人像存在');
   } else {
-    error('找不到 public/images/heart-center-portrait.jpg，愛心拼貼中央將沒有人像');
+    error('找不到 public/images/heart-center-portrait.png，愛心拼貼中央將沒有人像');
   }
 
   // Check lyrics timing
