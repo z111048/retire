@@ -131,23 +131,23 @@ export const RetirementVideo: React.FC<RetirementVideoProps> = ({ timeline, copy
     );
   }
 
-  // Finale — 片尾彩蛋，全體Q版大頭貼跑馬燈，固定在絕對時間點（Credits 結束後，此時歌曲已播畢）
-  const finaleStartFrame = Math.round(FINALE_START_S * FRAME_RATE);
-  const finaleFrames = FINALE_DURATION_S * FRAME_RATE;
-  suppressRanges.push([FINALE_START_S, FINALE_START_S + FINALE_DURATION_S]);
-  sequences.push(
-    <Sequence key="finale" from={finaleStartFrame} durationInFrames={finaleFrames}>
-      <FinaleAvatarWallScene avatarCount={AVATAR_COUNT} caption="感謝這些年，有妳真好" />
-    </Sequence>
-  );
-
-  // 全片最後一顆鏡頭：秀燕姐Q版插畫比愛心手勢（Google Flow 生成），緊接在 Finale 之後
+  // 片尾愛心手勢 — 秀燕姐Q版插畫比愛心（Google Flow 生成），固定在絕對時間點（Credits 結束後緊接）
   const finalClipStartFrame = Math.round(FINAL_CLIP_START_S * FRAME_RATE);
   const finalClipFrames = Math.round(FINAL_CLIP_DURATION_S * FRAME_RATE);
   suppressRanges.push([FINAL_CLIP_START_S, FINAL_CLIP_START_S + FINAL_CLIP_DURATION_S]);
   sequences.push(
     <Sequence key="final-clip" from={finalClipStartFrame} durationInFrames={finalClipFrames}>
       <VideoScene item={{ type: 'video', fileName: 'finale-heart-gesture.mp4', caption: '', durationFrames: finalClipFrames }} />
+    </Sequence>
+  );
+
+  // Finale — 片尾彩蛋，全體Q版大頭貼跑馬燈，全片最後一段，播放到剛好 5:20 結束
+  const finaleStartFrame = Math.round(FINALE_START_S * FRAME_RATE);
+  const finaleFrames = Math.round(FINALE_DURATION_S * FRAME_RATE);
+  suppressRanges.push([FINALE_START_S, FINALE_START_S + FINALE_DURATION_S]);
+  sequences.push(
+    <Sequence key="finale" from={finaleStartFrame} durationInFrames={finaleFrames}>
+      <FinaleAvatarWallScene avatarCount={AVATAR_COUNT} caption="感謝這些年，有妳真好" />
     </Sequence>
   );
 

@@ -30,11 +30,18 @@ function seededRandom(seed: number): number {
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 }
 
-// 場景時長從原本 407 frames 等比例縮短為 293 frames（見 constants.ts 說明），
-// 這三個常數也要跟著等比例縮小（比例 0.7207），維持飛入動畫的節奏比例一致
-const STAGGER_FRAMES = 187; // 580 顆頭像分散開始飛入的總時間窗
-const FLY_FRAMES = 19; // 單顆頭像飛入所需時間
-const CAPTION_START = 231;
+// 這次改成依 durationInFrames 比例計算，而非寫死 frame 數——
+// 場景時長已經改過好幾次（407→293→現在的 4s=120 frames），每次都要手動等比例
+// 重算很容易出錯，乾脆讓節奏隨時長自動縮放。比例基準取自最早用 407 frames 調校出來的版本：
+// containerFadeIn 15/407、containerFadeOut 25/407、STAGGER 260/407、FLY 26/407、
+// jitter 20/407、CAPTION_START 320/407、captionFadeIn 25/407。
+const CONTAINER_FADE_IN_RATIO = 15 / 407;
+const CONTAINER_FADE_OUT_RATIO = 25 / 407;
+const STAGGER_RATIO = 260 / 407;
+const FLY_RATIO = 26 / 407;
+const JITTER_RATIO = 20 / 407;
+const CAPTION_START_RATIO = 320 / 407;
+const CAPTION_FADE_IN_RATIO = 25 / 407;
 
 export const HeartCollageScene: React.FC<HeartCollageSceneProps> = ({ avatarCount, caption }) => {
   const frame = useCurrentFrame();
@@ -42,10 +49,18 @@ export const HeartCollageScene: React.FC<HeartCollageSceneProps> = ({ avatarCoun
 
   const slots = React.useMemo(() => computeHeartSlots(avatarCount), [avatarCount]);
 
-  const fadeOutStart = durationInFrames - 25;
+  const containerFadeIn = Math.max(4, Math.round(durationInFrames * CONTAINER_FADE_IN_RATIO));
+  const containerFadeOutWindow = Math.max(6, Math.round(durationInFrames * CONTAINER_FADE_OUT_RATIO));
+  const STAGGER_FRAMES = durationInFrames * STAGGER_RATIO;
+  const FLY_FRAMES = durationInFrames * FLY_RATIO;
+  const JITTER_FRAMES = durationInFrames * JITTER_RATIO;
+  const CAPTION_START = durationInFrames * CAPTION_START_RATIO;
+  const captionFadeIn = Math.max(6, Math.round(durationInFrames * CAPTION_FADE_IN_RATIO));
+
+  const fadeOutStart = durationInFrames - containerFadeOutWindow;
   const containerOpacity = interpolate(
     frame,
-    [0, 15, fadeOutStart, durationInFrames],
+    [0, containerFadeIn, fadeOutStart, durationInFrames],
     [0, 1, 1, 0],
     { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
   );
@@ -76,7 +91,7 @@ export const HeartCollageScene: React.FC<HeartCollageSceneProps> = ({ avatarCoun
     >
       {slots.map((slot, i) => {
         if (i >= avatarCount) return null;
-        const startDelay = (i / avatarCount) * STAGGER_FRAMES + seededRandom(i) * 20;
+        const startDelay = (i / avatarCount) * STAGGER_FRAMES + seededRandom(i) * JITTER_FRAMES;
         const progress = interpolate(frame, [startDelay, startDelay + FLY_FRAMES], [0, 1], {
           extrapolateLeft: 'clamp',
           extrapolateRight: 'clamp',
@@ -131,7 +146,7 @@ export const HeartCollageScene: React.FC<HeartCollageSceneProps> = ({ avatarCoun
           bottom: offsetY + 60,
           display: 'flex',
           justifyContent: 'center',
-          opacity: interpolate(frame, [CAPTION_START, CAPTION_START + 25], [0, 1], {
+          opacity: interpolate(frame, [CAPTION_START, CAPTION_START + captionFadeIn], [0, 1], {
             extrapolateLeft: 'clamp',
             extrapolateRight: 'clamp',
           }),

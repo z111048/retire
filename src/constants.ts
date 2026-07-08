@@ -4,20 +4,22 @@ export const OUTRO_DURATION_S = 21;
 export const AVATAR_COUNT = 580;     // 對應 data/face-selection.json 的 keepFiles 數量
 
 // 愛心拼貼原本是「今天換我們歡送你」章節內的加權項目，現在改成獨立的絕對時間場景，
-// 移到 Outro 尾聲（此時最後一句祝福語已顯示完畢）跟 Credits 之間。
-// 為了讓總長維持 320s（5:20）不變，heart/credits/finale 三段時長都按同一比例
-// （0.7207，= (320-285) / 原本三段總和48.57s）等比例縮短。
+// 移到 Outro 尾聲（此時最後一句祝福語已顯示完畢）之後。
+// 順序：愛心拼貼 → Credits → 片尾愛心手勢 → Finale人牆（Finale 現在是全片最後一段，
+// 播放到剛好 320s，時長 = 320 - 前面三段結束時間，藉此順便讓跑馬燈速度慢下來）。
 export const HEART_START_S = 285;      // 4:45，固定絕對時間點（會疊在 Outro 尾段上）
-export const HEART_DURATION_S = 293 / 30;  // ≈9.77s（原13.57s，等比例縮短）
+export const HEART_DURATION_S = 4;
 export const CREDITS_START_S = HEART_START_S + HEART_DURATION_S; // 愛心拼貼結束後緊接
-export const CREDITS_DURATION_S = 195 / 30; // ≈6.5s（原9s，等比例縮短）
-export const FINALE_START_S = CREDITS_START_S + CREDITS_DURATION_S; // Credits 結束後緊接
-export const FINALE_DURATION_S = 412 / 30; // ≈13.73s（原18.73s，再讓給片尾愛心手勢片段5秒）
+export const CREDITS_DURATION_S = 5;
 
-// 片尾彩蛋之後的最後一顆鏡頭：秀燕姐Q版插畫比愛心手勢（Google Flow 生成），
-// 固定 5 秒，緊接在 Finale 之後，是全片最後一顆鏡頭
-export const FINAL_CLIP_START_S = FINALE_START_S + FINALE_DURATION_S;
-export const FINAL_CLIP_DURATION_S = 5;
+// 片尾愛心手勢（秀燕姐Q版插畫比愛心，Google Flow 生成）：8 秒，
+// 最後 3 秒是定格（見 public/videos/finale-heart-gesture.mp4，用 tpad 濾鏡延伸）
+export const FINAL_CLIP_START_S = CREDITS_START_S + CREDITS_DURATION_S;
+export const FINAL_CLIP_DURATION_S = 8;
+
+// Finale 人牆跑馬燈：全片最後一段，播放到剛好 5:20（320s）結束
+export const FINALE_START_S = FINAL_CLIP_START_S + FINAL_CLIP_DURATION_S;
+export const FINALE_DURATION_S = 320 - FINALE_START_S; // = 18s
 export const SECTION_TITLE_DURATION_S = 3.5;
 export const LYRIC_DURATION_S = 3;
 export const DEFAULT_PHOTO_DURATION_S = 3;
