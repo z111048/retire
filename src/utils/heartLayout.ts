@@ -51,71 +51,145 @@ function pointInPolygon(x: number, y: number, polygon: Array<[number, number]>):
   return inside;
 }
 
-/** 取得縮放到場景座標、依人像顯示尺寸還原的輪廓點，供頭像貼合排列（環繞效果）用。
- * count 決定要取幾個環繞點（從輪廓上等距抽樣），tile 是每顆環繞頭像的大小，
- * outwardPush 讓每個點沿著「離人像中心的方向」往外推一點，避免大部分被人像本身蓋住、
- * 只露出邊緣一小角——推出去後頭像才會明顯貼在輪廓外側，形成看得出來的環繞效果。
+/** 以中心為圓心，找輪廓多邊形在指定角度方向上的邊界半徑（射線法+二分搜尋），
+ * 假設多邊形對中心大致呈星狀（人像輪廓以身體中心為圓心大致成立）。
+ * 找不到交點（該角度方向從中心出發就已經在多邊形外，例如手臂造成的凹陷）時回傳極小半徑，
+ * 讓那個角度的頭像能貼得更近，視覺上不會露出破洞。
  */
-export function computeSilhouetteRingSlots(
-  hole: CenterHole,
-  count: number,
-  tile: number,
-  outwardPush = tile * 0.6
-): HeartSlot[] {
+function polygonRadiusAtAngle(
+  polygon: Array<[number, number]>,
+  cx: number,
+  cy: number,
+  angle: number,
+  maxR: number
+): number {
+  const dx = Math.cos(angle);
+  const dy = Math.sin(angle);
+  if (!pointInPolygon(cx + dx, cy + dy, polygon)) return 1;
+  let lo = 0;
+  let hi = maxR;
+  for (let i = 0; i < 24; i++) {
+    const mid = (lo + hi) / 2;
+    if (pointInPolygon(cx + dx * mid, cy + dy * mid, polygon)) lo = mid;
+    else hi = mid;
+  }
+  return lo;
+}
+
+/** 找愛心曲線在指定角度方向上的邊界半徑，邏輯同 polygonRadiusAtAngle，只是邊界換成 heartInside()。 */
+function heartRadiusAtAngle(angle: number, maxR: number): number {
+  const dx = Math.cos(angle);
+  const dy = Math.sin(angle);
+  let lo = 0;
+  let hi = maxR;
+  for (let i = 0; i < 24; i++) {
+    const mid = (lo + hi) / 2;
+    const px = HEART_CENTER.x + dx * mid;
+    const py = HEART_CENTER.y + dy * mid;
+    const nx = (px - HEART_CENTER.x) / ((HEART_SPAN.w / 2) * 0.62);
+    const ny = (py - HEART_CENTER.y) / ((HEART_SPAN.h / 2) * 0.62);
+    if (heartInside(nx, ny)) lo = mid;
+    else hi = mid;
+  }
+  return lo;
+}
+
+const ANGLE_SAMPLES = 720;
+
+/** 把「角度 -> 半徑」的函式取樣成查表陣列，之後查詢用線性內插取代重算，
+ * 避免每次都要做二分搜尋（在 computeConcentricRingSlots 裡會被查詢上萬次）。
+ */
+function buildRadialLookup(radiusAt: (angle: number) => number): Float64Array {
+  const table = new Float64Array(ANGLE_SAMPLES);
+  for (let i = 0; i < ANGLE_SAMPLES; i++) {
+    table[i] = radiusAt((i / ANGLE_SAMPLES) * Math.PI * 2);
+  }
+  return table;
+}
+
+function lookupRadius(table: Float64Array, angle: number): number {
+  let a = angle % (Math.PI * 2);
+  if (a < 0) a += Math.PI * 2;
+  const f = (a / (Math.PI * 2)) * ANGLE_SAMPLES;
+  const i0 = Math.floor(f) % ANGLE_SAMPLES;
+  const i1 = (i0 + 1) % ANGLE_SAMPLES;
+  const t = f - Math.floor(f);
+  return table[i0] * (1 - t) + table[i1] * t;
+}
+
+// 愛心曲線的半徑查表只跟 HEART_CENTER/HEART_SPAN 這兩個常數有關，跟 targetCount、hole 無關，
+// 全模組只需要算一次就能重複用（懶初始化，避免沒用到這個排列方式時白算）。
+let heartRadiusTableCache: Float64Array | null = null;
+function getHeartRadiusTable(maxR: number): Float64Array {
+  if (!heartRadiusTableCache) {
+    heartRadiusTableCache = buildRadialLookup((angle) => heartRadiusAtAngle(angle, maxR));
+  }
+  return heartRadiusTableCache;
+}
+
+/** 頭像沿著「她的輪廓」到「愛心外框」之間，一圈一圈同心排列，把整個區域填滿
+ * （呼應文案「大家的心，都圍繞著妳」——是圍繞，不是單純堆疊成愛心形狀的網格）。
+ * 每一圈的半徑 = 該角度的輪廓半徑 + 圈數*圈距，超出愛心外框的角度就不放（讓外圈自然貼合愛心尖端變窄的形狀），
+ * 相鄰圈刻意錯開半格角度，避免頭像對成一條條放射狀直線、看起來像輪輻而不是同心圓環。
+ */
+export function computeConcentricRingSlots(hole: CenterHole, targetCount: number): HeartSlot[] {
   const polygon = scaledSilhouettePolygon(hole);
-  const total = polygon.length;
   const cx = HEART_CENTER.x;
   const cy = HEART_CENTER.y;
-  const slots: HeartSlot[] = [];
-  for (let i = 0; i < count; i++) {
-    const idx = Math.floor((i / count) * total) % total;
-    const [px, py] = polygon[idx];
-    const dx = px - cx;
-    const dy = py - cy;
-    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-    const x = px + (dx / dist) * outwardPush;
-    const y = py + (dy / dist) * outwardPush;
-    slots.push({ x, y, size: tile });
+  const maxR = Math.max(HEART_SPAN.w, HEART_SPAN.h);
+
+  const innerTable = buildRadialLookup((angle) => polygonRadiusAtAngle(polygon, cx, cy, angle, maxR));
+  const outerTable = getHeartRadiusTable(maxR);
+
+  function build(tileSize: number): HeartSlot[] {
+    const ringStep = tileSize * 0.95;
+    const slots: HeartSlot[] = [];
+    for (let k = 0; k < 400; k++) {
+      // 用取樣角度的平均半徑估計這一圈的周長，決定要放幾顆頭像，讓角度間距接近 tileSize
+      let sum = 0;
+      const AVG_SAMPLES = 48;
+      for (let i = 0; i < AVG_SAMPLES; i++) {
+        sum += lookupRadius(innerTable, (i / AVG_SAMPLES) * Math.PI * 2) + k * ringStep;
+      }
+      const rNominal = sum / AVG_SAMPLES;
+      if (rNominal > maxR) break;
+      const count = Math.max(6, Math.round((2 * Math.PI * rNominal) / tileSize));
+      const angleOffset = k % 2 === 0 ? 0 : Math.PI / count;
+      let placedAny = false;
+      for (let i = 0; i < count; i++) {
+        const angle = (i / count) * Math.PI * 2 + angleOffset;
+        const innerR = lookupRadius(innerTable, angle);
+        const outerR = lookupRadius(outerTable, angle);
+        const r = innerR + k * ringStep;
+        if (r <= outerR) {
+          slots.push({ x: cx + Math.cos(angle) * r, y: cy + Math.sin(angle) * r, size: tileSize });
+          placedAny = true;
+        }
+      }
+      if (!placedAny) break;
+    }
+    return slots;
   }
+
+  // 跟 computeHeartSlots 同樣的搜尋邏輯：tile 越大格數越少，是單調遞減關係，
+  // 找到第一次「格數低於目標」就能停手，不用整個範圍都跑完。
+  let best: { slots: HeartSlot[] } | null = null;
+  for (let tileSize = 14; tileSize < 60; tileSize++) {
+    const slots = build(tileSize);
+    if (!best || Math.abs(slots.length - targetCount) < Math.abs(best.slots.length - targetCount)) {
+      best = { slots };
+    }
+    if (slots.length < targetCount) break;
+  }
+  const slots = best!.slots;
+
+  // 依「離中心的半徑」由內而外排序，讓飛入動畫從貼身的內圈先組成，外圈才陸續補上，
+  // 視覺上呈現「一圈一圈圍繞」逐漸擴散出去的效果。
+  slots.sort((a, b) => {
+    const ra = Math.hypot(a.x - cx, a.y - cy);
+    const rb = Math.hypot(b.x - cx, b.y - cy);
+    return ra - rb;
+  });
   return slots;
 }
 
-function collectCenters(tile: number, hole?: CenterHole): Array<[number, number]> {
-  const cols = Math.floor(HEART_SPAN.w / tile);
-  const rows = Math.floor(HEART_SPAN.h / tile);
-  const centers: Array<[number, number]> = [];
-  const polygon = hole ? scaledSilhouettePolygon(hole) : null;
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const px = HEART_CENTER.x - HEART_SPAN.w / 2 + (c + 0.5) * tile;
-      const py = HEART_CENTER.y - HEART_SPAN.h / 2 + (r + 0.5) * tile;
-      const nx = (px - HEART_CENTER.x) / ((HEART_SPAN.w / 2) * 0.62);
-      const ny = (py - HEART_CENTER.y) / ((HEART_SPAN.h / 2) * 0.62);
-      if (heartInside(nx, ny) && !(polygon && pointInPolygon(px, py, polygon))) {
-        centers.push([px, py]);
-      }
-    }
-  }
-  return centers;
-}
-
-/** 找出讓愛心內格數最接近 targetCount 的 tile 大小，回傳排好的槽位陣列（依 y 再 x 排序，順序穩定）。
- * 若指定 centerHole，會依她的實際輪廓（而非矩形）在愛心正中央挖空，該區域內不會排頭像，
- * 讓外圍頭像盡量貼齊她的身形邊緣。
- */
-export function computeHeartSlots(targetCount: number, centerHole?: CenterHole): HeartSlot[] {
-  let best: { tile: number; centers: Array<[number, number]> } | null = null;
-  for (let tile = 14; tile < 60; tile++) {
-    // 挖空區域會讓格數變少，用「沒挖空前」的格數判斷 tile 大小是否夠接近目標，
-    // 這樣即使中央讓出空間，外圍格子的密度／大小也不會為了硬湊數量而跑掉
-    const centersNoHole = collectCenters(tile);
-    if (!best || Math.abs(centersNoHole.length - targetCount) < Math.abs(best.centers.length - targetCount)) {
-      best = { tile, centers: centersNoHole };
-    }
-    if (centersNoHole.length < targetCount) break;
-  }
-  const { tile } = best!;
-  const centers = collectCenters(tile, centerHole);
-  centers.sort((a, b) => (a[1] - b[1]) || (a[0] - b[0]));
-  return centers.map(([x, y]) => ({ x, y, size: tile }));
-}

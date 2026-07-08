@@ -1,6 +1,6 @@
 import React from 'react';
 import { useCurrentFrame, useVideoConfig, interpolate, Img, staticFile } from 'remotion';
-import { computeHeartSlots, computeSilhouetteRingSlots, HEART_CENTER } from '../utils/heartLayout';
+import { computeConcentricRingSlots, HEART_CENTER } from '../utils/heartLayout';
 import type { HeartSlot } from '../utils/heartLayout';
 import { KAI_FONT } from '../utils/fonts';
 
@@ -33,11 +33,6 @@ function centerPortraitSrc(): string {
 
 // 中央人像挖空區域尺寸，頭像組成的愛心會繞著這塊區域排列
 const CENTER_PORTRAIT_SIZE = { width: 330, height: 358 }; // 跟 public/images/heart-center-portrait.jpg 等比例(600x650)
-
-// 從 580 顆頭像裡取最後這些數量，改成貼著她輪廓緊密排列（環繞效果），
-// 其餘的仍照原本方式組成外圍愛心形狀
-const RING_COUNT = 56;
-const RING_TILE_SIZE = 24;
 
 // 決定性的假隨機數（Remotion 禁止 Math.random()，每幀重算結果要一致）
 function seededRandom(seed: number): number {
@@ -119,14 +114,9 @@ export const HeartCollageScene: React.FC<HeartCollageSceneProps> = ({ avatarCoun
   const { durationInFrames, width, height } = useVideoConfig();
 
   const slots = React.useMemo(
-    () => computeHeartSlots(avatarCount, CENTER_PORTRAIT_SIZE),
+    () => computeConcentricRingSlots(CENTER_PORTRAIT_SIZE, avatarCount),
     [avatarCount]
   );
-  const ringSlots = React.useMemo(
-    () => computeSilhouetteRingSlots(CENTER_PORTRAIT_SIZE, RING_COUNT, RING_TILE_SIZE),
-    []
-  );
-  const ringStartIndex = avatarCount - RING_COUNT;
 
   const containerFadeIn = CONTAINER_FADE_IN_FRAMES;
   const containerFadeOutWindow = CONTAINER_FADE_OUT_FRAMES;
@@ -169,14 +159,7 @@ export const HeartCollageScene: React.FC<HeartCollageSceneProps> = ({ avatarCoun
       }}
     >
       {slots.map((slot, i) => {
-        // 最後 RING_COUNT 個索引改由貼合輪廓的環繞層負責繪製，這裡略過避免重複顯示
-        if (i >= avatarCount || i >= ringStartIndex) return null;
-        return renderAvatarTile(i, slot, frame, avatarCount, STAGGER_FRAMES, offsetX, offsetY);
-      })}
-
-      {/* 貼合她輪廓緊密排列的環繞頭像層 */}
-      {ringSlots.map((slot, ringI) => {
-        const i = ringStartIndex + ringI;
+        // 排列演算法算出的格數跟 avatarCount 可能差個幾顆，超出的部分不畫
         if (i >= avatarCount) return null;
         return renderAvatarTile(i, slot, frame, avatarCount, STAGGER_FRAMES, offsetX, offsetY);
       })}
