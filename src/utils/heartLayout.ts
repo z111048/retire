@@ -94,6 +94,23 @@ function heartRadiusAtAngle(angle: number, maxR: number): number {
   return lo;
 }
 
+/** 取樣愛心曲線的邊界座標點，供畫一條「圍住所有頭像」的外框線用——
+ * 同心圓環排列在最外緣會因為頭像是一顆顆離散的方塊而卡出鋸齒狀，
+ * 疊一層貼齊愛心曲線本身的框線／底色，能把鋸齒感統一收在一個完整外框裡。
+ */
+export function computeHeartOutlinePoints(samples = 240): Array<[number, number]> {
+  const cx = HEART_CENTER.x;
+  const cy = HEART_CENTER.y;
+  const maxR = Math.max(HEART_SPAN.w, HEART_SPAN.h);
+  const points: Array<[number, number]> = [];
+  for (let i = 0; i < samples; i++) {
+    const angle = (i / samples) * Math.PI * 2;
+    const r = heartRadiusAtAngle(angle, maxR);
+    points.push([cx + Math.cos(angle) * r, cy + Math.sin(angle) * r]);
+  }
+  return points;
+}
+
 const ANGLE_SAMPLES = 720;
 
 /** 把「角度 -> 半徑」的函式取樣成查表陣列，之後查詢用線性內插取代重算，

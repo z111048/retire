@@ -1,6 +1,6 @@
 import React from 'react';
 import { useCurrentFrame, useVideoConfig, interpolate, Img, staticFile } from 'remotion';
-import { computeConcentricRingSlots, HEART_CENTER } from '../utils/heartLayout';
+import { computeConcentricRingSlots, computeHeartOutlinePoints, HEART_CENTER } from '../utils/heartLayout';
 import type { HeartSlot } from '../utils/heartLayout';
 import { KAI_FONT } from '../utils/fonts';
 
@@ -117,6 +117,8 @@ export const HeartCollageScene: React.FC<HeartCollageSceneProps> = ({ avatarCoun
     () => computeConcentricRingSlots(CENTER_PORTRAIT_SIZE, avatarCount),
     [avatarCount]
   );
+  // 愛心外框線的座標點固定不變（只跟 HEART_CENTER/HEART_SPAN 有關），只需算一次
+  const heartOutline = React.useMemo(() => computeHeartOutlinePoints(), []);
 
   const containerFadeIn = CONTAINER_FADE_IN_FRAMES;
   const containerFadeOutWindow = CONTAINER_FADE_OUT_FRAMES;
@@ -158,6 +160,22 @@ export const HeartCollageScene: React.FC<HeartCollageSceneProps> = ({ avatarCoun
         opacity: containerOpacity,
       }}
     >
+      {/* 愛心外框：畫在所有頭像「最後面」墊底，同心圓環排列在最外緣本來就會因為頭像
+          是一顆顆離散方塊而卡出鋸齒，這層貼齊愛心曲線的底色＋邊框線會從縫隙裡透出來，
+          把鋸齒感收束成一個完整、有邊界的愛心形狀，視覺上更像「大家圍在一起」。 */}
+      <svg
+        style={{ position: 'absolute', left: offsetX, top: offsetY, width: 1920, height: 1080, overflow: 'visible' }}
+        viewBox="0 0 1920 1080"
+      >
+        <polygon
+          points={heartOutline.map(([x, y]) => `${x},${y}`).join(' ')}
+          fill="rgba(255, 231, 194, 0.55)"
+          stroke="#d9ae6b"
+          strokeWidth={5}
+          strokeLinejoin="round"
+        />
+      </svg>
+
       {slots.map((slot, i) => {
         // 排列演算法算出的格數跟 avatarCount 可能差個幾顆，超出的部分不畫
         if (i >= avatarCount) return null;
