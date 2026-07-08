@@ -4,7 +4,7 @@ import {
   FRAME_RATE, INTRO_DURATION_S, OUTRO_DURATION_S,
   SECTION_TITLE_DURATION_S, HEART_START_S, HEART_DURATION_S,
   CREDITS_START_S, CREDITS_DURATION_S,
-  FINALE_START_S, FINALE_DURATION_S, AVATAR_COUNT,
+  FINALE_START_S, FINALE_DURATION_S, FINALE_HOLD_S, AVATAR_COUNT,
   FINAL_CLIP_START_S, FINAL_CLIP_DURATION_S,
   SECTION_ACCENTS, DEFAULT_SECTION_ACCENT,
 } from './constants';
@@ -147,7 +147,7 @@ export const RetirementVideo: React.FC<RetirementVideoProps> = ({ timeline, copy
   suppressRanges.push([FINALE_START_S, FINALE_START_S + FINALE_DURATION_S]);
   sequences.push(
     <Sequence key="finale" from={finaleStartFrame} durationInFrames={finaleFrames}>
-      <FinaleAvatarWallScene avatarCount={AVATAR_COUNT} caption="感謝這些年，有妳真好" />
+      <FinaleAvatarWallScene avatarCount={AVATAR_COUNT} caption="感謝這些年，有妳真好" holdSeconds={FINALE_HOLD_S} />
     </Sequence>
   );
 

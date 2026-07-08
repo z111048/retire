@@ -17,9 +17,13 @@ export const CREDITS_DURATION_S = 5;
 export const FINAL_CLIP_START_S = CREDITS_START_S + CREDITS_DURATION_S;
 export const FINAL_CLIP_DURATION_S = 8;
 
-// Finale 人牆跑馬燈：全片最後一段，播放到剛好 5:20（320s）結束
+// Finale 人牆跑馬燈：全片最後一段，捲動速度太快，額外延長 3 秒讓節奏慢下來。
+// 捲動動畫本身只跑 SCROLL_DURATION_S，跑完後定格淡出撐滿剩下的 3 秒，
+// 不用硬把捲動拉更長、更慢到不自然，讓結尾多一點停留感。
+// 總長因此從 5:20 變成 5:23（320s→323s）。
 export const FINALE_START_S = FINAL_CLIP_START_S + FINAL_CLIP_DURATION_S;
-export const FINALE_DURATION_S = 320 - FINALE_START_S; // = 18s
+export const FINALE_HOLD_S = 3; // 捲動跑完後，定格淡出的收尾秒數
+export const FINALE_DURATION_S = 320 - FINALE_START_S + FINALE_HOLD_S; // = 21s
 export const SECTION_TITLE_DURATION_S = 3.5;
 export const LYRIC_DURATION_S = 3;
 export const DEFAULT_PHOTO_DURATION_S = 3;
