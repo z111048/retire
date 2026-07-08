@@ -171,17 +171,17 @@ export function computeConcentricRingSlots(hole: CenterHole, targetCount: number
     return slots;
   }
 
-  // 跟 computeHeartSlots 同樣的搜尋邏輯：tile 越大格數越少，是單調遞減關係，
-  // 找到第一次「格數低於目標」就能停手，不用整個範圍都跑完。
+  // tile 越大格數越少，是單調遞減關係。要選「格數還是 >= targetCount」的最後一個
+  // （也就是最接近但不小於目標的 tile size），格數一旦低於目標就代表頭像會被平白丟掉
+  // ——選「最接近」而不管有沒有低於目標的話，可能選到格數不足的 tile，讓最後幾張大頭貼消失不見。
   let best: { slots: HeartSlot[] } | null = null;
   for (let tileSize = 14; tileSize < 60; tileSize++) {
     const slots = build(tileSize);
-    if (!best || Math.abs(slots.length - targetCount) < Math.abs(best.slots.length - targetCount)) {
-      best = { slots };
-    }
     if (slots.length < targetCount) break;
+    best = { slots };
   }
-  const slots = best!.slots;
+  // 理論上 tile=14（最密）都湊不到 targetCount 顆的極端情況，退而求其次選格數最多的一組。
+  const slots = (best ?? { slots: build(14) }).slots;
 
   // 依「離中心的半徑」由內而外排序，讓飛入動畫從貼身的內圈先組成，外圈才陸續補上，
   // 視覺上呈現「一圈一圈圍繞」逐漸擴散出去的效果。
