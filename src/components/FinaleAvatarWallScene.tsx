@@ -54,6 +54,12 @@ export const FinaleAvatarWallScene: React.FC<FinaleAvatarWallSceneProps> = ({ av
 
   const offsetX = (width - gridWidth) / 2;
 
+  // 虛擬化：580 張圖同時全部掛在 DOM 上很浪費（畫面同時間頂多看得到 50-70 張），
+  // 只渲染目前捲動位置附近可能看得到的列，其餘不掛載，捲動時多留 2 列當緩衝避免邊緣露白
+  const ROW_BUFFER = 2;
+  const minVisibleRow = Math.max(0, Math.floor((-scrollY - TILE) / (TILE + GAP)) - ROW_BUFFER);
+  const maxVisibleRow = Math.min(rows - 1, Math.ceil((height - scrollY) / (TILE + GAP)) + ROW_BUFFER);
+
   return (
     <div
       style={{
@@ -68,6 +74,7 @@ export const FinaleAvatarWallScene: React.FC<FinaleAvatarWallSceneProps> = ({ av
       <div style={{ position: 'absolute', left: offsetX, top: scrollY, width: gridWidth, height: gridHeight }}>
         {Array.from({ length: avatarCount }, (_, i) => {
           const row = Math.floor(i / COLS);
+          if (row < minVisibleRow || row > maxVisibleRow) return null;
           const col = i % COLS;
           return (
             <div
@@ -80,7 +87,8 @@ export const FinaleAvatarWallScene: React.FC<FinaleAvatarWallSceneProps> = ({ av
                 height: TILE,
                 borderRadius: 6,
                 overflow: 'hidden',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.4)',
+                // 580 顆頭像各自套 boxShadow 會逐一觸發 GPU 合成層，改用便宜很多的 border
+                border: '1px solid rgba(0,0,0,0.25)',
               }}
             >
               <Img src={avatarSrc(i)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />

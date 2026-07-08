@@ -126,7 +126,9 @@ export const HeartCollageScene: React.FC<HeartCollageSceneProps> = ({ avatarCoun
               opacity,
               background: '#fff8f0',
               borderRadius: 4,
-              boxShadow: '0 2px 6px rgba(0,0,0,0.25)',
+              // 580 顆頭像各自套 boxShadow 會逐一觸發 GPU 合成層（跟 FloatingParticles.tsx
+              // 避免的原因一樣，但這裡數量多了近100倍），改用便宜很多的 border 做邊框效果
+              border: '1px solid rgba(0,0,0,0.12)',
               padding: 3,
             }}
           >
