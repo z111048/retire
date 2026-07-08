@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>人臉框選標註檢視</title>
+<style>
+  :root { --bg:#14120e; --panel:#1e1b15; --panel2:#262218; --gold:#C9A84C; --text:#FFF8EC; --dim:#9a8f78;
+          --keep:#5ad06a; --rej:#e05a4a; --blur:#ff8a3d; }
+  * { box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:"Noto Sans TC",sans-serif; margin:0; }
+  header {
+    position:sticky; top:0; z-index:20; background:var(--panel); border-bottom:2px solid var(--gold);
+    padding:12px 20px; display:flex; align-items:center; gap:20px; flex-wrap:wrap;
+  }
+  h1 { color:var(--gold); font-size:16px; margin:0; white-space:nowrap; }
+  .stat { font-size:13px; color:var(--dim); }
+  .stat b { color:var(--gold); }
+  .legend { display:flex; gap:16px; font-size:12px; color:var(--dim); flex-wrap:wrap; }
+  .legend span { display:inline-flex; align-items:center; gap:5px; }
+  .swatch { width:14px; height:14px; border-radius:3px; display:inline-block; }
+  input#search {
+    background:var(--panel2); color:var(--text); border:1px solid #4a4232; border-radius:6px;
+    padding:6px 10px; font-size:13px; width:160px;
+  }
+  main { max-width:1400px; margin:0 auto; padding:16px; }
+  .card {
+    background:var(--panel); border:1px solid #3a3428; border-radius:10px; margin-bottom:20px; overflow:hidden;
+  }
+  .card-head {
+    padding:8px 14px; display:flex; justify-content:space-between; align-items:center;
+    font-size:13px; color:var(--dim); border-bottom:1px solid #3a3428;
+  }
+  .card-head b { color:var(--text); font-family:monospace; }
+  .card-body { display:flex; align-items:flex-start; }
+  .imgwrap { position:relative; flex:1 1 auto; min-width:0; background:#000; line-height:0; }
+  .imgwrap img { width:100%; height:auto; display:block; }
+  .imgwrap svg { position:absolute; inset:0; width:100%; height:100%; }
+  .thumb-col {
+    flex:0 0 320px; width:320px; max-height:640px; overflow-y:auto;
+    display:flex; flex-direction:column; gap:10px; padding:14px; border-left:1px solid #3a3428;
+  }
+  .thumb-pair { display:flex; align-items:center; gap:6px; }
+  .thumb-item { display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .thumb-item img {
+    width:84px; height:84px; object-fit:cover; border-radius:8px; border:2px solid var(--keep); background:#000;
+  }
+  .thumb-item:first-child img { border-color:var(--gold); }
+  .thumb-item span { font-size:10px; color:var(--dim); }
+  .thumb-item.missing img { display:none; }
+  .thumb-item.missing::before {
+    content:'找不到圖片'; display:block; width:84px; height:84px; line-height:84px; text-align:center;
+    font-size:11px; color:var(--rej); background:var(--panel2); border-radius:8px;
+  }
+  .thumb-arrow { color:var(--dim); font-size:18px; }
+  @media (max-width: 900px) {
+    .card-body { flex-direction:column; }
+    .thumb-col { flex:1 1 auto; width:100%; max-height:none; border-left:none; border-top:1px solid #3a3428; }
+  }
+  .rect-keep { fill:none; stroke:var(--keep); stroke-width:6; }
+  .rect-rej { fill:none; stroke:var(--rej); stroke-width:5; stroke-dasharray:14 10; }
+  .rect-crop { fill:none; stroke:var(--gold); stroke-width:3; stroke-dasharray:6 8; opacity:0.85; }
+  .rect-blur { fill:var(--blur); opacity:0.38; }
+  .label-bg { fill:rgba(0,0,0,0.65); }
+  .label-text { fill:#fff; font-size:34px; font-family:monospace; }
+  #empty { text-align:center; color:var(--dim); padding:60px 20px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🔍 人臉框選標註檢視</h1>
+  <div class="stat">照片 <b id="photoCount">0</b> 張</div>
+  <div class="stat">已選 <b id="keepCount" style="color:var(--keep)">0</b></div>
+  <div class="stat">未選（偵測到但排除）<b id="rejCount" style="color:var(--rej)">0</b></div>
+  <input id="search" placeholder="搜尋檔名，例：s6-12">
+  <div class="legend">
+    <span><span class="swatch" style="background:var(--keep)"></span>已選保留</span>
+    <span><span class="swatch" style="background:var(--rej);border:2px dashed var(--rej);background:transparent"></span>偵測到但未選</span>
+    <span><span class="swatch" style="background:transparent;border:2px dashed var(--gold)"></span>裁切擷取範圍</span>
+    <span><span class="swatch" style="background:var(--blur);opacity:0.6"></span>會被模糊的重疊區</span>
+  </div>
+</header>
+
+<main id="main"></main>
+<div id="empty" style="display:none">沒有符合的照片</div>
+
+<script>
+const CROP_PAD_RATIO = 1.9; // 需與 scripts/faceCrop.py / buildHeartCollage.py 一致
+
+function overlapRect(a, b) {
+  // a, b: [x,y,w,h]；回傳交集矩形或 null
+  const ax0 = a[0], ay0 = a[1], ax1 = a[0]+a[2], ay1 = a[1]+a[3];
+  const bx0 = b[0], by0 = b[1], bx1 = b[0]+b[2], by1 = b[1]+b[3];
+  const ix0 = Math.max(ax0,bx0), iy0 = Math.max(ay0,by0);
+  const ix1 = Math.min(ax1,bx1), iy1 = Math.min(ay1,by1);
+  if (ix1 <= ix0 || iy1 <= iy0) return null;
+  return [ix0, iy0, ix1-ix0, iy1-iy0];
+}
+
+function paddedCropRect(box) {
+  const [x,y,w,h] = box;
+  const cx = x + w/2, cy = y + h/2;
+  const side = Math.max(w,h) * CROP_PAD_RATIO;
+  return [cx - side/2, cy - side/2, side, side];
+}
+
+async function main() {
+  const [detections, selection] = await Promise.all([
+    fetch('../data/face-detections.json').then(r => r.json()),
+    fetch('../data/face-selection.json').then(r => r.json()),
+  ]);
+
+  // key -> keepFiles 陣列中的原始 index，對應公開的
+  // qavatar-crops/<idx>.jpg 與 qavatars/<idx>.jpg（網頁播放器用的縮圖版本）
+  const idxByKey = new Map();
+  selection.keepFiles.forEach((f, i) => idxByKey.set(f.file + '|' + JSON.stringify(f.box), i));
+
+  const byFile = {};
+  for (const d of detections) {
+    (byFile[d.file] ??= { keep: [], reject: [] });
+    const key = d.file + '|' + JSON.stringify(d.box);
+    if (idxByKey.has(key)) {
+      d.avatarIdx = idxByKey.get(key);
+      byFile[d.file].keep.push(d);
+    } else {
+      byFile[d.file].reject.push(d);
+    }
+  }
+
+  const files = Object.keys(byFile).sort();
+  document.getElementById('photoCount').textContent = files.length;
+  document.getElementById('keepCount').textContent = selection.keepFiles.length;
+  document.getElementById('rejCount').textContent = detections.length - selection.keepFiles.length;
+
+  const main = document.getElementById('main');
+
+  function render(filterText) {
+    main.innerHTML = '';
+    const filtered = files.filter(f => !filterText || f.includes(filterText));
+    document.getElementById('empty').style.display = filtered.length ? 'none' : 'block';
+
+    for (const file of filtered) {
+      const { keep, reject } = byFile[file];
+      const card = document.createElement('div');
+      card.className = 'card';
+
+      const head = document.createElement('div');
+      head.className = 'card-head';
+      head.innerHTML = `<span>檔名：<b>${file}</b></span><span>已選 ${keep.length} ／ 未選 ${reject.length}</span>`;
+      card.appendChild(head);
+
+      const body = document.createElement('div');
+      body.className = 'card-body';
+      card.appendChild(body);
+
+      const imgwrap = document.createElement('div');
+      imgwrap.className = 'imgwrap';
+      const img = document.createElement('img');
+      img.src = `../photos/${file}`;
+      img.loading = 'lazy';
+      imgwrap.appendChild(img);
+      body.appendChild(imgwrap);
+
+      if (keep.length) {
+        const thumbCol = document.createElement('div');
+        thumbCol.className = 'thumb-col';
+        for (const k of keep) {
+          const pair = document.createElement('div');
+          pair.className = 'thumb-pair';
+          const cropIdx = String(k.avatarIdx).padStart(4, '0');
+          pair.innerHTML = `
+            <div class="thumb-item">
+              <img src="../qavatar-crops/${cropIdx}.jpg" loading="lazy" onerror="this.closest('.thumb-item').classList.add('missing')">
+              <span>候選裁切</span>
+            </div>
+            <div class="thumb-arrow">→</div>
+            <div class="thumb-item">
+              <img src="../qavatars/${cropIdx}.jpg" loading="lazy" onerror="this.closest('.thumb-item').classList.add('missing')">
+              <span>Q版 #${cropIdx}</span>
+            </div>
+          `;
+          thumbCol.appendChild(pair);
+        }
+        body.appendChild(thumbCol);
+      }
+
+      main.appendChild(card);
+
+      img.addEventListener('load', () => {
+        const w = img.naturalWidth, h = img.naturalHeight;
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+        svg.setAttribute('preserveAspectRatio', 'none');
+
+        // 先算每個「已選臉」的裁切範圍與其他臉的重疊(模糊)區域
+        const allBoxes = [...keep, ...reject].map(f => f.box);
+        for (const k of keep) {
+          const crop = paddedCropRect(k.box);
+          const cropEl = document.createElementNS(svg.namespaceURI, 'rect');
+          cropEl.setAttribute('x', crop[0]); cropEl.setAttribute('y', crop[1]);
+          cropEl.setAttribute('width', crop[2]); cropEl.setAttribute('height', crop[3]);
+          cropEl.setAttribute('class', 'rect-crop');
+          svg.appendChild(cropEl);
+
+          for (const ob of allBoxes) {
+            if (ob === k.box) continue;
+            const ov = overlapRect(crop, ob);
+            if (ov) {
+              const blurEl = document.createElementNS(svg.namespaceURI, 'rect');
+              blurEl.setAttribute('x', ov[0]); blurEl.setAttribute('y', ov[1]);
+              blurEl.setAttribute('width', ov[2]); blurEl.setAttribute('height', ov[3]);
+              blurEl.setAttribute('class', 'rect-blur');
+              svg.appendChild(blurEl);
+            }
+          }
+        }
+
+        // 再畫未選（紅虛框）
+        for (const r of reject) {
+          const [x,y,bw,bh] = r.box;
+          const el = document.createElementNS(svg.namespaceURI, 'rect');
+          el.setAttribute('x', x); el.setAttribute('y', y);
+          el.setAttribute('width', bw); el.setAttribute('height', bh);
+          el.setAttribute('class', 'rect-rej');
+          svg.appendChild(el);
+        }
+
+        // 最後畫已選（綠實框＋品質分數）
+        for (const k of keep) {
+          const [x,y,bw,bh] = k.box;
+          const el = document.createElementNS(svg.namespaceURI, 'rect');
+          el.setAttribute('x', x); el.setAttribute('y', y);
+          el.setAttribute('width', bw); el.setAttribute('height', bh);
+          el.setAttribute('class', 'rect-keep');
+          svg.appendChild(el);
+
+          const label = `${k.quality.toFixed(2)}`;
+          const bg = document.createElementNS(svg.namespaceURI, 'rect');
+          bg.setAttribute('x', x); bg.setAttribute('y', Math.max(0, y - 40));
+          bg.setAttribute('width', 34 * label.length * 0.62 + 10);
+          bg.setAttribute('height', 38);
+          bg.setAttribute('class', 'label-bg');
+          svg.appendChild(bg);
+          const txt = document.createElementNS(svg.namespaceURI, 'text');
+          txt.setAttribute('x', x + 6); txt.setAttribute('y', Math.max(0, y - 40) + 28);
+          txt.setAttribute('class', 'label-text');
+          txt.textContent = label;
+          svg.appendChild(txt);
+        }
+
+        imgwrap.appendChild(svg);
+      });
+    }
+  }
+
+  render('');
+  document.getElementById('search').addEventListener('input', (e) => render(e.target.value.trim()));
+}
+
+main().catch(err => {
+  document.getElementById('main').innerHTML =
+    `<p style="color:#e05a4a;padding:20px">載入失敗：${err.message}（需透過 HTTP 伺服器開啟此頁，不能直接雙擊開檔案）</p>`;
+});
+</script>
+</body>
+</html>
