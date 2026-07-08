@@ -21,9 +21,9 @@ function avatarSrc(idx: number): string {
   return staticFile(file);
 }
 
-const COLS = 20;
-const TILE = 84;
-const GAP = 8;
+const COLS = 14;
+const TILE = 120; // 接近 public/qavatars/ 原始 140px，放大顯示但避免升頻模糊
+const GAP = 10;
 
 // 片尾彩蛋：全體 Q 版大頭貼像電影演職員名單一樣由下往上緩緩捲動
 export const FinaleAvatarWallScene: React.FC<FinaleAvatarWallSceneProps> = ({ avatarCount, caption }) => {
