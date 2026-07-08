@@ -29,11 +29,14 @@ export const VideoScene: React.FC<VideoSceneProps> = ({ item }) => {
     <div style={{
       width: '100%',
       height: '100%',
+      // 背景本身永遠不透明——這個場景淡入淡出時若前一/後一個場景還沒真正結束
+      // （例如 Outro 播到 296.2s 才結束，但緊接的片尾愛心手勢從 294s 就開始淡入），
+      // 背景跟著變透明會讓底下還沒淡出的畫面穿透出來（曾經因此出過 bug）
       backgroundColor: '#111',
       overflow: 'hidden',
       position: 'relative',
-      opacity,
     }}>
+    <div style={{ width: '100%', height: '100%', position: 'relative', opacity }}>
       <OffthreadVideo
         src={videoSrc(item.fileName)}
         style={{ width: '100%', height: '100%', objectFit: 'contain' }}
@@ -56,6 +59,7 @@ export const VideoScene: React.FC<VideoSceneProps> = ({ item }) => {
       }} />
 
       {item.caption && <CaptionText text={item.caption} position="top-right" />}
+    </div>
     </div>
   );
 };
