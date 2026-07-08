@@ -31,10 +31,30 @@ const GAP = 10;
 // 190px/s 是最早（頭像放大之前）設計時就用的舒適速度基準，沿用同一個標準。
 const SCROLL_SPEED_PX_PER_S = 190;
 
+// 指定要提前到跑馬燈第幾張（1-based）的照片編號，其餘照片仍維持原本的相對順序
+// （只是被擠開一格），不是整排重新洗牌。
+const FEATURED: Array<{ photoNumber: number; position: number }> = [
+  { photoNumber: 371, position: 2 },
+];
+
+/** 把 FEATURED 指定的照片編號搬到指定位置（1-based），回傳「畫面位置 -> 照片編號」的對照表。 */
+function buildAvatarOrder(avatarCount: number): number[] {
+  const order = Array.from({ length: avatarCount }, (_, i) => i);
+  for (const { photoNumber, position } of FEATURED) {
+    const from = order.indexOf(photoNumber);
+    if (from === -1) continue;
+    order.splice(from, 1);
+    order.splice(position - 1, 0, photoNumber);
+  }
+  return order;
+}
+
 // 片尾彩蛋：全體 Q 版大頭貼像電影演職員名單一樣由下往上緩緩捲動
 export const FinaleAvatarWallScene: React.FC<FinaleAvatarWallSceneProps> = ({ avatarCount, caption }) => {
   const frame = useCurrentFrame();
   const { durationInFrames, width, height, fps } = useVideoConfig();
+
+  const avatarOrder = React.useMemo(() => buildAvatarOrder(avatarCount), [avatarCount]);
 
   const rows = Math.ceil(avatarCount / COLS);
   const gridWidth = COLS * (TILE + GAP);
@@ -91,7 +111,7 @@ export const FinaleAvatarWallScene: React.FC<FinaleAvatarWallSceneProps> = ({ av
                 border: '1px solid rgba(0,0,0,0.25)',
               }}
             >
-              <Img src={avatarSrc(i)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <Img src={avatarSrc(avatarOrder[i])} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
           );
         })}
