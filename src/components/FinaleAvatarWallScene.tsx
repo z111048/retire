@@ -1,6 +1,7 @@
 import React from 'react';
 import { useCurrentFrame, useVideoConfig, interpolate, Img, staticFile } from 'remotion';
 import { HANDWRITING_FONT } from '../utils/fonts';
+import { HERSELF_AVATAR_INDICES } from '../utils/herselfAvatars';
 
 interface FinaleAvatarWallSceneProps {
   avatarCount: number;
@@ -96,6 +97,8 @@ export const FinaleAvatarWallScene: React.FC<FinaleAvatarWallSceneProps> = ({ av
           const row = Math.floor(i / COLS);
           if (row < minVisibleRow || row > maxVisibleRow) return null;
           const col = i % COLS;
+          const avatarIdx = avatarOrder[i];
+          const isHerself = HERSELF_AVATAR_INDICES.has(avatarIdx);
           return (
             <div
               key={i}
@@ -107,11 +110,14 @@ export const FinaleAvatarWallScene: React.FC<FinaleAvatarWallSceneProps> = ({ av
                 height: TILE,
                 borderRadius: 6,
                 overflow: 'hidden',
-                // 580 顆頭像各自套 boxShadow 會逐一觸發 GPU 合成層，改用便宜很多的 border
-                border: '1px solid rgba(0,0,0,0.25)',
+                // 580 顆頭像各自套 boxShadow 會逐一觸發 GPU 合成層，改用便宜很多的 border——
+                // 只有秀燕姐本人（少數，見 HERSELF_AVATAR_INDICES）才用金框特別標出來，
+                // 不是排除她，是「她也在人群中」的畫面，同一時間畫面上只有幾張，不影響效能。
+                border: isHerself ? '3px solid #FFD24C' : '1px solid rgba(0,0,0,0.25)',
+                boxShadow: isHerself ? '0 0 8px rgba(255, 210, 76, 0.7)' : 'none',
               }}
             >
-              <Img src={avatarSrc(avatarOrder[i])} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <Img src={avatarSrc(avatarIdx)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
           );
         })}

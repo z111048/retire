@@ -3,6 +3,7 @@ import { useCurrentFrame, useVideoConfig, interpolate, Img, staticFile } from 'r
 import { computeConcentricRingSlots, computeHeartOutlinePoints, HEART_CENTER } from '../utils/heartLayout';
 import type { HeartSlot } from '../utils/heartLayout';
 import { KAI_FONT } from '../utils/fonts';
+import { HERSELF_AVATAR_INDICES } from '../utils/herselfAvatars';
 
 interface HeartCollageSceneProps {
   avatarCount: number;
@@ -98,6 +99,7 @@ function renderAvatarTile(
   });
 
   const inner = slot.size - 6;
+  const isHerself = HERSELF_AVATAR_INDICES.has(avatarIdx);
   return (
     <div
       key={i}
@@ -113,7 +115,9 @@ function renderAvatarTile(
         borderRadius: 4,
         // 580 顆頭像各自套 boxShadow 會逐一觸發 GPU 合成層（跟 FloatingParticles.tsx
         // 避免的原因一樣，但這裡數量多了近100倍），改用便宜很多的 border 做邊框效果
-        border: '1px solid rgba(0,0,0,0.12)',
+        // 秀燕姐本人混在人群裡的頭像，用金框特別標出來（不排除，是「她也在人群中」的畫面）
+        border: isHerself ? '2px solid #FFD24C' : '1px solid rgba(0,0,0,0.12)',
+        boxShadow: isHerself ? '0 0 6px rgba(255, 210, 76, 0.7)' : 'none',
         padding: 3,
       }}
     >
