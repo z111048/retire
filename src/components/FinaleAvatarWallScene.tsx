@@ -46,6 +46,11 @@ const FEATURED: Array<{ photoNumber: number; position: number }> = [
   { photoNumber: 371, position: 2 },
 ];
 
+/** 秀燕姐本人照片開始佔據「每列中間兩格」的起點：第1頁第2列（0-based row 1）。
+ *  第1頁第1列維持一般照片（使用者指定）。 */
+const HERSELF_COLUMN_LEFT = COLS / 2 - 1; // 第7欄（0-based 6）
+const HERSELF_START_ROW_PAGE0 = 1;
+
 /** 把 FEATURED 指定的照片編號搬到指定位置（1-based），回傳「顯示順序 -> 照片編號」對照表。 */
 function buildAvatarOrder(avatarCount: number): number[] {
   const order = Array.from({ length: avatarCount }, (_, i) => i);
@@ -59,6 +64,42 @@ function buildAvatarOrder(avatarCount: number): number[] {
 }
 
 /**
+ * 建立「顯示格位 -> 照片編號」對照表，一次涵蓋三個排版規則（使用者指定）：
+ * 1. 秀燕姐本人的78張（HERSELF_AVATAR_INDICES）集中排在每列最中間兩格
+ *    （第7、8欄），從第1頁第2列開始依序往後放、放到沒為止——放完後剩下的
+ *    中間格位（最後一頁末2列共4格）回歸一般照片。
+ * 2. 其餘照片依原本順序（含 FEATURED 371 在第1頁第2格）填滿剩下的格位。
+ * 3. 586張排6頁×98格會剩2個空格：複製第1頁最前面兩張（頭像0與371）補滿，
+ *    第1頁原位不動，這兩張會在片中出現兩次。
+ */
+function buildDisplayOrder(avatarCount: number, totalSlots: number): number[] {
+  const herselfQueue = Array.from(HERSELF_AVATAR_INDICES).sort((a, b) => a - b);
+  const base = buildAvatarOrder(avatarCount);
+  const othersQueue = base.filter((idx) => !HERSELF_AVATAR_INDICES.has(idx));
+
+  const display: number[] = new Array(totalSlots).fill(-1);
+  let h = 0;
+  for (let slot = 0; slot < totalSlots && h < herselfQueue.length; slot++) {
+    const page = Math.floor(slot / PER_PAGE);
+    const i = slot % PER_PAGE;
+    const row = Math.floor(i / COLS);
+    const col = i % COLS;
+    if (page === 0 && row < HERSELF_START_ROW_PAGE0) continue;
+    if (col === HERSELF_COLUMN_LEFT || col === HERSELF_COLUMN_LEFT + 1) {
+      display[slot] = herselfQueue[h++];
+    }
+  }
+  let o = 0;
+  for (let slot = 0; slot < totalSlots; slot++) {
+    if (display[slot] !== -1) continue;
+    // othersQueue 用完後剩下的空格（正好2個、在最後一頁尾端），用第1頁最前面
+    // 兩張（base[0]=頭像0、base[1]=FEATURED 371）複製填補
+    display[slot] = o < othersQueue.length ? othersQueue[o++] : base[slot - totalSlots + 2];
+  }
+  return display;
+}
+
+/**
  * 片尾彩蛋：586張Q版頭像分成數頁，像相簿一樣一頁一頁靜止呈現，頁間柔和
  * 交叉淡化。取代前一版的3D攝影機穿梭照片牆——那版視覺上有電影感，但照片
  * 一直在移動、多數又在景深遠處，實際上看不清楚內容；而「看清楚每個人」
@@ -69,9 +110,12 @@ export const FinaleAvatarWallScene: React.FC<FinaleAvatarWallSceneProps> = ({ av
   const frame = useCurrentFrame();
   const { durationInFrames, width, height } = useVideoConfig();
 
-  const avatarOrder = React.useMemo(() => buildAvatarOrder(avatarCount), [avatarCount]);
-
   const pageCount = Math.ceil(avatarCount / PER_PAGE);
+  const totalSlots = pageCount * PER_PAGE;
+  const displayOrder = React.useMemo(
+    () => buildDisplayOrder(avatarCount, totalSlots),
+    [avatarCount, totalSlots]
+  );
   // 每頁時長平均分配整段場景；交叉淡化跟下一頁重疊，不佔額外時間
   const pageFrames = durationInFrames / pageCount;
 
@@ -135,8 +179,9 @@ export const FinaleAvatarWallScene: React.FC<FinaleAvatarWallSceneProps> = ({ av
           extrapolateRight: 'clamp',
         });
 
+        // 空格已在 buildDisplayOrder 用複製照片補滿，每一頁都是滿版98格
         const first = page * PER_PAGE;
-        const count = Math.min(PER_PAGE, avatarCount - first);
+        const count = PER_PAGE;
 
         return (
           <div
@@ -153,7 +198,7 @@ export const FinaleAvatarWallScene: React.FC<FinaleAvatarWallSceneProps> = ({ av
             }}
           >
             {Array.from({ length: count }, (_, i) => {
-              const avatarIdx = avatarOrder[first + i];
+              const avatarIdx = displayOrder[first + i];
               const isHerself = HERSELF_AVATAR_INDICES.has(avatarIdx);
               const col = i % COLS;
               const row = Math.floor(i / COLS);
