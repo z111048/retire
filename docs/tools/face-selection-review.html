@@ -140,12 +140,21 @@ function paddedCropRect(box) {
 }
 
 // 標記「這張照片裡哪一個候選框是秀燕姐本人」——每張照片最多一個，所以用
-// file -> avatarIdx 的物件就好，不用陣列。只存在瀏覽器 localStorage，重新整理
-// 頁面也不會不見，最後用「複製秀燕姐清單」按鈕匯出成文字貼給我。
+// file -> avatarIdx 的物件就好，不用陣列。存在瀏覽器 localStorage，重新整理
+// 頁面也不會不見；但 localStorage 是各網域獨立的，本機（localhost）標記過的
+// 結果不會出現在外網（github.io）開的同一頁面上，所以第一次載入（本機沒標記
+// 過）會 fallback 抓 data/herself-marks.json 這份已確認過的清單當初始值，
+// 之後才用 localStorage 接手（讓使用者仍可以繼續新增/修改標記）。
 const HERSELF_KEY = 'face-review-herself-marks-v1';
-function loadHerselfMarks() {
-  try { return JSON.parse(localStorage.getItem(HERSELF_KEY) || '{}'); }
-  catch { return {}; }
+async function loadHerselfMarks() {
+  try {
+    const raw = localStorage.getItem(HERSELF_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  let seed = {};
+  try { seed = await fetch('../data/herself-marks.json').then(r => r.ok ? r.json() : {}); } catch {}
+  saveHerselfMarks(seed);
+  return seed;
 }
 function saveHerselfMarks(marks) {
   localStorage.setItem(HERSELF_KEY, JSON.stringify(marks));
@@ -182,7 +191,7 @@ async function main() {
   document.getElementById('keepCount').textContent = selection.keepFiles.length;
   document.getElementById('rejCount').textContent = detections.length - selection.keepFiles.length;
 
-  const herselfMarks = loadHerselfMarks(); // file -> avatarIdx
+  const herselfMarks = await loadHerselfMarks(); // file -> avatarIdx
   function updateHerselfCount() {
     document.getElementById('herselfCount').textContent = Object.keys(herselfMarks).length;
   }
