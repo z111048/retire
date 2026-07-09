@@ -36,6 +36,16 @@ export const LyricsOverlay: React.FC<LyricsOverlayProps> = ({ lyrics, suppressRa
     { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
   );
 
+  // 電影／大片字幕的標準做法：不用底色方塊、不用邊框，純文字＋黑色描邊（多層
+  // 8 方向 text-shadow 模擬 stroke）＋下方柔和陰影撐開層次，靠這個就能在任何
+  // 背景（深色影片、淺色章節標題卡）上都維持清晰，比方塊+金色邊框更高級、
+  // 更不會有「加了一個外框」的廉價感。
+  const STROKE = '#000';
+  const strokeShadow = [1, -1].flatMap((sx) =>
+    [1, -1].map((sy) => `${sx}px ${sy}px 0 ${STROKE}`)
+  ).concat([`0px 2px 0 ${STROKE}`, `0px -2px 0 ${STROKE}`, `2px 0px 0 ${STROKE}`, `-2px 0px 0 ${STROKE}`])
+    .join(', ');
+
   return (
     <div style={{
       position: 'absolute',
@@ -43,33 +53,24 @@ export const LyricsOverlay: React.FC<LyricsOverlayProps> = ({ lyrics, suppressRa
       display: 'flex',
       alignItems: 'flex-end',
       justifyContent: 'center',
-      paddingBottom: 28,
+      paddingBottom: 40,
       pointerEvents: 'none',
     }}>
-      <div style={{
+      <span style={{
         // 只做淡入淡出，不縮放不位移，避免每句出現時的閃爍彈跳感
         opacity,
-        // backdropFilter removed — triggers full-frame compositing every frame on mobile
-        backgroundColor: 'rgba(0, 0, 0, 0.72)',
-        borderRadius: 10,
-        padding: '14px 40px',
-        maxWidth: '86%',
+        color: '#FFFFFF',
+        fontSize: 48,
+        fontFamily: KAI_FONT,
+        fontWeight: 600,
+        letterSpacing: '0.08em',
         textAlign: 'center',
-        borderLeft: '3px solid #C9A84C',
-        borderRight: '3px solid #C9A84C',
+        maxWidth: '86%',
+        lineHeight: 1.5,
+        textShadow: `${strokeShadow}, 0 6px 18px rgba(0,0,0,0.55)`,
       }}>
-        <span style={{
-          color: '#FFF8EC',
-          fontSize: 46,
-          fontFamily: KAI_FONT,
-          fontWeight: 500,
-          letterSpacing: '0.1em',
-          textShadow: '0 2px 8px rgba(0,0,0,0.9), 0 0 20px rgba(201,168,76,0.35), 0 0 40px rgba(201,168,76,0.15)',
-          lineHeight: 1.5,
-        }}>
-          {active.text}
-        </span>
-      </div>
+        {active.text}
+      </span>
     </div>
   );
 };
