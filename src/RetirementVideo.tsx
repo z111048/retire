@@ -33,12 +33,14 @@ export const RetirementVideo: React.FC<RetirementVideoProps> = ({ timeline, copy
   let currentFrame = 0;
   let globalPhotoIndex = 0;
 
-  // 只有兩種情況才需要蓋掉底部歌詞：intro 期間本來就沒有任何歌詞會 active（第一句從
-  // 11.31s 才開始，intro 只到6s，純粹保險不影響任何東西）；愛心拼貼是唯一場景本身在
-  // 同一個「畫面下方置中」位置已經有自己的字幕（大家的心，都圍繞著妳），會跟歌詞疊字。
-  // 其餘場景（章節標題卡、影片片段、Outro祝福語、製作團隊名單、片尾跑馬燈）都實際
-  // render 畫面確認過，底部區域是空的，歌詞疊在上面沒有文字衝突，之前整段都關掉歌詞
-  // 反而讓不少句歌詞被截斷甚至完全消失（片尾祝福那幾句幾乎全被蓋掉的重災區）。
+  // 蓋掉底部歌詞的情況，各自原因不同：
+  // - intro：本來就沒有任何歌詞會 active（第一句從11.31s才開始，intro只到6s），純粹保險。
+  // - 愛心拼貼：畫面下方同一位置已經有自己的字幕（大家的心，都圍繞著妳），會跟歌詞疊字。
+  // - 影片片段（尾牙表演那三段）：片段本身有現場收音，BGM 被 duck 到只剩10%幾乎聽不到，
+  //   這時顯示跟歌曲對時的歌詞會很奇怪（見下面 videoRanges 那段的 suppressRanges.push）。
+  // 其餘場景（章節標題卡、Outro祝福語、製作團隊名單、片尾跑馬燈）都實際 render 畫面
+  // 確認過，底部區域是空的，歌詞疊在上面沒有文字衝突——之前整段都關掉歌詞反而讓不少句
+  // 歌詞被截斷甚至完全消失（片尾祝福那幾句幾乎全被蓋掉的重災區），已經改成不再蓋掉。
   const suppressRanges: [number, number][] = [];
   // 影片片段的 frame 區間，用來 duck 背景音樂
   const videoRanges: [number, number][] = [];
@@ -75,6 +77,10 @@ export const RetirementVideo: React.FC<RetirementVideoProps> = ({ timeline, copy
       const itemFrames = item.durationFrames;
       if (item.type === 'video') {
         videoRanges.push([currentFrame, currentFrame + itemFrames]);
+        // 影片片段本身有現場收音，BGM 這時被 duck 到只剩 10%（見下面 bgmVolume），
+        // 歌曲基本上聽不到了，這時候還顯示跟歌曲對時的歌詞字幕會很奇怪——
+        // 跟畫面下方沒有文字衝突（前一次修正的判斷）是兩回事，這裡才蓋掉。
+        suppressRanges.push([currentFrame / FRAME_RATE, (currentFrame + itemFrames) / FRAME_RATE]);
         sequences.push(
           <Sequence key={`${section.id}-${item.fileName}`} from={currentFrame} durationInFrames={itemFrames}>
             <VideoScene item={item} />
