@@ -16,6 +16,9 @@ interface LyricsOverlayProps {
 
 const FADE_S = 0.4;
 
+// 慢進慢出的 S 曲線，讓淡入淡出讀起來像設計過的節奏，而不是內插的線性痕跡
+const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2);
+
 export const LyricsOverlay: React.FC<LyricsOverlayProps> = ({ lyrics, suppressRanges }) => {
   const frame = useCurrentFrame();
   const currentSec = frame / FRAME_RATE;
@@ -33,7 +36,7 @@ export const LyricsOverlay: React.FC<LyricsOverlayProps> = ({ lyrics, suppressRa
     currentSec,
     [active.start, Math.min(fadeInEnd, active.end), Math.max(fadeOutStart, active.start), active.end],
     [0, 1, 1, 0],
-    { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
+    { extrapolateLeft: 'clamp', extrapolateRight: 'clamp', easing: easeInOutCubic }
   );
 
   // 前一版加了一層畫面下方的暗角漸層想確保任何背景都夠清晰，結果在淺色的章節
