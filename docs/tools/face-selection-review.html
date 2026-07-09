@@ -6,7 +6,7 @@
 <title>人臉框選標註檢視</title>
 <style>
   :root { --bg:#14120e; --panel:#1e1b15; --panel2:#262218; --gold:#C9A84C; --text:#FFF8EC; --dim:#9a8f78;
-          --keep:#5ad06a; --rej:#e05a4a; --blur:#ff8a3d; }
+          --keep:#5ad06a; --rej:#e05a4a; --blur:#ff8a3d; --herself:#ff5fa8; }
   * { box-sizing:border-box; }
   body { background:var(--bg); color:var(--text); font-family:"Noto Sans TC",sans-serif; margin:0; }
   header {
@@ -23,6 +23,11 @@
     background:var(--panel2); color:var(--text); border:1px solid #4a4232; border-radius:6px;
     padding:6px 10px; font-size:13px; width:160px;
   }
+  #copyBtn {
+    background:var(--herself); color:#1a0d13; border:none; border-radius:6px;
+    padding:7px 14px; font-size:13px; font-weight:700; cursor:pointer;
+  }
+  #copyBtn:active { opacity:0.8; }
   main { max-width:1400px; margin:0 auto; padding:16px; }
   .card {
     background:var(--panel); border:1px solid #3a3428; border-radius:10px; margin-bottom:20px; overflow:hidden;
@@ -47,7 +52,8 @@
     flex:0 0 320px; width:320px; max-height:640px; overflow-y:auto;
     display:flex; flex-direction:column; gap:10px; padding:14px; border-left:1px solid #3a3428;
   }
-  .thumb-pair { display:flex; align-items:center; gap:6px; }
+  .thumb-pair { display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .thumb-row { display:flex; align-items:center; gap:6px; }
   .thumb-item { display:flex; flex-direction:column; align-items:center; gap:4px; }
   .thumb-item img {
     width:84px; height:84px; object-fit:cover; border-radius:8px; border:2px solid var(--keep); background:#000;
@@ -60,6 +66,12 @@
     font-size:11px; color:var(--rej); background:var(--panel2); border-radius:8px;
   }
   .thumb-arrow { color:var(--dim); font-size:18px; }
+  .herself-toggle {
+    margin-top:2px; font-size:11px; padding:3px 8px; border-radius:5px; cursor:pointer;
+    background:var(--panel2); color:var(--dim); border:1px solid #4a4232; white-space:nowrap;
+  }
+  .herself-toggle.on { background:var(--herself); color:#1a0d13; border-color:var(--herself); font-weight:700; }
+  .thumb-pair.is-herself img { border-color:var(--herself) !important; }
   @media (max-width: 900px) {
     .card-body { flex-direction:column; }
     /* .card-body 的 align-items:flex-start 在 column 模式下管的是「橫軸」(寬度)，
@@ -70,6 +82,7 @@
     .thumb-col { flex:1 1 auto; width:100%; max-height:none; border-left:none; border-top:1px solid #3a3428; }
   }
   .rect-keep { fill:none; stroke:var(--keep); stroke-width:6; }
+  .rect-herself { fill:none; stroke:var(--herself); stroke-width:8; }
   .rect-rej { fill:none; stroke:var(--rej); stroke-width:5; stroke-dasharray:14 10; }
   .rect-crop { fill:none; stroke:var(--gold); stroke-width:3; stroke-dasharray:6 8; opacity:0.85; }
   .rect-blur { fill:var(--blur); opacity:0.38; }
@@ -85,12 +98,15 @@
   <div class="stat">照片 <b id="photoCount">0</b> 張</div>
   <div class="stat">已選 <b id="keepCount" style="color:var(--keep)">0</b></div>
   <div class="stat">未選（偵測到但排除）<b id="rejCount" style="color:var(--rej)">0</b></div>
+  <div class="stat">秀燕姐本人 <b id="herselfCount" style="color:var(--herself)">0</b></div>
   <input id="search" placeholder="搜尋檔名，例：s6-12">
+  <button id="copyBtn" type="button">複製秀燕姐清單</button>
   <div class="legend">
     <span><span class="swatch" style="background:var(--keep)"></span>已選保留</span>
     <span><span class="swatch" style="background:var(--rej);border:2px dashed var(--rej);background:transparent"></span>偵測到但未選</span>
     <span><span class="swatch" style="background:transparent;border:2px dashed var(--gold)"></span>裁切擷取範圍</span>
     <span><span class="swatch" style="background:var(--blur);opacity:0.6"></span>會被模糊的重疊區</span>
+    <span><span class="swatch" style="background:var(--herself)"></span>標記為秀燕姐本人</span>
   </div>
 </header>
 
@@ -115,6 +131,18 @@ function paddedCropRect(box) {
   const cx = x + w/2, cy = y + h/2;
   const side = Math.max(w,h) * CROP_PAD_RATIO;
   return [cx - side/2, cy - side/2, side, side];
+}
+
+// 標記「這張照片裡哪一個候選框是秀燕姐本人」——每張照片最多一個，所以用
+// file -> avatarIdx 的物件就好，不用陣列。只存在瀏覽器 localStorage，重新整理
+// 頁面也不會不見，最後用「複製秀燕姐清單」按鈕匯出成文字貼給我。
+const HERSELF_KEY = 'face-review-herself-marks-v1';
+function loadHerselfMarks() {
+  try { return JSON.parse(localStorage.getItem(HERSELF_KEY) || '{}'); }
+  catch { return {}; }
+}
+function saveHerselfMarks(marks) {
+  localStorage.setItem(HERSELF_KEY, JSON.stringify(marks));
 }
 
 async function main() {
@@ -148,9 +176,17 @@ async function main() {
   document.getElementById('keepCount').textContent = selection.keepFiles.length;
   document.getElementById('rejCount').textContent = detections.length - selection.keepFiles.length;
 
+  const herselfMarks = loadHerselfMarks(); // file -> avatarIdx
+  function updateHerselfCount() {
+    document.getElementById('herselfCount').textContent = Object.keys(herselfMarks).length;
+  }
+  updateHerselfCount();
+
   const main = document.getElementById('main');
+  let currentFilter = '';
 
   function render(filterText) {
+    currentFilter = filterText;
     main.innerHTML = '';
     const filtered = files.filter(f => !filterText || f.includes(filterText));
     document.getElementById('empty').style.display = filtered.length ? 'none' : 'block';
@@ -185,17 +221,34 @@ async function main() {
           const pair = document.createElement('div');
           pair.className = 'thumb-pair';
           const cropIdx = String(k.avatarIdx).padStart(4, '0');
+          const isHerself = herselfMarks[file] === k.avatarIdx;
+          if (isHerself) pair.classList.add('is-herself');
           pair.innerHTML = `
-            <div class="thumb-item">
-              <img src="../qavatar-crops/${cropIdx}.jpg" loading="lazy" onerror="this.closest('.thumb-item').classList.add('missing')">
-              <span>候選裁切</span>
+            <div class="thumb-row">
+              <div class="thumb-item">
+                <img src="../qavatar-crops/${cropIdx}.jpg" loading="lazy" onerror="this.closest('.thumb-item').classList.add('missing')">
+                <span>候選裁切</span>
+              </div>
+              <div class="thumb-arrow">→</div>
+              <div class="thumb-item">
+                <img src="../qavatars/${cropIdx}.jpg" loading="lazy" onerror="this.closest('.thumb-item').classList.add('missing')">
+                <span>Q版 #${cropIdx}</span>
+              </div>
             </div>
-            <div class="thumb-arrow">→</div>
-            <div class="thumb-item">
-              <img src="../qavatars/${cropIdx}.jpg" loading="lazy" onerror="this.closest('.thumb-item').classList.add('missing')">
-              <span>Q版 #${cropIdx}</span>
-            </div>
+            <button type="button" class="herself-toggle ${isHerself ? 'on' : ''}">${isHerself ? '★ 秀燕姐本人' : '標記為秀燕姐本人'}</button>
           `;
+          const toggleBtn = pair.querySelector('.herself-toggle');
+          toggleBtn.addEventListener('click', () => {
+            // 每張照片最多一個本人——點已標記的取消，點別的自動蓋掉同張照片的舊標記
+            if (herselfMarks[file] === k.avatarIdx) {
+              delete herselfMarks[file];
+            } else {
+              herselfMarks[file] = k.avatarIdx;
+            }
+            saveHerselfMarks(herselfMarks);
+            updateHerselfCount();
+            render(currentFilter); // 重繪讓同張照片其他候選框的標記狀態同步更新
+          });
           thumbCol.appendChild(pair);
         }
         body.appendChild(thumbCol);
@@ -255,7 +308,7 @@ async function main() {
           const el = document.createElementNS(svg.namespaceURI, 'rect');
           el.setAttribute('x', x); el.setAttribute('y', y);
           el.setAttribute('width', bw); el.setAttribute('height', bh);
-          el.setAttribute('class', 'rect-keep');
+          el.setAttribute('class', herselfMarks[file] === k.avatarIdx ? 'rect-herself' : 'rect-keep');
           svg.appendChild(el);
 
           const label = `${k.quality.toFixed(2)}`;
@@ -279,6 +332,20 @@ async function main() {
 
   render('');
   document.getElementById('search').addEventListener('input', (e) => render(e.target.value.trim()));
+
+  document.getElementById('copyBtn').addEventListener('click', async () => {
+    const entries = Object.entries(herselfMarks).sort((a, b) => a[1] - b[1]);
+    const text = entries.map(([file, idx]) =>
+      `${file}\tavatarIdx=${idx}\tqavatars/${String(idx).padStart(4, '0')}.jpg`
+    ).join('\n');
+    if (!text) { alert('目前還沒有標記任何一張秀燕姐本人的照片'); return; }
+    try {
+      await navigator.clipboard.writeText(text);
+      alert(`已複製 ${entries.length} 筆到剪貼簿，貼給我就可以了`);
+    } catch {
+      prompt('自動複製失敗，請手動全選複製：', text);
+    }
+  });
 }
 
 main().catch(err => {
