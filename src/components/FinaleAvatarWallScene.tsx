@@ -2,6 +2,9 @@ import React from 'react';
 import { useCurrentFrame, useVideoConfig, interpolate, Img, staticFile } from 'remotion';
 import { HANDWRITING_FONT } from '../utils/fonts';
 import { HERSELF_AVATAR_INDICES } from '../utils/herselfAvatars';
+import { FINALE_WALL_CONFIG } from '../utils/finaleWallConfig';
+import { computeWallLayout, computeRequiredPullBackDistance } from '../utils/finaleWallLayout';
+import { computeCameraFrame } from '../utils/finaleCameraPath';
 
 interface FinaleAvatarWallSceneProps {
   avatarCount: number;
@@ -22,64 +25,63 @@ function avatarSrc(idx: number): string {
   return staticFile(file);
 }
 
-const COLS = 14;
-const TILE = 120; // 接近 public/qavatars/ 原始 140px，放大顯示但避免升頻模糊
-const GAP = 10;
+// 想讓哪些照片編號排進最靠近攝影機起點、最早被看清楚的深度層（對應舊版跑馬燈
+// FEATURED「提前到第幾張」的設計意圖，3D 牆裡改成「排進最前面的深度層」，
+// 語意相同，實作方式因應新的空間排列邏輯而調整——見 finaleWallLayout.ts）。
+const FEATURED_AVATAR_INDICES: number[] = [371];
 
-// 捲動固定用這個速度（不是用總距離除以總時長反推），時間到就結束，
-// 不需要剛好捲完——580人的頭像牆本來就比畫面能容納的內容多很多，
-// 捲到哪算哪，比硬要在有限時間內全部跑完、被迫加速更自然。
-// 190px/s 是最早（頭像放大之前）設計時就用的舒適速度基準，沿用同一個標準。
-const SCROLL_SPEED_PX_PER_S = 190;
-
-// 指定要提前到跑馬燈第幾張（1-based）的照片編號，其餘照片仍維持原本的相對順序
-// （只是被擠開一格），不是整排重新洗牌。
-const FEATURED: Array<{ photoNumber: number; position: number }> = [
-  { photoNumber: 371, position: 2 },
-];
-
-/** 把 FEATURED 指定的照片編號搬到指定位置（1-based），回傳「畫面位置 -> 照片編號」的對照表。 */
-function buildAvatarOrder(avatarCount: number): number[] {
-  const order = Array.from({ length: avatarCount }, (_, i) => i);
-  for (const { photoNumber, position } of FEATURED) {
-    const from = order.indexOf(photoNumber);
-    if (from === -1) continue;
-    order.splice(from, 1);
-    order.splice(position - 1, 0, photoNumber);
-  }
-  return order;
-}
-
-// 片尾彩蛋：全體 Q 版大頭貼像電影演職員名單一樣由下往上緩緩捲動
+/**
+ * 片尾彩蛋：580+ 張 Q 版頭像組成一片有深度層次的照片牆，攝影機從遠處緩緩飛越
+ * 穿梭其中，最後平順拉遠，完整呈現整片牆並淡入退休祝福文字。
+ *
+ * 取代舊版單一平面由下往上捲動的跑馬燈（那個版本在固定捲動速度下，18 秒內
+ * 只能捲到約 62% 的照片——已在對話中實測驗證；這個版本改成「拉遠時整片牆
+ * 一定完整入鏡」，不會有捲不到的問題，是結構性的解法而不是調參數）。
+ *
+ * 實作全部使用 Remotion／CSS 原生 3D（perspective + translate3d），沒有引入
+ * Three.js/WebGL——理由：現有專案零 WebGL 依賴，580 張頭像在 CSS 3D
+ * 合成層下已經是效能可控的量級（跟 HeartCollageScene 同量級頭像數已驗證可行），
+ * 額外引入 WebGL context 反而增加 headless render 的不穩定風險與維護成本，
+ * 不符合「維持現有架構與可維護性優先」的前提。
+ *
+ * 所有可調參數集中在 utils/finaleWallConfig.ts；版面／深度計算在
+ * utils/finaleWallLayout.ts；攝影機時間軸在 utils/finaleCameraPath.ts。
+ * 這個檔案只負責把三者組起來渲染，不應該再新增寫死的數值常數。
+ */
 export const FinaleAvatarWallScene: React.FC<FinaleAvatarWallSceneProps> = ({ avatarCount, caption }) => {
   const frame = useCurrentFrame();
   const { durationInFrames, width, height, fps } = useVideoConfig();
 
-  const avatarOrder = React.useMemo(() => buildAvatarOrder(avatarCount), [avatarCount]);
-
-  const rows = Math.ceil(avatarCount / COLS);
-  const gridWidth = COLS * (TILE + GAP);
-  const gridHeight = rows * (TILE + GAP);
-
-  const fadeOutStart = durationInFrames - 25;
-  const containerOpacity = interpolate(
-    frame,
-    [0, 20, fadeOutStart, durationInFrames],
-    [0, 1, 1, 0],
-    { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
+  // 版面（每張照片的 x/y/z/傾斜/飄浮參數）只跟 avatarCount 有關，不隨影格變化
+  const { tiles, bounds } = React.useMemo(
+    () => computeWallLayout(avatarCount, FEATURED_AVATAR_INDICES),
+    [avatarCount]
   );
 
-  // 從畫面底部下方以固定速度往上捲，捲到哪算哪，不用剛好在場景結束時捲完
-  const pxPerFrame = SCROLL_SPEED_PX_PER_S / fps;
-  const scrollY = Math.max(height + 40 - frame * pxPerFrame, -(gridHeight + 40));
+  // 拉遠距離依牆的實際尺寸反推，版面參數改了不用手動重新試這個數字
+  const pullBackDistance = React.useMemo(
+    () => computeRequiredPullBackDistance(bounds, FINALE_WALL_CONFIG.camera.perspectivePx, width, height),
+    [bounds, width, height]
+  );
 
-  const offsetX = (width - gridWidth) / 2;
+  // 場景整體淡入淡出，跟其他場景一致的手法
+  const fadeOutStart = durationInFrames - 20;
+  const containerOpacity = interpolate(frame, [0, 15, fadeOutStart, durationInFrames], [0, 1, 1, 0], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
 
-  // 虛擬化：580 張圖同時全部掛在 DOM 上很浪費（畫面同時間頂多看得到 50-70 張），
-  // 只渲染目前捲動位置附近可能看得到的列，其餘不掛載，捲動時多留 2 列當緩衝避免邊緣露白
-  const ROW_BUFFER = 2;
-  const minVisibleRow = Math.max(0, Math.floor((-scrollY - TILE) / (TILE + GAP)) - ROW_BUFFER);
-  const maxVisibleRow = Math.min(rows - 1, Math.ceil((height - scrollY) / (TILE + GAP)) + ROW_BUFFER);
+  // 攝影機／拉遠／字幕的進度要在「淡出開始前」就走完並停住（HOLD_FRAMES 那段
+  // 時間），不能跟 fadeOutStart 同時抵達終點——不然整片牆完整入鏡、字幕淡入
+  // 的那個瞬間，畫面同時也在往黑幕淡出，等於最重要的畫面被自己蓋掉看不清楚。
+  const HOLD_FRAMES = 30; // 拉遠完成後，定格讓觀眾看清楚整片牆與字幕的時間
+  const cameraActiveFrames = Math.max(1, fadeOutStart - HOLD_FRAMES);
+  const progress = Math.min(1, frame / cameraActiveFrames);
+  const timeSeconds = frame / fps;
+  const cam = computeCameraFrame(progress, timeSeconds, pullBackDistance);
+
+  const { perspectivePx } = FINALE_WALL_CONFIG.camera;
+  const { tileSizePx } = FINALE_WALL_CONFIG.layout;
 
   return (
     <div
@@ -90,78 +92,81 @@ export const FinaleAvatarWallScene: React.FC<FinaleAvatarWallSceneProps> = ({ av
         overflow: 'hidden',
         opacity: containerOpacity,
         background: '#1c1712',
+        // perspective 定義在容器上，裡面的 3D 世界（下面那層 preserve-3d）才會有透視效果
+        perspective: perspectivePx,
+        perspectiveOrigin: '50% 50%',
       }}
     >
-      <div style={{ position: 'absolute', left: offsetX, top: scrollY, width: gridWidth, height: gridHeight }}>
-        {Array.from({ length: avatarCount }, (_, i) => {
-          const row = Math.floor(i / COLS);
-          if (row < minVisibleRow || row > maxVisibleRow) return null;
-          const col = i % COLS;
-          const avatarIdx = avatarOrder[i];
-          const isHerself = HERSELF_AVATAR_INDICES.has(avatarIdx);
+      {/* 3D 世界：這一層的 transform 就是「攝影機」——移動/旋轉整個世界來模擬鏡頭
+          飛越，比逐一移動580張照片便宜很多（每幀只需更新這一個 transform）。 */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          transformStyle: 'preserve-3d',
+          transform: `translate3d(${cam.driftX}px, ${cam.driftY}px, ${-cam.distance}px) rotateY(${cam.yawDeg}deg)`,
+        }}
+      >
+        {tiles.map((tile) => {
+          const isHerself = HERSELF_AVATAR_INDICES.has(tile.avatarIdx);
+          // 飄浮動畫：每張照片各自的週期＋相位，極輕微的上下位移，避免整片同步
+          // 浮動看起來像水波紋特效；純三角函數運算，580張的成本可忽略不計。
+          const floatY =
+            Math.sin((timeSeconds / tile.floatPeriodS) * Math.PI * 2 + tile.floatPhase) * tile.floatAmplitudePx;
+
           return (
             <div
-              key={i}
+              key={tile.avatarIdx}
               style={{
                 position: 'absolute',
-                left: col * (TILE + GAP),
-                top: row * (TILE + GAP),
-                width: TILE,
-                height: TILE,
+                left: width / 2 + tile.x - tileSizePx / 2,
+                top: height / 2 + tile.y + floatY - tileSizePx / 2,
+                width: tileSizePx,
+                height: tileSizePx,
+                transform: `translateZ(${tile.z}px) rotateZ(${tile.tiltDeg}deg) rotateY(${tile.yawDeg}deg)`,
                 borderRadius: 6,
                 overflow: 'hidden',
-                // 580 顆頭像各自套 boxShadow 會逐一觸發 GPU 合成層，改用便宜很多的 border——
-                // 只有秀燕姐本人（少數，見 HERSELF_AVATAR_INDICES）才用金框特別標出來，
-                // 不是排除她，是「她也在人群中」的畫面，同一時間畫面上只有幾張，不影響效能。
+                // 跟舊版同樣理由：580張各自套 boxShadow 會逐一觸發 GPU 合成層，
+                // 只有秀燕姐本人（少數，見 HERSELF_AVATAR_INDICES）才用金框特別標出——
+                // 不是排除她，是「她也在人群中」的畫面，同時間只有幾張不影響效能。
                 border: isHerself ? '3px solid #FFD24C' : '1px solid rgba(0,0,0,0.25)',
                 boxShadow: isHerself ? '0 0 8px rgba(255, 210, 76, 0.7)' : 'none',
+                backfaceVisibility: 'hidden',
               }}
             >
-              <Img src={avatarSrc(avatarIdx)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <Img src={avatarSrc(tile.avatarIdx)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
           );
         })}
       </div>
 
-      {/* 頂部標題：固定不隨捲動，底下加漸層讓文字在移動背景上仍清楚 */}
+      {/* 祝福文字：刻意不放進上面的 3D 世界，不受透視/攝影機影響，維持清晰置中，
+          只在最後拉遠階段淡入（見 finaleCameraPath 的 captionOpacity 時間軸）。 */}
       <div
         style={{
           position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 160,
-          background: 'linear-gradient(to bottom, rgba(28,23,18,0.95) 0%, rgba(28,23,18,0.75) 60%, transparent 100%)',
+          inset: 0,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          opacity: cam.captionOpacity,
+          pointerEvents: 'none',
         }}
       >
         <span
           style={{
             fontFamily: HANDWRITING_FONT,
-            fontSize: 52,
+            fontSize: 64,
             fontWeight: 400,
             color: '#F5E6C8',
-            letterSpacing: '0.15em',
-            textShadow: '0 2px 10px rgba(0,0,0,0.6)',
+            letterSpacing: '0.2em',
+            textAlign: 'center',
+            textShadow: '0 4px 20px rgba(0,0,0,0.8), 0 0 40px rgba(0,0,0,0.6)',
           }}
         >
           {caption}
         </span>
       </div>
-
-      {/* 底部漸層，讓捲動畫面淡入淡出更柔和 */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: 140,
-          background: 'linear-gradient(to top, #1c1712 0%, transparent 100%)',
-        }}
-      />
     </div>
   );
 };
