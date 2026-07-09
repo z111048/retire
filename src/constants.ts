@@ -1,7 +1,7 @@
 export const FRAME_RATE = 30;
 export const INTRO_DURATION_S = 6;
 export const OUTRO_DURATION_S = 21;
-export const AVATAR_COUNT = 580;     // 對應 data/face-selection.json 的 keepFiles 數量
+export const AVATAR_COUNT = 586;     // 對應 data/face-selection.json 的 keepFiles 數量
 
 // 愛心拼貼原本是「今天換我們歡送你」章節內的加權項目，現在改成獨立的絕對時間場景，
 // 移到 Outro 尾聲（此時最後一句祝福語已顯示完畢）之後。
