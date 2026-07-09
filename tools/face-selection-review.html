@@ -81,8 +81,11 @@
     .imgwrap { width:100%; }
     .thumb-col { flex:1 1 auto; width:100%; max-height:none; border-left:none; border-top:1px solid #3a3428; }
   }
-  .rect-keep { fill:none; stroke:var(--keep); stroke-width:6; }
-  .rect-herself { fill:none; stroke:var(--herself); stroke-width:8; }
+  .rect-keep, .rect-herself {
+    /* pointer-events:all 讓整個框（含fill:none的內部空白）都能點擊，不用只點在描邊線上 */
+    fill:none; stroke:var(--keep); stroke-width:6; cursor:pointer; pointer-events:all;
+  }
+  .rect-herself { stroke:var(--herself); stroke-width:8; }
   .rect-rej { fill:none; stroke:var(--rej); stroke-width:5; stroke-dasharray:14 10; }
   .rect-crop { fill:none; stroke:var(--gold); stroke-width:3; stroke-dasharray:6 8; opacity:0.85; }
   .rect-blur { fill:var(--blur); opacity:0.38; }
@@ -182,6 +185,19 @@ async function main() {
   }
   updateHerselfCount();
 
+  // 按鈕跟直接點照片上的框，共用同一套切換邏輯——每張照片最多一個本人，
+  // 點已標記的取消，點別的自動蓋掉同張照片的舊標記。
+  function toggleHerself(file, avatarIdx) {
+    if (herselfMarks[file] === avatarIdx) {
+      delete herselfMarks[file];
+    } else {
+      herselfMarks[file] = avatarIdx;
+    }
+    saveHerselfMarks(herselfMarks);
+    updateHerselfCount();
+    render(currentFilter); // 重繪讓同張照片其他候選框的標記狀態同步更新
+  }
+
   const main = document.getElementById('main');
   let currentFilter = '';
 
@@ -238,17 +254,7 @@ async function main() {
             <button type="button" class="herself-toggle ${isHerself ? 'on' : ''}">${isHerself ? '★ 秀燕姐本人' : '標記為秀燕姐本人'}</button>
           `;
           const toggleBtn = pair.querySelector('.herself-toggle');
-          toggleBtn.addEventListener('click', () => {
-            // 每張照片最多一個本人——點已標記的取消，點別的自動蓋掉同張照片的舊標記
-            if (herselfMarks[file] === k.avatarIdx) {
-              delete herselfMarks[file];
-            } else {
-              herselfMarks[file] = k.avatarIdx;
-            }
-            saveHerselfMarks(herselfMarks);
-            updateHerselfCount();
-            render(currentFilter); // 重繪讓同張照片其他候選框的標記狀態同步更新
-          });
+          toggleBtn.addEventListener('click', () => toggleHerself(file, k.avatarIdx));
           thumbCol.appendChild(pair);
         }
         body.appendChild(thumbCol);
@@ -309,6 +315,8 @@ async function main() {
           el.setAttribute('x', x); el.setAttribute('y', y);
           el.setAttribute('width', bw); el.setAttribute('height', bh);
           el.setAttribute('class', herselfMarks[file] === k.avatarIdx ? 'rect-herself' : 'rect-keep');
+          // 直接點照片上的框就能標記/取消，不用捲到旁邊縮圖清單去點按鈕，瀏覽80幾張時快很多
+          el.addEventListener('click', () => toggleHerself(file, k.avatarIdx));
           svg.appendChild(el);
 
           const label = `${k.quality.toFixed(2)}`;
