@@ -103,6 +103,9 @@
   <div class="stat">未選（偵測到但排除）<b id="rejCount" style="color:var(--rej)">0</b></div>
   <div class="stat">秀燕姐本人 <b id="herselfCount" style="color:var(--herself)">0</b></div>
   <input id="search" placeholder="搜尋檔名，例：s6-12">
+  <label style="display:flex;align-items:center;gap:5px;font-size:13px;color:var(--dim);cursor:pointer;">
+    <input type="checkbox" id="onlyHerself" checked>只顯示秀燕姐本人
+  </label>
   <button id="copyBtn" type="button">複製秀燕姐清單</button>
   <div class="legend">
     <span><span class="swatch" style="background:var(--keep)"></span>已選保留</span>
@@ -204,7 +207,10 @@ async function main() {
   function render(filterText) {
     currentFilter = filterText;
     main.innerHTML = '';
-    const filtered = files.filter(f => !filterText || f.includes(filterText));
+    const onlyHerself = document.getElementById('onlyHerself').checked;
+    const filtered = files
+      .filter(f => !filterText || f.includes(filterText))
+      .filter(f => !onlyHerself || herselfMarks[f] !== undefined);
     document.getElementById('empty').style.display = filtered.length ? 'none' : 'block';
 
     for (const file of filtered) {
@@ -340,6 +346,7 @@ async function main() {
 
   render('');
   document.getElementById('search').addEventListener('input', (e) => render(e.target.value.trim()));
+  document.getElementById('onlyHerself').addEventListener('change', () => render(currentFilter));
 
   document.getElementById('copyBtn').addEventListener('click', async () => {
     const entries = Object.entries(herselfMarks).sort((a, b) => a[1] - b[1]);
