@@ -84,7 +84,10 @@
   /* 預覽模式的簡化卡片：桌面版只顯示Q版大頭貼＋下載按鈕（裁切對照是手機版
      專屬的兩列上下對照效果，見下面 @media 區塊），沒有標記按鈕 */
   .simple-avatar { display:flex; flex-direction:column; align-items:center; gap:4px; width:100px; }
-  .simple-avatar .pair-imgs { display:flex; flex-direction:column; align-items:center; }
+  .simple-avatar .pair-imgs {
+    display:flex; flex-direction:column; align-items:center;
+    background:none; border:none; padding:0; margin:0; cursor:pointer; /* 重置 <button> 預設樣式 */
+  }
   .simple-avatar .pair-imgs img:first-child,
   .simple-avatar .pair-divider { display:none; } /* 桌面版不顯示原圖裁切對照，只保留在手機版 */
   .simple-avatar .pair-imgs img {
@@ -173,6 +176,37 @@
   .label-bg { fill:rgba(0,0,0,0.65); }
   .label-text { fill:#fff; font-size:34px; font-family:monospace; }
   #empty { text-align:center; color:var(--dim); padding:60px 20px; }
+
+  /* 預覽模式點頭像不再直接下載，改開這個燈箱：先放大看清楚，確定要留
+     再按下載——手機上常常誤觸，直接下載反而讓人搞不清楚存了什麼檔案 */
+  .preview-modal {
+    position:fixed; inset:0; z-index:100; display:none; align-items:center; justify-content:center; padding:24px;
+  }
+  .preview-modal.open { display:flex; }
+  .preview-modal-backdrop {
+    position:absolute; inset:0; background:rgba(10,8,5,0.8); animation:pmFade .18s ease;
+  }
+  .preview-modal-content {
+    position:relative; z-index:1; width:100%; max-width:340px;
+    background:var(--panel); border-radius:18px; padding:22px;
+    display:flex; flex-direction:column; align-items:center; gap:14px;
+    box-shadow:0 24px 60px rgba(0,0,0,0.55); animation:pmPop .22s cubic-bezier(.2,.9,.3,1.2);
+  }
+  .preview-modal-img {
+    width:100%; aspect-ratio:1; object-fit:cover; border-radius:14px; border:3px solid var(--gold); background:#000;
+  }
+  .preview-modal-content.is-herself .preview-modal-img { border-color:var(--herself); }
+  .preview-modal-label { font-size:13px; color:var(--dim); }
+  .preview-modal-content.is-herself .preview-modal-label { color:var(--herself); font-weight:700; }
+  .preview-modal-actions { display:flex; gap:10px; width:100%; }
+  .preview-modal-dl, .preview-modal-close {
+    flex:1; text-align:center; text-decoration:none; cursor:pointer; border:none;
+    font-size:14px; font-weight:700; padding:11px 0; border-radius:99px;
+  }
+  .preview-modal-dl { background:var(--gold); color:#1a1509; }
+  .preview-modal-close { background:var(--panel2); color:var(--dim); border:1px solid #4a4232; }
+  @keyframes pmFade { from{opacity:0} to{opacity:1} }
+  @keyframes pmPop { from{opacity:0; transform:scale(.9)} to{opacity:1; transform:scale(1)} }
 </style>
 </head>
 <body>
@@ -203,6 +237,18 @@
 
 <main id="main"></main>
 <div id="empty" style="display:none">沒有符合的照片</div>
+
+<div id="previewModal" class="preview-modal">
+  <div class="preview-modal-backdrop"></div>
+  <div class="preview-modal-content" id="previewModalContent">
+    <img class="preview-modal-img" id="previewModalImg" src="" alt="Q版大頭貼">
+    <span class="preview-modal-label" id="previewModalLabel"></span>
+    <div class="preview-modal-actions">
+      <a class="preview-modal-dl" id="previewModalDl" href="" download>⬇ 下載照片</a>
+      <button type="button" class="preview-modal-close" id="previewModalCloseBtn">關閉</button>
+    </div>
+  </div>
+</div>
 
 <script>
 const CROP_PAD_RATIO = 1.9; // 需與 scripts/faceCrop.py / buildHeartCollage.py 一致
@@ -321,6 +367,25 @@ async function main() {
     el.classList.add('ping');
   }
 
+  // 預覽模式點頭像先開燈箱放大看，不直接下載——用高解析度版本讓放大後還算清楚，
+  // 下載鏈結也指到同一份高解析度圖，不是縮圖列表用的140px小圖。
+  const previewModal = document.getElementById('previewModal');
+  function openPreviewModal(cropIdx, isHerself) {
+    const hiresSrc = `../qavatars-hires/${cropIdx}.png`;
+    document.getElementById('previewModalImg').src = hiresSrc;
+    document.getElementById('previewModalLabel').textContent = isHerself ? '★ 秀燕姐本人' : `Q版 #${cropIdx}`;
+    document.getElementById('previewModalDl').href = hiresSrc;
+    document.getElementById('previewModalDl').download = `Q版頭像_${cropIdx}.png`;
+    document.getElementById('previewModalContent').classList.toggle('is-herself', isHerself);
+    previewModal.classList.add('open');
+  }
+  function closePreviewModal() {
+    previewModal.classList.remove('open');
+  }
+  document.getElementById('previewModalCloseBtn').addEventListener('click', closePreviewModal);
+  document.querySelector('.preview-modal-backdrop').addEventListener('click', closePreviewModal);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closePreviewModal(); });
+
   function render(filterText) {
     currentFilter = filterText;
     main.innerHTML = '';
@@ -395,13 +460,14 @@ async function main() {
             avatar.className = 'simple-avatar' + (isHerself ? ' is-herself' : '');
             avatar.dataset.avatarIdx = k.avatarIdx; // 給點原圖框時定位用（見 scrollToAvatar）
             avatar.innerHTML = `
-              <a href="../qavatars-hires/${cropIdx}.png" download="Q版頭像_${cropIdx}.png" class="pair-imgs">
+              <button type="button" class="pair-imgs">
                 <img src="../qavatar-crops/${cropIdx}.jpg" loading="lazy" alt="原圖" onerror="this.remove()">
                 <div class="pair-divider"></div>
                 <img src="../qavatars/${cropIdx}.jpg" loading="lazy" alt="Q版" onerror="this.closest('.simple-avatar').classList.add('missing')">
-              </a>
-              <span class="who">${isHerself ? '★ 秀燕姐本人' : '點圖下載'}</span>
+              </button>
+              <span class="who">${isHerself ? '★ 秀燕姐本人' : '點圖放大'}</span>
             `;
+            avatar.querySelector('.pair-imgs').addEventListener('click', () => openPreviewModal(cropIdx, isHerself));
             thumbCol.appendChild(avatar);
           }
         }
