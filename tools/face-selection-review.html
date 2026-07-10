@@ -114,7 +114,11 @@
     /* 手機版縮圖統一改成置中換行網格（不管是不是預覽模式），比單欄直排更快找到自己、
        捲動距離也短很多 */
     .thumb-col { flex-direction:row; flex-wrap:wrap; justify-content:center; row-gap:20px; }
-    .simple-avatar, .simple-avatar img { width:84px; height:84px; }
+    /* 只縮小圖片本身，.simple-avatar 外層容器不能設 height——它裡面除了圖片
+       還有下面的文字說明，設死84px高會讓文字被擠出容器外，被 .card 的
+       overflow:hidden 從中間切掉（手機版「點圖下載」字被攔腰截斷的成因） */
+    .simple-avatar { width:84px; }
+    .simple-avatar img { width:84px; height:84px; }
   }
   .rect-keep, .rect-herself {
     /* pointer-events:all 讓整個框（含fill:none的內部空白）都能點擊，不用只點在描邊線上 */
@@ -276,7 +280,10 @@ async function main() {
     document.getElementById('empty').style.display = filtered.length ? 'none' : 'block';
 
     for (const file of filtered) {
-      const { keep, reject } = byFile[file];
+      const { reject } = byFile[file];
+      // 側欄縮圖依框選的 x 座標由左到右排序，跟大家在照片裡實際站的順序一致，
+      // 找自己比原本「偵測順序」（跟畫面位置無關、看起來隨機）快很多
+      const keep = [...byFile[file].keep].sort((a, b) => a.box[0] - b.box[0]);
       const card = document.createElement('div');
       card.className = 'card';
 
