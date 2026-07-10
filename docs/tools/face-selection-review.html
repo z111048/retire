@@ -424,6 +424,12 @@ async function main() {
   function scrollToAvatar(avatarIdx) {
     const el = document.querySelector(`.simple-avatar[data-avatar-idx="${avatarIdx}"]`);
     if (!el) return;
+    // 保險：萬一淡入動畫還沒播完就被點到（正常情況下不會，因為使用者要先看到
+    // 主圖上的框，代表這張卡片一定已經 revealed 過），直接鎖定顯示狀態，
+    // 確保加 .ping 不會意外把還在跑的 avatarReveal 動畫換掉導致頭像消失
+    el.classList.remove('revealable');
+    el.style.opacity = '1';
+    el.style.transform = 'none';
     el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
     el.classList.remove('ping');
     void el.offsetWidth; // 強制 reflow，同一顆頭像連續點兩次也能重新觸發動畫
@@ -535,6 +541,18 @@ async function main() {
             avatar.className = 'simple-avatar revealable' + (isHerself ? ' is-herself' : '');
             avatar.dataset.avatarIdx = k.avatarIdx; // 給點原圖框時定位用（見 scrollToAvatar）
             avatar.style.animationDelay = `${SCAN_DURATION_S + i * AVATAR_STAGGER_S}s`; // 主圖掃描完才開始逐一浮現
+            // 淡入動畫播完就把「顯示」狀態直接寫死成行內樣式、拿掉 .revealable——
+            // 不然之後點原圖框觸發 scrollToAvatar() 加 .ping class 時，.ping 也有
+            // 自己的 animation 簡寫，會整個取代掉還掛在元素上的 avatarReveal，
+            // 連帶讓它失去 forwards 保留的 opacity:1，退回 .revealable 原本
+            // opacity:0 的靜態樣式，頭像瞬間「被隱藏」（就是這次回報的 bug）。
+            avatar.addEventListener('animationend', (e) => {
+              if (e.animationName === 'avatarReveal') {
+                avatar.classList.remove('revealable');
+                avatar.style.opacity = '1';
+                avatar.style.transform = 'none';
+              }
+            });
             avatar.innerHTML = `
               <button type="button" class="pair-imgs">
                 <img src="../qavatar-crops/${cropIdx}.jpg" loading="lazy" alt="原圖" onerror="this.remove()">
