@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>製作花絮・這支影片是怎麼做出來的</title>
+<style>
+  :root {
+    --gold:#C9A84C; --gold-deep:#B08B35; --text:#3A2E1E; --dim:#8a7a5e;
+    --panel:#FFFDF8; --panel-border:#e9dfc8;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; font-family:"Noto Sans TC",sans-serif; color:var(--text);
+    background:radial-gradient(ellipse 80% 60% at 50% 0%, #FFFDF6 0%, #FFF4E0 45%, #FFF0D8 100%);
+    background-attachment:fixed;
+  }
+  main { max-width:880px; margin:0 auto; padding:0 20px 80px; }
+  .hero { text-align:center; padding:64px 20px 40px; }
+  .hero .eyebrow { color:var(--gold-deep); font-size:14px; letter-spacing:0.25em; font-weight:700; }
+  .hero h1 { font-size:clamp(24px, 5vw, 36px); margin:14px 0 10px; color:#2a2015; }
+  .hero p { color:var(--dim); font-size:15px; max-width:560px; margin:0 auto; line-height:1.7; }
+  .hero .divider {
+    width:70px; height:2px; margin:22px auto; background:linear-gradient(to right, transparent, var(--gold), transparent);
+  }
+  section { margin:48px 0; }
+  h2 {
+    font-size:20px; color:#2a2015; display:flex; align-items:center; gap:10px; margin-bottom:20px;
+  }
+  h2 .icon { font-size:22px; }
+  .card {
+    background:var(--panel); border:1px solid var(--panel-border); border-radius:14px;
+    padding:22px 26px; box-shadow:0 2px 14px rgba(120,90,30,0.06);
+  }
+  /* 數字看專案規模 */
+  .stat-grid {
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:14px;
+  }
+  .stat-tile {
+    background:var(--panel); border:1px solid var(--panel-border); border-radius:12px;
+    padding:18px 14px; text-align:center; box-shadow:0 2px 14px rgba(120,90,30,0.06);
+  }
+  .stat-tile .num { font-size:28px; font-weight:700; color:var(--gold-deep); line-height:1.2; }
+  .stat-tile .label { font-size:12px; color:var(--dim); margin-top:6px; }
+  /* 時間軸 */
+  .timeline { position:relative; padding-left:28px; }
+  .timeline::before {
+    content:''; position:absolute; left:6px; top:6px; bottom:6px; width:2px;
+    background:linear-gradient(to bottom, var(--gold), var(--panel-border));
+  }
+  .tl-item { position:relative; padding-bottom:26px; }
+  .tl-item:last-child { padding-bottom:0; }
+  .tl-item::before {
+    content:''; position:absolute; left:-28px; top:4px; width:12px; height:12px; border-radius:50%;
+    background:var(--gold); border:3px solid #FFF8EC; box-shadow:0 0 0 1px var(--panel-border);
+  }
+  .tl-date { font-size:12px; color:var(--gold-deep); font-weight:700; letter-spacing:0.05em; }
+  .tl-title { font-size:15px; font-weight:700; margin:3px 0 4px; }
+  .tl-desc { font-size:13.5px; color:var(--dim); line-height:1.6; }
+  /* 工具清單 */
+  .tool-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:12px; }
+  .tool-item {
+    background:var(--panel); border:1px solid var(--panel-border); border-radius:12px;
+    padding:14px 16px; box-shadow:0 2px 14px rgba(120,90,30,0.06);
+  }
+  .tool-item .name { font-weight:700; font-size:14px; display:flex; align-items:center; gap:8px; }
+  .tool-item .desc { font-size:12.5px; color:var(--dim); margin-top:5px; line-height:1.55; }
+  .tag {
+    display:inline-block; font-size:10.5px; padding:2px 8px; border-radius:99px;
+    background:#F5E9C8; color:var(--gold-deep); font-weight:700; margin-left:auto;
+  }
+  /* 花絮清單 */
+  .anecdote { margin-bottom:16px; }
+  .anecdote .t { font-weight:700; font-size:14.5px; }
+  .anecdote .d { font-size:13.5px; color:var(--dim); line-height:1.65; margin-top:4px; }
+  .cost-note {
+    display:flex; align-items:center; gap:14px; background:var(--panel); border:1px solid var(--panel-border);
+    border-radius:14px; padding:20px 24px; box-shadow:0 2px 14px rgba(120,90,30,0.06);
+  }
+  .cost-note .amount { font-size:32px; font-weight:700; color:var(--gold-deep); white-space:nowrap; }
+  .cost-note .text { font-size:13.5px; color:var(--dim); line-height:1.6; }
+  footer { text-align:center; color:var(--dim); font-size:12.5px; padding:30px 20px 10px; }
+  footer a { color:var(--gold-deep); }
+  @media (max-width:600px) {
+    .hero { padding:44px 16px 30px; }
+    .card { padding:18px 18px; }
+  }
+</style>
+</head>
+<body>
+
+<main>
+  <div class="hero">
+    <div class="eyebrow">MAKING OF</div>
+    <h1>🌸 這支退休紀念影片，是怎麼做出來的？</h1>
+    <p>好多人問起製作過程，乾脆整理成一頁分享給大家——從一堆老照片到 5 分 20 秒的成片，中間經過了什麼。</p>
+    <div class="divider"></div>
+  </div>
+
+  <section>
+    <h2><span class="icon">📊</span>數字看這個專案</h2>
+    <div class="stat-grid">
+      <div class="stat-tile"><div class="num">23天</div><div class="label">從開工到完成<br>（實際密集製作約7天）</div></div>
+      <div class="stat-tile"><div class="num">100</div><div class="label">次程式修改紀錄</div></div>
+      <div class="stat-tile"><div class="num">81</div><div class="label">張老照片翻找整理</div></div>
+      <div class="stat-tile"><div class="num">586</div><div class="label">位同仁的Q版大頭貼</div></div>
+      <div class="stat-tile"><div class="num">74</div><div class="label">句歌詞逐字對時</div></div>
+      <div class="stat-tile"><div class="num">5:20</div><div class="label">最終成片長度</div></div>
+      <div class="stat-tile"><div class="num">13</div><div class="label">種不同的動畫場景</div></div>
+      <div class="stat-tile"><div class="num">~4300</div><div class="label">行程式碼</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="icon">🗓️</span>製作時間軸</h2>
+    <div class="card">
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-date">6/18</div>
+          <div class="tl-title">專案起手：架好整條產線</div>
+          <div class="tl-desc">用 Remotion（React 寫程式化影片）搭骨架，設計「檔名驅動」的素材匯入流程——把整理好的照片丟進資料夾，程式自動讀取排時間軸，不用手動一張張拖時間軸。</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-date">7/3 – 7/6</div>
+          <div class="tl-title">歌詞、字幕、場景動畫細修</div>
+          <div class="tl-desc">歌詞逐句對時同步字幕、章節標題卡、Ken Burns 動態運鏡、片尾祝福文字動畫，把靜態照片變成有節奏的影片。</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-date">7/8</div>
+          <div class="tl-title">大量開發衝刺：全片改版</div>
+          <div class="tl-desc">這天修改次數最多——歌曲和照片素材全面更新、片尾大改版、修正多個手機版顯示問題。</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-date">7/9</div>
+          <div class="tl-title">人臉辨識 → 586 張Q版頭像</div>
+          <div class="tl-desc">用 AI 從 81 張老照片裡自動框出所有人臉，人工複審挑選，再用 AI 圖生圖服務把每張臉轉成同一種可愛畫風的Q版大頭貼，拼成愛心拼貼與片尾跑馬燈。</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-date">7/10</div>
+          <div class="tl-title">最後修正與正式發布</div>
+          <div class="tl-desc">補齊漏掉的人臉、修正歌詞字幕顯示邏輯、把審核工具改成大家都能用來找自己Q版照片的公開版，正式上線。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="icon">🛠️</span>用了哪些工具</h2>
+    <div class="tool-grid">
+      <div class="tool-item">
+        <div class="name">🤖 Claude Code <span class="tag">AI 開發</span></div>
+        <div class="desc">全程用 AI agent 寫程式、除錯、跑測試，人類負責審美與方向把關。</div>
+      </div>
+      <div class="tool-item">
+        <div class="name">🎬 Remotion</div>
+        <div class="desc">用 React／TypeScript 寫程式化影片，每個轉場、動畫都是程式算出來的，不是拖拉剪輯軟體做的。</div>
+      </div>
+      <div class="tool-item">
+        <div class="name">🖼️ AI 圖生圖服務</div>
+        <div class="desc">把每個人的照片轉成統一畫風的Q版可愛大頭貼，586 張全部由 AI 生成。</div>
+      </div>
+      <div class="tool-item">
+        <div class="name">👁️ OpenCV YuNet</div>
+        <div class="desc">開源人臉偵測模型，自動在合照裡框出每一張臉，省去人工逐張圈選的功夫。</div>
+      </div>
+      <div class="tool-item">
+        <div class="name">✂️ rembg + scikit-image</div>
+        <div class="desc">AI 去背＋輪廓抓取，讓愛心拼貼的頭像能貼合主角實際身形排列。</div>
+      </div>
+      <div class="tool-item">
+        <div class="name">🎞️ ffmpeg</div>
+        <div class="desc">影片壓縮、格式轉換，讓網頁版能快速載入不用等半天。</div>
+      </div>
+      <div class="tool-item">
+        <div class="name">🧪 Playwright</div>
+        <div class="desc">自動開瀏覽器截圖驗證畫面，尤其手機版排版問題都是這樣抓出來的。</div>
+      </div>
+      <div class="tool-item">
+        <div class="name">☁️ GitHub Pages</div>
+        <div class="desc">免費把網頁版播放器、找Q版照片工具部署上外網，任何人都能打開瀏覽器看。</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="icon">💡</span>幕後小花絮</h2>
+    <div class="card">
+      <div class="anecdote">
+        <div class="t">照片轉90度，框卻沒轉</div>
+        <div class="d">幾張手機直拍的照片存檔時是橫的（靠 EXIF 標記告訴看圖軟體要轉正），但人臉偵測跟量尺寸的工具各自用了不同方式讀圖，其中一個沒吃到那個轉正標記，導致框選位置對不上——後來才發現問題出在「量尺寸」這一步，不是人臉偵測本身。</div>
+      </div>
+      <div class="anecdote">
+        <div class="t">愛心拼貼從網格排列改成一圈一圈圍繞</div>
+        <div class="d">原本頭像是排成愛心形狀的網格，後來想呼應文案「大家的心，都圍繞著妳」，改成從主角身形一圈一圈同心圓向外擴散排列，還跑了覆蓋率模擬去調整頭像重疊的密度，太密會很亂、太疏又露出一堆背景縫隙。</div>
+      </div>
+      <div class="anecdote">
+        <div class="t">手機版標註框跑掉，前後修了三次才真的修好</div>
+        <div class="d">CSS 版面在不同瀏覽器（尤其 iOS Safari）對「auto 高度容器裡的百分比高度」計算方式不一致，中間還一度因為疊加 loading="lazy" 造成圖片卡住完全不載入的雞生蛋問題，最後才抓到手機版直排模式下漏了一個 width:100% 設定。</div>
+      </div>
+      <div class="anecdote">
+        <div class="t">歌詞字幕曾經被過度關閉</div>
+        <div class="d">一開始為了避免跟其他畫面文字重疊，把好幾種轉場畫面的歌詞字幕整個關掉，結果反而讓四分之一左右的歌詞完全沒顯示過。後來逐一實際檢查每種畫面下方是不是真的有文字衝突，把不必要的關閉都拿掉。</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="icon">💰</span>花費</h2>
+    <div class="cost-note">
+      <div class="amount">$100</div>
+      <div class="text">全部包在同一份 AI 服務訂閱額度（約 100 美金）裡，涵蓋 AI 程式開發跟 Q 版頭像的圖片生成，沒有另外按次數付費。</div>
+    </div>
+  </section>
+
+  <footer>
+    退休紀念影片專案・高雄市政府都市發展局<br>
+    有其他問題歡迎詢問 :)
+  </footer>
+</main>
+
+</body>
+</html>
