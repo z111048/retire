@@ -295,7 +295,7 @@ async function main() {
       const imgwrap = document.createElement('div');
       imgwrap.className = 'imgwrap';
       const img = document.createElement('img');
-      img.src = `../public/photos-orig/${file}`;
+      img.src = `../photos/${file}`;
       // 主要照片不用 lazy——跟 aspect-ratio 預設值一起是雙重保險，
       // 避免圖片本身尺寸未知時瀏覽器誤判「不在可視範圍」而卡住不載入
       imgwrap.appendChild(img);
@@ -315,17 +315,17 @@ async function main() {
             pair.innerHTML = `
               <div class="thumb-row">
                 <div class="thumb-item">
-                  <img src="../assets/generated/qavatar-crops/${cropIdx}.jpg" loading="lazy" onerror="this.closest('.thumb-item').classList.add('missing')">
+                  <img src="../qavatar-crops/${cropIdx}.jpg" loading="lazy" onerror="this.closest('.thumb-item').classList.add('missing')">
                   <span>候選裁切</span>
                 </div>
                 <div class="thumb-arrow">→</div>
                 <div class="thumb-item">
-                  <img src="../assets/generated/qavatars/${cropIdx}.png" loading="lazy" onerror="this.closest('.thumb-item').classList.add('missing')">
+                  <img src="../qavatars/${cropIdx}.jpg" loading="lazy" onerror="this.closest('.thumb-item').classList.add('missing')">
                   <span>Q版 #${cropIdx}</span>
                 </div>
               </div>
               <button type="button" class="herself-toggle ${isHerself ? 'on' : ''}">${isHerself ? '★ 秀燕姐本人' : '標記為秀燕姐本人'}</button>
-              <a class="dl-btn" href="../assets/generated/qavatars/${cropIdx}.png" download="Q版頭像_${cropIdx}.png">⬇ 下載高解析度（512px）</a>
+              <a class="dl-btn" href="../qavatars-hires/${cropIdx}.png" download="Q版頭像_${cropIdx}.png">⬇ 下載高解析度（512px）</a>
             `;
             pair.querySelector('.herself-toggle').addEventListener('click', () => toggleHerself(file, k.avatarIdx));
             thumbCol.appendChild(pair);
@@ -335,8 +335,8 @@ async function main() {
             const avatar = document.createElement('div');
             avatar.className = 'simple-avatar' + (isHerself ? ' is-herself' : '');
             avatar.innerHTML = `
-              <a href="../assets/generated/qavatars/${cropIdx}.png" download="Q版頭像_${cropIdx}.png">
-                <img src="../assets/generated/qavatars/${cropIdx}.png" loading="lazy" onerror="this.closest('.simple-avatar').classList.add('missing')">
+              <a href="../qavatars-hires/${cropIdx}.png" download="Q版頭像_${cropIdx}.png">
+                <img src="../qavatars/${cropIdx}.jpg" loading="lazy" onerror="this.closest('.simple-avatar').classList.add('missing')">
               </a>
               <span class="who">${isHerself ? '★ 秀燕姐本人' : '點圖下載'}</span>
             `;
