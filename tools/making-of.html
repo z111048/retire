@@ -222,17 +222,30 @@
         <div class="t">歌詞字幕曾經被過度關閉</div>
         <div class="d">一開始為了避免跟其他畫面文字重疊，把好幾種轉場畫面的歌詞字幕整個關掉，結果反而讓四分之一左右的歌詞完全沒顯示過。後來逐一實際檢查每種畫面下方是不是真的有文字衝突，把不必要的關閉都拿掉。</div>
       </div>
+      <div class="anecdote">
+        <div class="t">還有 5 張照片的臉是「漏網之魚」</div>
+        <div class="d">人臉偵測不是每次都抓得到人——有 5 張合照各漏掉了 1 張臉（其中一張其實漏了 2 張）。調低偵測門檻重新掃一次會多跑出一堆背景雜訊誤判，最後是逐張人工比對原圖，確認真的是漏掉的人臉才補進去，也才多生出這 6 位同仁的Q版頭像。</div>
+      </div>
+      <div class="anecdote">
+        <div class="t">請另一個 AI 來抓自己程式的漏洞</div>
+        <div class="d">愛心拼貼的排列邏輯寫完後，另外找了 Codex CLI 做程式碼審查（跟寫程式用的 Claude 是不同家 AI），結果真的抓到一個漏洞：排列演算法在某些情況下會湊不滿頭像數量，導致最後幾位同仁的照片被悄悄跳過不顯示。兩個 AI 互相檢查，比只靠一個更容易抓到自己看不到的盲點。</div>
+      </div>
+      <div class="anecdote">
+        <div class="t">審核用的工具，後來變成大家找自己照片的地方</div>
+        <div class="d">框選檢視工具原本是內部審核人臉框選用的，畫面上滿滿都是品質分數、除錯用的紅框綠框。後來加了「預覽模式」，把審核用的雜訊都藏起來，只留下每張合照配上大家的Q版大頭貼，變成任何人都能打開來找自己照片的公開頁面。</div>
+      </div>
     </div>
   </section>
 
   <section>
     <h2><span class="icon">💰</span>花費</h2>
+    <div class="stat-grid" style="margin-bottom:14px;">
+      <div class="stat-tile"><div class="num">$100</div><div class="label">Claude Max 訂閱<br>（全片程式開發）</div></div>
+      <div class="stat-tile"><div class="num">$100</div><div class="label">ChatGPT Pro（Codex）訂閱<br>（586張Q版頭像圖生圖）</div></div>
+      <div class="stat-tile"><div class="num">$200</div><div class="label">合計／月<br>（兩者官網定價皆可查）</div></div>
+    </div>
     <div class="cost-note">
-      <div class="amount">$100</div>
-      <div class="text">
-        <b>Claude 訂閱</b>（全片程式開發、除錯、驗證）＋<b>Codex 訂閱</b>（586 張 Q 版頭像圖生圖）
-        兩份加起來約 100 美金，都是原本就有在用的固定月費額度，沒有為了這支影片額外加購或按次數付費。
-      </div>
+      <div class="text">兩份都是原本就有在用的固定月費訂閱（分別 $100/月），沒有為了這支影片額外加購方案或按次數付費。</div>
     </div>
   </section>
 
