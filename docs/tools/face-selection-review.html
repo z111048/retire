@@ -71,6 +71,12 @@
     background:var(--panel2); color:var(--dim); border:1px solid #4a4232; white-space:nowrap;
   }
   .herself-toggle.on { background:var(--herself); color:#1a0d13; border-color:var(--herself); font-weight:700; }
+  .dl-btn {
+    margin-top:2px; font-size:11px; padding:3px 8px; border-radius:5px; cursor:pointer;
+    background:var(--panel2); color:var(--gold); border:1px solid var(--gold); white-space:nowrap;
+    text-decoration:none; display:inline-block;
+  }
+  .dl-btn:hover { background:var(--gold); color:#1a1509; }
   .thumb-pair.is-herself img { border-color:var(--herself) !important; }
   @media (max-width: 900px) {
     .card-body { flex-direction:column; }
@@ -267,6 +273,7 @@ async function main() {
               </div>
             </div>
             <button type="button" class="herself-toggle ${isHerself ? 'on' : ''}">${isHerself ? '★ 秀燕姐本人' : '標記為秀燕姐本人'}</button>
+            <a class="dl-btn" href="../qavatars-hires/${cropIdx}.png" download="Q版頭像_${cropIdx}.png">⬇ 下載高解析度（512px）</a>
           `;
           const toggleBtn = pair.querySelector('.herself-toggle');
           toggleBtn.addEventListener('click', () => toggleHerself(file, k.avatarIdx));
