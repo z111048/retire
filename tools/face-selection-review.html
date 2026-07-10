@@ -190,34 +190,34 @@
      animation-play-state 切成 running，所有元件的動畫會照已經算好的延遲
      依序播放——不用等交會才臨時計算或重建 DOM，切換瞬間就對得整整齊齊。
 
-     桌機版照片通常偏寬，掃描線做成「直線橫掃」（由左到右）比較有電影感；
-     手機版照片偏直，改成「橫線縱掃」（由上到下）跟直向瀏覽的動線一致。
-     兩種方向對應的 JS 延遲基準也不同（見 render() 裡的 scanAxis 判斷），
-     斷點跟版面用的 900px 媒體查詢保持一致，不然框跟掃描線會對不準。 */
+     桌機版是橫線由上到下縱掃（垂直方向的掃描動線）；手機版是直線由左到右
+     橫掃（水平方向的掃描動線）。兩種方向對應的 JS 延遲基準也不同（見
+     render() 裡的 scanDelay 判斷），斷點跟版面用的 900px 媒體查詢保持
+     一致，不然框跟掃描線會對不準。 */
   .scan-line {
-    position:absolute; top:0; bottom:0; left:0; width:3px; opacity:0; pointer-events:none;
-    background:linear-gradient(to bottom, transparent, var(--keep) 15%, #eaffef 50%, var(--keep) 85%, transparent);
+    position:absolute; top:0; bottom:auto; left:0; right:0; width:auto; height:3px; opacity:0; pointer-events:none;
+    background:linear-gradient(to right, transparent, var(--keep) 15%, #eaffef 50%, var(--keep) 85%, transparent);
     box-shadow:0 0 12px 2px rgba(90,208,106,0.9), 0 0 30px 6px rgba(90,208,106,0.4);
   }
-  .card.revealed .scan-line { animation:scanSweepX var(--scan-duration) ease-out forwards; }
-  @keyframes scanSweepX {
-    0% { left:0; opacity:0; }
-    4% { opacity:1; }
-    92% { opacity:1; }
-    100% { left:100%; opacity:0; }
-  }
-  @media (max-width:900px) {
-    .scan-line {
-      top:0; bottom:auto; left:0; right:0; width:auto; height:3px;
-      background:linear-gradient(to right, transparent, var(--keep) 15%, #eaffef 50%, var(--keep) 85%, transparent);
-    }
-    .card.revealed .scan-line { animation:scanSweepY var(--scan-duration) ease-out forwards; }
-  }
+  .card.revealed .scan-line { animation:scanSweepY var(--scan-duration) ease-out forwards; }
   @keyframes scanSweepY {
     0% { top:0; opacity:0; }
     4% { opacity:1; }
     92% { opacity:1; }
     100% { top:100%; opacity:0; }
+  }
+  @media (max-width:900px) {
+    .scan-line {
+      top:0; bottom:0; left:0; right:auto; width:3px; height:auto;
+      background:linear-gradient(to bottom, transparent, var(--keep) 15%, #eaffef 50%, var(--keep) 85%, transparent);
+    }
+    .card.revealed .scan-line { animation:scanSweepX var(--scan-duration) ease-out forwards; }
+  }
+  @keyframes scanSweepX {
+    0% { left:0; opacity:0; }
+    4% { opacity:1; }
+    92% { opacity:1; }
+    100% { left:100%; opacity:0; }
   }
   .rect-keep.revealable, .rect-herself.revealable {
     opacity:0; animation:boxReveal .5s ease forwards; animation-play-state:paused;
@@ -565,11 +565,11 @@ async function main() {
         svg.setAttribute('viewBox', `0 0 ${origW} ${origH}`);
         svg.setAttribute('preserveAspectRatio', 'none');
 
-        // 手機版掃描線是橫線縱掃（由上到下），框要依 y 座標算延遲；
-        // 桌機版是直線橫掃（由左到右），框要依 x 座標算延遲——斷點跟 CSS
+        // 桌機版掃描線是橫線縱掃（由上到下），框要依 y 座標算延遲；
+        // 手機版是直線橫掃（由左到右），框要依 x 座標算延遲——斷點跟 CSS
         // 的 900px 媒體查詢一致，才會跟畫面上實際的掃描方向對得準
         const isMobileScan = window.innerWidth <= 900;
-        const scanDelay = (x, y) => (isMobileScan ? y / origH : x / origW) * SCAN_DURATION_S;
+        const scanDelay = (x, y) => (isMobileScan ? x / origW : y / origH) * SCAN_DURATION_S;
 
         // 裁切範圍框、重疊模糊區、未選紅虛框都是審核用的除錯資訊，預覽模式不畫
         if (editMode) {
