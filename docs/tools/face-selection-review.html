@@ -6,7 +6,7 @@
 <title>秀燕姐退休紀念・找找你的Q版照片</title>
 <style>
   :root { --bg:#14120e; --panel:#1e1b15; --panel2:#262218; --gold:#C9A84C; --text:#FFF8EC; --dim:#9a8f78;
-          --keep:#5ad06a; --rej:#e05a4a; --blur:#ff8a3d; --herself:#ff5fa8; }
+          --keep:#5ad06a; --rej:#e05a4a; --blur:#ff8a3d; --herself:#ff5fa8; --scan-duration:1.4s; }
   * { box-sizing:border-box; }
   body { background:var(--bg); color:var(--text); font-family:"Noto Sans TC",sans-serif; margin:0; }
   header {
@@ -101,6 +101,13 @@
     white-space:normal; word-break:keep-all; line-height:1.3;
   }
   .simple-avatar.is-herself .who { color:var(--herself); font-weight:700; }
+  /* 下方頭像預覽跟主畫面的掃描辨識同一個觸發時機，一個接一個浮現，
+     呼應「照片正在被逐一識別出來」的感覺，不是掃描完就整排一次全部跳出來 */
+  .simple-avatar.revealable { opacity:0; transform:translateY(10px); animation:avatarReveal .45s ease forwards; animation-play-state:paused; }
+  .card.revealed .simple-avatar.revealable { animation-play-state:running; }
+  @keyframes avatarReveal {
+    to { opacity:1; transform:translateY(0); }
+  }
   /* 標題編輯／模式切換：故意做得不顯眼（小按鈕靠右），公開版訪客不會誤點，
      但我自己還是找得到，不用另外開一份工具檔 */
   .mode-toggle {
@@ -175,6 +182,42 @@
   .rect-blur { fill:var(--blur); opacity:0.38; }
   .label-bg { fill:rgba(0,0,0,0.65); }
   .label-text { fill:#fff; font-size:34px; font-family:monospace; }
+
+  /* ===== 預覽模式「掃描辨識」進場效果 =====
+     卡片捲到畫面裡才觸發（見 JS 的 IntersectionObserver），只播一次。
+     做法：框跟分數一開始就畫在 DOM 裡（opacity:0 + animation-play-state:paused，
+     每個框依 y 座標算好各自的 animation-delay），真正觸發時只是把
+     animation-play-state 切成 running，所有元件的動畫會照已經算好的延遲
+     依序播放——不用等交會才臨時計算或重建 DOM，切換瞬間就對得整整齊齊。 */
+  .scan-line {
+    position:absolute; left:0; right:0; top:0; height:3px; opacity:0; pointer-events:none;
+    background:linear-gradient(to right, transparent, var(--keep) 15%, #eaffef 50%, var(--keep) 85%, transparent);
+    box-shadow:0 0 12px 2px rgba(90,208,106,0.9), 0 0 30px 6px rgba(90,208,106,0.4);
+  }
+  .card.revealed .scan-line { animation:scanSweep var(--scan-duration) ease-out forwards; }
+  @keyframes scanSweep {
+    0% { top:0; opacity:0; }
+    4% { opacity:1; }
+    92% { opacity:1; }
+    100% { top:100%; opacity:0; }
+  }
+  .rect-keep.revealable, .rect-herself.revealable {
+    opacity:0; animation:boxReveal .5s ease forwards; animation-play-state:paused;
+  }
+  .card.revealed .rect-keep.revealable, .card.revealed .rect-herself.revealable { animation-play-state:running; }
+  @keyframes boxReveal {
+    0% { opacity:0; filter:drop-shadow(0 0 0 rgba(90,208,106,0)); }
+    35% { opacity:1; filter:drop-shadow(0 0 8px rgba(90,208,106,0.9)); }
+    100% { opacity:1; filter:drop-shadow(0 0 0 rgba(90,208,106,0)); }
+  }
+  .score-badge { opacity:0; animation:boxReveal .5s ease forwards; animation-play-state:paused; }
+  .card.revealed .score-badge { animation-play-state:running; }
+  .score-badge-bg { fill:rgba(10,20,12,0.82); stroke:var(--keep); stroke-width:1.5; }
+  .rect-herself ~ .score-badge .score-badge-bg,
+  .score-badge.for-herself .score-badge-bg { stroke:var(--herself); }
+  .score-badge-text { fill:#eaffef; font-size:30px; font-family:monospace; font-weight:700; letter-spacing:1px; }
+  .score-badge.for-herself .score-badge-text { fill:#ffd6ec; }
+
   #empty { text-align:center; color:var(--dim); padding:60px 20px; }
 
   /* 預覽模式點頭像不再直接下載，改開這個燈箱：先放大看清楚，確定要留
@@ -252,6 +295,8 @@
 
 <script>
 const CROP_PAD_RATIO = 1.9; // 需與 scripts/faceCrop.py / buildHeartCollage.py 一致
+const SCAN_DURATION_S = 1.4; // 要跟 CSS 的 --scan-duration 對到同一個數字，掃描線速度跟框的延遲才會同步
+const AVATAR_STAGGER_S = 0.09; // 下方頭像預覽一個接一個浮現的間隔
 
 function overlapRect(a, b) {
   // a, b: [x,y,w,h]；回傳交集矩形或 null
@@ -386,6 +431,18 @@ async function main() {
   document.querySelector('.preview-modal-backdrop').addEventListener('click', closePreviewModal);
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closePreviewModal(); });
 
+  // 卡片捲到畫面裡「停留」到一定比例才觸發掃描辨識效果（不是邊緣一碰到就播，
+  // 那樣快速滑過去時會太敏感），而且只播一次——重新整理頁面或重新搜尋
+  // 才會再看到，避免使用者上下滑來滑去反覆播同一段動畫覺得煩。
+  const revealObserver = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('revealed');
+        revealObserver.unobserve(entry.target);
+      }
+    }
+  }, { threshold: 0.35 });
+
   function render(filterText) {
     currentFilter = filterText;
     main.innerHTML = '';
@@ -428,7 +485,7 @@ async function main() {
       if (keep.length) {
         const thumbCol = document.createElement('div');
         thumbCol.className = 'thumb-col';
-        for (const k of keep) {
+        for (const [i, k] of keep.entries()) {
           const cropIdx = String(k.avatarIdx).padStart(4, '0');
           const isHerself = herselfMarks[file] === k.avatarIdx;
 
@@ -457,8 +514,9 @@ async function main() {
             // 預覽模式：一般參加者只需要看到自己的Q版大頭貼，可以直接下載，
             // 不需要裁切對照、不需要標記按鈕
             const avatar = document.createElement('div');
-            avatar.className = 'simple-avatar' + (isHerself ? ' is-herself' : '');
+            avatar.className = 'simple-avatar revealable' + (isHerself ? ' is-herself' : '');
             avatar.dataset.avatarIdx = k.avatarIdx; // 給點原圖框時定位用（見 scrollToAvatar）
+            avatar.style.animationDelay = `${SCAN_DURATION_S + i * AVATAR_STAGGER_S}s`; // 主圖掃描完才開始逐一浮現
             avatar.innerHTML = `
               <button type="button" class="pair-imgs">
                 <img src="../qavatar-crops/${cropIdx}.jpg" loading="lazy" alt="原圖" onerror="this.remove()">
@@ -526,7 +584,7 @@ async function main() {
         }
 
         // 已選的框一定畫（不管哪個模式）：秀燕姐本人永遠用金框標出來方便大家辨認，
-        // 其他參加者用綠框；只有編輯模式才能點擊切換標記、才顯示品質分數。
+        // 其他參加者用綠框；只有編輯模式才能點擊切換標記。
         for (const k of keep) {
           const [x,y,bw,bh] = k.box;
           const isHerself = herselfMarks[file] === k.avatarIdx;
@@ -540,6 +598,10 @@ async function main() {
           } else {
             // 預覽模式點框不是標記，是把下面對應的Q版頭像捲到正中央方便對照
             el.addEventListener('click', () => scrollToAvatar(k.avatarIdx));
+            // 框依 y 座標算出延遲時間，掃描線掃到這個高度時框才浮現（見上面
+            // CSS 的 .card.revealed 說明），delay 算法跟掃描線的動畫時間軸共用同一個基準
+            el.classList.add('revealable');
+            el.style.animationDelay = `${(y / origH) * SCAN_DURATION_S}s`;
           }
           svg.appendChild(el);
 
@@ -556,10 +618,39 @@ async function main() {
             txt.setAttribute('class', 'label-text');
             txt.textContent = label;
             svg.appendChild(txt);
+          } else {
+            // 預覽模式的分數牌用圓角＋發光風格，跟框同一個延遲時間點浮現，
+            // 呼應「偵測到、算出信心分數」的科技感，不是審核用的陽春黑底白字
+            const label = `${k.quality.toFixed(2)}`;
+            const delay = `${(y / origH) * SCAN_DURATION_S}s`;
+            const badge = document.createElementNS(svg.namespaceURI, 'g');
+            badge.setAttribute('class', 'score-badge' + (isHerself ? ' for-herself' : ''));
+            badge.style.animationDelay = delay;
+            const bg = document.createElementNS(svg.namespaceURI, 'rect');
+            const bw2 = 30 * label.length * 0.62 + 14;
+            bg.setAttribute('x', x); bg.setAttribute('y', Math.max(0, y - 36));
+            bg.setAttribute('width', bw2); bg.setAttribute('height', 32);
+            bg.setAttribute('rx', 8); bg.setAttribute('ry', 8);
+            bg.setAttribute('class', 'score-badge-bg');
+            badge.appendChild(bg);
+            const txt = document.createElementNS(svg.namespaceURI, 'text');
+            txt.setAttribute('x', x + 8); txt.setAttribute('y', Math.max(0, y - 36) + 23);
+            txt.setAttribute('class', 'score-badge-text');
+            txt.textContent = label;
+            badge.appendChild(txt);
+            svg.appendChild(badge);
           }
         }
 
         imgwrap.appendChild(svg);
+
+        if (!editMode) {
+          // 主圖圖片載入完成才知道 imgwrap 的實際尺寸，這時候加掃描線最保險
+          const scanLine = document.createElement('div');
+          scanLine.className = 'scan-line';
+          imgwrap.appendChild(scanLine);
+          revealObserver.observe(card); // 交給 IntersectionObserver 決定何時觸發掃描
+        }
       });
     }
   }
