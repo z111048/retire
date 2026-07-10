@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>人臉框選標註檢視</title>
+<title>秀燕姐退休紀念・找找你的Q版照片</title>
 <style>
   :root { --bg:#14120e; --panel:#1e1b15; --panel2:#262218; --gold:#C9A84C; --text:#FFF8EC; --dim:#9a8f78;
           --keep:#5ad06a; --rej:#e05a4a; --blur:#ff8a3d; --herself:#ff5fa8; }
@@ -52,6 +52,9 @@
     flex:0 0 320px; width:320px; max-height:640px; overflow-y:auto;
     display:flex; flex-direction:column; gap:10px; padding:14px; border-left:1px solid #3a3428;
   }
+  /* 預覽模式的縮圖排成可換行的網格，不用 .thumb-pair 那種「裁切→Q版」對照排法
+     （那是給我審核用的，一般參加者只需要看到自己的Q版結果） */
+  body:not(.edit-mode) .thumb-col { flex-direction:row; flex-wrap:wrap; align-content:flex-start; justify-content:center; row-gap:20px; }
   .thumb-pair { display:flex; flex-direction:column; align-items:center; gap:4px; }
   .thumb-row { display:flex; align-items:center; gap:6px; }
   .thumb-item { display:flex; flex-direction:column; align-items:center; gap:4px; }
@@ -78,7 +81,29 @@
   }
   .dl-btn:hover { background:var(--gold); color:#1a1509; }
   .thumb-pair.is-herself img { border-color:var(--herself) !important; }
+  /* 預覽模式的簡化卡片：只有Q版大頭貼＋下載按鈕，沒有裁切對照、沒有標記按鈕 */
+  .simple-avatar { display:flex; flex-direction:column; align-items:center; gap:4px; width:100px; }
+  .simple-avatar img {
+    width:100px; height:100px; object-fit:cover; border-radius:10px; border:2px solid var(--keep); background:#000;
+  }
+  .simple-avatar.is-herself img { border-color:var(--herself); border-width:3px; }
+  .simple-avatar .who {
+    font-size:10px; color:var(--dim); width:100%; text-align:center;
+    white-space:normal; word-break:keep-all; line-height:1.3;
+  }
+  .simple-avatar.is-herself .who { color:var(--herself); font-weight:700; }
+  /* 標題編輯／模式切換：故意做得不顯眼（小按鈕靠右），公開版訪客不會誤點，
+     但我自己還是找得到，不用另外開一份工具檔 */
+  .mode-toggle {
+    margin-left:auto; font-size:12px; padding:5px 10px; border-radius:6px; cursor:pointer;
+    background:var(--panel2); color:var(--dim); border:1px solid #4a4232; white-space:nowrap;
+  }
+  .mode-toggle:hover { color:var(--text); border-color:var(--gold); }
+  body:not(.edit-mode) .admin-only { display:none !important; }
+  body.edit-mode #previewLegend { display:none !important; }
   @media (max-width: 900px) {
+    header { padding:10px 14px; gap:10px; }
+    h1 { font-size:14px; white-space:normal; }
     .card-body { flex-direction:column; }
     /* .card-body 的 align-items:flex-start 在 column 模式下管的是「橫軸」(寬度)，
        預設不會 stretch。.thumb-col 本來就有明確設定 width:100% 才能正常顯示，
@@ -86,6 +111,10 @@
        這就是主圖在手機版完全消失的真正原因 */
     .imgwrap { width:100%; }
     .thumb-col { flex:1 1 auto; width:100%; max-height:none; border-left:none; border-top:1px solid #3a3428; }
+    /* 手機版縮圖統一改成置中換行網格（不管是不是預覽模式），比單欄直排更快找到自己、
+       捲動距離也短很多 */
+    .thumb-col { flex-direction:row; flex-wrap:wrap; justify-content:center; row-gap:20px; }
+    .simple-avatar, .simple-avatar img { width:84px; height:84px; }
   }
   .rect-keep, .rect-herself {
     /* pointer-events:all 讓整個框（含fill:none的內部空白）都能點擊，不用只點在描邊線上 */
@@ -93,6 +122,7 @@
   }
   .rect-herself { stroke:var(--herself); stroke-width:8; }
   .rect-rej { fill:none; stroke:var(--rej); stroke-width:5; stroke-dasharray:14 10; }
+  .rect-view-only { cursor:default !important; pointer-events:none !important; }
   .rect-crop { fill:none; stroke:var(--gold); stroke-width:3; stroke-dasharray:6 8; opacity:0.85; }
   .rect-blur { fill:var(--blur); opacity:0.38; }
   .label-bg { fill:rgba(0,0,0,0.65); }
@@ -103,23 +133,27 @@
 <body>
 
 <header>
-  <h1>🔍 人臉框選標註檢視</h1>
+  <h1 id="pageTitle">🌸 秀燕姐退休紀念 · 找找你的Q版照片</h1>
   <div class="stat">照片 <b id="photoCount">0</b> 張</div>
-  <div class="stat">已選 <b id="keepCount" style="color:var(--keep)">0</b></div>
-  <div class="stat">未選（偵測到但排除）<b id="rejCount" style="color:var(--rej)">0</b></div>
-  <div class="stat">秀燕姐本人 <b id="herselfCount" style="color:var(--herself)">0</b></div>
+  <div class="stat admin-only">已選 <b id="keepCount" style="color:var(--keep)">0</b></div>
+  <div class="stat admin-only">未選（偵測到但排除）<b id="rejCount" style="color:var(--rej)">0</b></div>
+  <div class="stat admin-only">秀燕姐本人 <b id="herselfCount" style="color:var(--herself)">0</b></div>
   <input id="search" placeholder="搜尋檔名，例：s6-12">
-  <label style="display:flex;align-items:center;gap:5px;font-size:13px;color:var(--dim);cursor:pointer;">
+  <label class="admin-only" style="display:flex;align-items:center;gap:5px;font-size:13px;color:var(--dim);cursor:pointer;">
     <input type="checkbox" id="onlyHerself">只顯示秀燕姐本人
   </label>
-  <button id="copyBtn" type="button">複製秀燕姐清單</button>
-  <div class="legend">
+  <button id="copyBtn" class="admin-only" type="button">複製秀燕姐清單</button>
+  <div class="legend admin-only">
     <span><span class="swatch" style="background:var(--keep)"></span>已選保留</span>
     <span><span class="swatch" style="background:var(--rej);border:2px dashed var(--rej);background:transparent"></span>偵測到但未選</span>
     <span><span class="swatch" style="background:transparent;border:2px dashed var(--gold)"></span>裁切擷取範圍</span>
     <span><span class="swatch" style="background:var(--blur);opacity:0.6"></span>會被模糊的重疊區</span>
     <span><span class="swatch" style="background:var(--herself)"></span>標記為秀燕姐本人</span>
   </div>
+  <div class="legend" id="previewLegend">
+    <span><span class="swatch" style="background:var(--herself)"></span>秀燕姐本人</span>
+  </div>
+  <button id="modeToggle" class="mode-toggle" type="button">🔧 編輯模式</button>
 </header>
 
 <main id="main"></main>
@@ -164,6 +198,18 @@ async function loadHerselfMarks() {
 }
 function saveHerselfMarks(marks) {
   localStorage.setItem(HERSELF_KEY, JSON.stringify(marks));
+}
+
+// 編輯模式（我審核用）／預覽模式（大家找自己Q版照片用）切換，記在 localStorage
+// 讓我下次打開不用重新切換，但預設是預覽模式——公開版訪客打開來就是乾淨的畫面。
+const EDIT_MODE_KEY = 'face-review-edit-mode-v1';
+function isEditMode() {
+  return localStorage.getItem(EDIT_MODE_KEY) === '1';
+}
+function setEditMode(on) {
+  localStorage.setItem(EDIT_MODE_KEY, on ? '1' : '0');
+  document.body.classList.toggle('edit-mode', on);
+  document.getElementById('modeToggle').textContent = on ? '👀 預覽模式' : '🔧 編輯模式';
 }
 
 async function main() {
@@ -222,10 +268,11 @@ async function main() {
   function render(filterText) {
     currentFilter = filterText;
     main.innerHTML = '';
+    const editMode = isEditMode();
     const onlyHerself = document.getElementById('onlyHerself').checked;
     const filtered = files
       .filter(f => !filterText || f.includes(filterText))
-      .filter(f => !onlyHerself || herselfMarks[f] !== undefined);
+      .filter(f => !editMode || !onlyHerself || herselfMarks[f] !== undefined);
     document.getElementById('empty').style.display = filtered.length ? 'none' : 'block';
 
     for (const file of filtered) {
@@ -235,7 +282,10 @@ async function main() {
 
       const head = document.createElement('div');
       head.className = 'card-head';
-      head.innerHTML = `<span>檔名：<b>${file}</b></span><span>已選 ${keep.length} ／ 未選 ${reject.length}</span>`;
+      // 預覽模式不顯示「已選/未選」這種審核用語，一般參加者看不懂也用不到
+      head.innerHTML = editMode
+        ? `<span>檔名：<b>${file}</b></span><span>已選 ${keep.length} ／ 未選 ${reject.length}</span>`
+        : `<span>${file}</span>`;
       card.appendChild(head);
 
       const body = document.createElement('div');
@@ -255,29 +305,43 @@ async function main() {
         const thumbCol = document.createElement('div');
         thumbCol.className = 'thumb-col';
         for (const k of keep) {
-          const pair = document.createElement('div');
-          pair.className = 'thumb-pair';
           const cropIdx = String(k.avatarIdx).padStart(4, '0');
           const isHerself = herselfMarks[file] === k.avatarIdx;
-          if (isHerself) pair.classList.add('is-herself');
-          pair.innerHTML = `
-            <div class="thumb-row">
-              <div class="thumb-item">
-                <img src="../assets/generated/qavatar-crops/${cropIdx}.jpg" loading="lazy" onerror="this.closest('.thumb-item').classList.add('missing')">
-                <span>候選裁切</span>
+
+          if (editMode) {
+            const pair = document.createElement('div');
+            pair.className = 'thumb-pair';
+            if (isHerself) pair.classList.add('is-herself');
+            pair.innerHTML = `
+              <div class="thumb-row">
+                <div class="thumb-item">
+                  <img src="../assets/generated/qavatar-crops/${cropIdx}.jpg" loading="lazy" onerror="this.closest('.thumb-item').classList.add('missing')">
+                  <span>候選裁切</span>
+                </div>
+                <div class="thumb-arrow">→</div>
+                <div class="thumb-item">
+                  <img src="../assets/generated/qavatars/${cropIdx}.png" loading="lazy" onerror="this.closest('.thumb-item').classList.add('missing')">
+                  <span>Q版 #${cropIdx}</span>
+                </div>
               </div>
-              <div class="thumb-arrow">→</div>
-              <div class="thumb-item">
-                <img src="../assets/generated/qavatars/${cropIdx}.png" loading="lazy" onerror="this.closest('.thumb-item').classList.add('missing')">
-                <span>Q版 #${cropIdx}</span>
-              </div>
-            </div>
-            <button type="button" class="herself-toggle ${isHerself ? 'on' : ''}">${isHerself ? '★ 秀燕姐本人' : '標記為秀燕姐本人'}</button>
-            <a class="dl-btn" href="../assets/generated/qavatars/${cropIdx}.png" download="Q版頭像_${cropIdx}.png">⬇ 下載高解析度（512px）</a>
-          `;
-          const toggleBtn = pair.querySelector('.herself-toggle');
-          toggleBtn.addEventListener('click', () => toggleHerself(file, k.avatarIdx));
-          thumbCol.appendChild(pair);
+              <button type="button" class="herself-toggle ${isHerself ? 'on' : ''}">${isHerself ? '★ 秀燕姐本人' : '標記為秀燕姐本人'}</button>
+              <a class="dl-btn" href="../assets/generated/qavatars/${cropIdx}.png" download="Q版頭像_${cropIdx}.png">⬇ 下載高解析度（512px）</a>
+            `;
+            pair.querySelector('.herself-toggle').addEventListener('click', () => toggleHerself(file, k.avatarIdx));
+            thumbCol.appendChild(pair);
+          } else {
+            // 預覽模式：一般參加者只需要看到自己的Q版大頭貼，可以直接下載，
+            // 不需要裁切對照、不需要標記按鈕
+            const avatar = document.createElement('div');
+            avatar.className = 'simple-avatar' + (isHerself ? ' is-herself' : '');
+            avatar.innerHTML = `
+              <a href="../assets/generated/qavatars/${cropIdx}.png" download="Q版頭像_${cropIdx}.png">
+                <img src="../assets/generated/qavatars/${cropIdx}.png" loading="lazy" onerror="this.closest('.simple-avatar').classList.add('missing')">
+              </a>
+              <span class="who">${isHerself ? '★ 秀燕姐本人' : '點圖下載'}</span>
+            `;
+            thumbCol.appendChild(avatar);
+          }
         }
         body.appendChild(thumbCol);
       }
@@ -297,62 +361,71 @@ async function main() {
         svg.setAttribute('viewBox', `0 0 ${origW} ${origH}`);
         svg.setAttribute('preserveAspectRatio', 'none');
 
-        // 先算每個「已選臉」的裁切範圍與其他臉的重疊(模糊)區域
-        const allBoxes = [...keep, ...reject].map(f => f.box);
-        for (const k of keep) {
-          const crop = paddedCropRect(k.box);
-          const cropEl = document.createElementNS(svg.namespaceURI, 'rect');
-          cropEl.setAttribute('x', crop[0]); cropEl.setAttribute('y', crop[1]);
-          cropEl.setAttribute('width', crop[2]); cropEl.setAttribute('height', crop[3]);
-          cropEl.setAttribute('class', 'rect-crop');
-          svg.appendChild(cropEl);
+        // 裁切範圍框、重疊模糊區、未選紅虛框都是審核用的除錯資訊，預覽模式不畫
+        if (editMode) {
+          // 先算每個「已選臉」的裁切範圍與其他臉的重疊(模糊)區域
+          const allBoxes = [...keep, ...reject].map(f => f.box);
+          for (const k of keep) {
+            const crop = paddedCropRect(k.box);
+            const cropEl = document.createElementNS(svg.namespaceURI, 'rect');
+            cropEl.setAttribute('x', crop[0]); cropEl.setAttribute('y', crop[1]);
+            cropEl.setAttribute('width', crop[2]); cropEl.setAttribute('height', crop[3]);
+            cropEl.setAttribute('class', 'rect-crop');
+            svg.appendChild(cropEl);
 
-          for (const ob of allBoxes) {
-            if (ob === k.box) continue;
-            const ov = overlapRect(crop, ob);
-            if (ov) {
-              const blurEl = document.createElementNS(svg.namespaceURI, 'rect');
-              blurEl.setAttribute('x', ov[0]); blurEl.setAttribute('y', ov[1]);
-              blurEl.setAttribute('width', ov[2]); blurEl.setAttribute('height', ov[3]);
-              blurEl.setAttribute('class', 'rect-blur');
-              svg.appendChild(blurEl);
+            for (const ob of allBoxes) {
+              if (ob === k.box) continue;
+              const ov = overlapRect(crop, ob);
+              if (ov) {
+                const blurEl = document.createElementNS(svg.namespaceURI, 'rect');
+                blurEl.setAttribute('x', ov[0]); blurEl.setAttribute('y', ov[1]);
+                blurEl.setAttribute('width', ov[2]); blurEl.setAttribute('height', ov[3]);
+                blurEl.setAttribute('class', 'rect-blur');
+                svg.appendChild(blurEl);
+              }
             }
+          }
+
+          // 再畫未選（紅虛框）
+          for (const r of reject) {
+            const [x,y,bw,bh] = r.box;
+            const el = document.createElementNS(svg.namespaceURI, 'rect');
+            el.setAttribute('x', x); el.setAttribute('y', y);
+            el.setAttribute('width', bw); el.setAttribute('height', bh);
+            el.setAttribute('class', 'rect-rej');
+            svg.appendChild(el);
           }
         }
 
-        // 再畫未選（紅虛框）
-        for (const r of reject) {
-          const [x,y,bw,bh] = r.box;
-          const el = document.createElementNS(svg.namespaceURI, 'rect');
-          el.setAttribute('x', x); el.setAttribute('y', y);
-          el.setAttribute('width', bw); el.setAttribute('height', bh);
-          el.setAttribute('class', 'rect-rej');
-          svg.appendChild(el);
-        }
-
-        // 最後畫已選（綠實框＋品質分數）
+        // 已選的框一定畫（不管哪個模式）：秀燕姐本人永遠用金框標出來方便大家辨認，
+        // 其他參加者用綠框；只有編輯模式才能點擊切換標記、才顯示品質分數。
         for (const k of keep) {
           const [x,y,bw,bh] = k.box;
+          const isHerself = herselfMarks[file] === k.avatarIdx;
           const el = document.createElementNS(svg.namespaceURI, 'rect');
           el.setAttribute('x', x); el.setAttribute('y', y);
           el.setAttribute('width', bw); el.setAttribute('height', bh);
-          el.setAttribute('class', herselfMarks[file] === k.avatarIdx ? 'rect-herself' : 'rect-keep');
-          // 直接點照片上的框就能標記/取消，不用捲到旁邊縮圖清單去點按鈕，瀏覽80幾張時快很多
-          el.addEventListener('click', () => toggleHerself(file, k.avatarIdx));
+          el.setAttribute('class', (isHerself ? 'rect-herself' : 'rect-keep') + (editMode ? '' : ' rect-view-only'));
+          if (editMode) {
+            // 直接點照片上的框就能標記/取消，不用捲到旁邊縮圖清單去點按鈕，瀏覽80幾張時快很多
+            el.addEventListener('click', () => toggleHerself(file, k.avatarIdx));
+          }
           svg.appendChild(el);
 
-          const label = `${k.quality.toFixed(2)}`;
-          const bg = document.createElementNS(svg.namespaceURI, 'rect');
-          bg.setAttribute('x', x); bg.setAttribute('y', Math.max(0, y - 40));
-          bg.setAttribute('width', 34 * label.length * 0.62 + 10);
-          bg.setAttribute('height', 38);
-          bg.setAttribute('class', 'label-bg');
-          svg.appendChild(bg);
-          const txt = document.createElementNS(svg.namespaceURI, 'text');
-          txt.setAttribute('x', x + 6); txt.setAttribute('y', Math.max(0, y - 40) + 28);
-          txt.setAttribute('class', 'label-text');
-          txt.textContent = label;
-          svg.appendChild(txt);
+          if (editMode) {
+            const label = `${k.quality.toFixed(2)}`;
+            const bg = document.createElementNS(svg.namespaceURI, 'rect');
+            bg.setAttribute('x', x); bg.setAttribute('y', Math.max(0, y - 40));
+            bg.setAttribute('width', 34 * label.length * 0.62 + 10);
+            bg.setAttribute('height', 38);
+            bg.setAttribute('class', 'label-bg');
+            svg.appendChild(bg);
+            const txt = document.createElementNS(svg.namespaceURI, 'text');
+            txt.setAttribute('x', x + 6); txt.setAttribute('y', Math.max(0, y - 40) + 28);
+            txt.setAttribute('class', 'label-text');
+            txt.textContent = label;
+            svg.appendChild(txt);
+          }
         }
 
         imgwrap.appendChild(svg);
@@ -360,9 +433,14 @@ async function main() {
     }
   }
 
+  setEditMode(isEditMode()); // 套用 body.edit-mode class＋按鈕文字，跟 localStorage 記錄的模式同步
   render('');
   document.getElementById('search').addEventListener('input', (e) => render(e.target.value.trim()));
   document.getElementById('onlyHerself').addEventListener('change', () => render(currentFilter));
+  document.getElementById('modeToggle').addEventListener('click', () => {
+    setEditMode(!isEditMode());
+    render(currentFilter);
+  });
 
   document.getElementById('copyBtn').addEventListener('click', async () => {
     const entries = Object.entries(herselfMarks).sort((a, b) => a[1] - b[1]);
