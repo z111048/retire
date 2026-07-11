@@ -520,6 +520,12 @@ async function main() {
     let closestIdx = null;
     let closestNorm = Infinity;
     thumbCol.querySelectorAll(':scope > .simple-avatar').forEach((el) => {
+      // 掃描辨識進場動畫還沒播完的卡片（.revealable，靠 CSS opacity:0 +
+      // animation-play-state:paused 隱藏，見 avatarReveal）不能碰——這裡
+      // 設的是行內樣式，優先權比 class 上的 opacity:0 高，會直接把還沒
+      // 輪到出場的卡片提前蓋成可見，等於整排照片還沒掃描完就先跑出來了。
+      // 等 avatarReveal 播完（見下面 animationend 監聽器）才輪到套用聚焦樣式。
+      if (el.classList.contains('revealable')) return;
       const r = el.getBoundingClientRect();
       const elCenterX = r.left + r.width / 2;
       const dx = elCenterX - centerX;
