@@ -48,10 +48,34 @@
   .imgwrap { position:relative; flex:1 1 auto; min-width:0; background:#000; line-height:0; aspect-ratio: 4 / 3; }
   .imgwrap img { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; display:block; }
   .imgwrap svg { position:absolute; inset:0; width:100%; height:100%; }
+  /* ===== 主圖「舞台聚光燈」效果 =====
+     跟下方輪播的聚焦頭像雙向綁定：目前聚焦的人臉會亮著、其餘畫面暗下去，
+     像舞台聚光燈打在他身上。用經典的 box-shadow 挖洞技巧：.spotlight-hole
+     是個位置/大小由 JS 算好的透明小圓，靠巨大的 box-shadow 把周圍全部填黑，
+     只留圓形範圍透空——移動/縮放走 CSS transition，不用 JS 手動補間就有
+     平滑的「燈光掃過去」效果。疊在 img 之上、svg 之下，才不會擋住框的點擊。 */
+  .photo-spotlight {
+    /* 不設 z-index：靠 DOM 順序（img → photo-spotlight → svg）疊在圖片上、
+       框（svg，z-index:auto）之下即可，設了 z-index 反而會意外蓋過框 */
+    position:absolute; inset:0; overflow:hidden; pointer-events:none;
+    opacity:0; transition:opacity .4s ease;
+  }
+  .photo-spotlight.active { opacity:1; }
+  .spotlight-hole {
+    position:absolute; border-radius:50%;
+    box-shadow:0 0 0 9999px rgba(8,6,3,0.72);
+    transition:left .45s cubic-bezier(.34,1.2,.4,1), top .45s cubic-bezier(.34,1.2,.4,1),
+               width .45s cubic-bezier(.34,1.2,.4,1), height .45s cubic-bezier(.34,1.2,.4,1);
+  }
   .thumb-col {
     flex:0 0 320px; width:320px; max-height:640px; overflow-y:auto;
     display:flex; flex-direction:column; gap:10px; padding:14px; border-left:1px solid #3a3428;
   }
+  /* carousel-wrap 只有手機版預覽模式（單排輪播）才需要變成真正的定位容器
+     來放置舞台光暈，其餘情況（桌機、編輯模式）用 display:contents 讓它
+     完全消失於版面計算之外，.thumb-col 維持跟以前一樣直接當 .card-body
+     的 flex 子元素，不會動到既有版面 */
+  .carousel-wrap { display:contents; }
   /* 預覽模式的縮圖排成可換行的網格，不用 .thumb-pair 那種「裁切→Q版」對照排法
      （那是給我審核用的，一般參加者只需要看到自己的Q版結果） */
   body:not(.edit-mode) .thumb-col { flex-direction:row; flex-wrap:wrap; align-content:flex-start; justify-content:center; row-gap:20px; }
@@ -133,6 +157,19 @@
     body.edit-mode .simple-avatar { width:84px; }
     body.edit-mode .simple-avatar img { width:84px; height:84px; }
 
+    /* 舞台聚光燈效果的另一半：輪播中央固定一圈地板光暈，不用 JS 追蹤誰在
+       中間——因為「聚焦」的定義本來就是「離容器中心最近」，所以中央那個
+       位置本身永遠約略對齊目前聚焦的頭像，光暈固定在那裡、頭像滑過去就
+       像走進舞台燈光一樣，比用 JS 算座標去追著跑簡單又不會有時間差。
+       carousel-wrap 是新加的定位容器：光暈要疊在輪播「視窗」正中央、
+       不能跟著內容捲動，所以不能放進會捲動的 .thumb-col 裡面當子元素。 */
+    body:not(.edit-mode) .carousel-wrap { display:block; position:relative; flex:1 1 auto; width:100%; }
+    body:not(.edit-mode) .stage-glow {
+      position:absolute; left:50%; top:50%; width:190px; height:180px;
+      transform:translate(-50%, -50%); pointer-events:none;
+      background:radial-gradient(ellipse, rgba(90,208,255,0.4) 0%, rgba(90,208,255,0.16) 45%, transparent 72%);
+      filter:blur(1px);
+    }
     /* 預覽模式：每個人一張卡片，上面原圖裁切、下面Q版成果「兩列上下對照」，
        卡片橫向排成可捲動輪播——人多的合照直排要捲很長，橫向配合下面的
        點擊定位，體驗更像滑照片牆，找自己也更快。 */
@@ -449,11 +486,36 @@ async function main() {
   const main = document.getElementById('main');
   let currentFilter = '';
 
+  // 主圖「舞台聚光燈」：在 imgwrap 裡建一個 photo-spotlight 覆蓋層，回傳一個
+  // moveTo(box) 函式，之後 setFocusedAvatar 只要拿到臉框座標就能呼叫它——
+  // 座標系採跟 SVG 框同一套原圖像素座標（x,y,w,h），這裡自己換算成
+  // imgwrap 目前實際渲染出來的 px 位置，跟框永遠對得準，不管視窗多寬。
+  function createPhotoSpotlight(imgwrap, origW, origH) {
+    const wrap = document.createElement('div');
+    wrap.className = 'photo-spotlight';
+    const hole = document.createElement('div');
+    hole.className = 'spotlight-hole';
+    wrap.appendChild(hole);
+    imgwrap.appendChild(wrap);
+    return (box) => {
+      const [x, y, bw, bh] = box;
+      const rect = imgwrap.getBoundingClientRect();
+      if (!rect.width) return;
+      const cx = ((x + bw / 2) / origW) * rect.width;
+      const cy = ((y + bh / 2) / origH) * rect.height;
+      const r = Math.max((bw / origW) * rect.width, (bh / origH) * rect.height) * 0.75;
+      hole.style.left = `${(cx - r).toFixed(1)}px`;
+      hole.style.top = `${(cy - r).toFixed(1)}px`;
+      hole.style.width = hole.style.height = `${(r * 2).toFixed(1)}px`;
+      wrap.classList.add('active');
+    };
+  }
+
   // ===== 雙向綁定：主圖框 <-> 下方聚焦頭像 =====
   // 正方向（點框）：scrollToAvatar 呼叫。反方向（在輪播滑到別人，不點框）：
   // applyCoverflow 每次重算時，順便找出目前離中心最近的頭像回呼這裡。
-  // 兩個方向最後都收斂到同一個函式，確保畫面上「框」跟「聚焦卡片」
-  // 任何時候都指向同一個人，不會各自為政。
+  // 兩個方向最後都收斂到同一個函式，確保畫面上「框」跟「聚焦卡片」跟
+  // 主圖聚光燈，任何時候都指向同一個人，不會各自為政。
   let focusedAvatarIdx = null;
   function setFocusedAvatar(avatarIdx) {
     if (avatarIdx === focusedAvatarIdx) return;
@@ -462,7 +524,18 @@ async function main() {
       if (prev) prev.classList.remove('rect-focused');
     }
     const next = document.querySelector(`rect[data-avatar-idx="${avatarIdx}"]`);
-    if (next) next.classList.add('rect-focused');
+    if (next) {
+      next.classList.add('rect-focused');
+      const imgwrap = next.closest('svg')?.parentElement;
+      if (imgwrap && imgwrap._moveSpotlight) {
+        const box = [
+          Number(next.getAttribute('x')), Number(next.getAttribute('y')),
+          Number(next.getAttribute('width')), Number(next.getAttribute('height')),
+        ];
+        imgwrap._lastSpotlightBox = box;
+        imgwrap._moveSpotlight(box);
+      }
+    }
     focusedAvatarIdx = avatarIdx;
   }
 
@@ -565,6 +638,13 @@ async function main() {
 
   window.addEventListener('resize', () => {
     document.querySelectorAll('.thumb-col').forEach(applyCoverflow);
+    // 聚光燈位置是用 imgwrap 當下的渲染尺寸換算出來的 px，轉螢幕方向/縮放
+    // 視窗會讓舊位置整個偏掉，用上次記錄的框座標重新算一次即可
+    document.querySelectorAll('.imgwrap').forEach((imgwrap) => {
+      if (imgwrap._moveSpotlight && imgwrap._lastSpotlightBox) {
+        imgwrap._moveSpotlight(imgwrap._lastSpotlightBox);
+      }
+    });
   });
 
   // 預覽模式點頭像先開燈箱放大看，不直接下載——用高解析度版本讓放大後還算清楚，
@@ -703,8 +783,20 @@ async function main() {
             thumbCol.appendChild(avatar);
           }
         }
-        if (!editMode) bindCoverflow(thumbCol);
-        body.appendChild(thumbCol);
+        if (!editMode) {
+          bindCoverflow(thumbCol);
+          // 舞台光暈固定在輪播「視窗」正中央，不能是會捲動的 thumbCol 的子元素
+          // （會跟著內容一起捲走），所以外面包一層不會捲動的定位容器
+          const carouselWrap = document.createElement('div');
+          carouselWrap.className = 'carousel-wrap';
+          const stageGlow = document.createElement('div');
+          stageGlow.className = 'stage-glow';
+          carouselWrap.appendChild(stageGlow);
+          carouselWrap.appendChild(thumbCol);
+          body.appendChild(carouselWrap);
+        } else {
+          body.appendChild(thumbCol);
+        }
       }
 
       main.appendChild(card);
@@ -721,6 +813,11 @@ async function main() {
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svg.setAttribute('viewBox', `0 0 ${origW} ${origH}`);
         svg.setAttribute('preserveAspectRatio', 'none');
+
+        // 主圖聚光燈：先建好 img → photo-spotlight → svg 的疊放順序（DOM 順序
+        // 就是疊放順序，這裡沒設 z-index），插入順序要在 svg 建立、append 之前，
+        // 才能疊在圖片之上、框之下——編輯模式（審核用）不需要這個效果
+        if (!editMode) imgwrap._moveSpotlight = createPhotoSpotlight(imgwrap, origW, origH);
 
         // 桌機版掃描線是橫線縱掃（由上到下），框要依 y 座標算延遲；
         // 手機版是直線橫掃（由左到右），框要依 x 座標算延遲——斷點跟 CSS
