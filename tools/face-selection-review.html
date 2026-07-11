@@ -159,6 +159,7 @@
     body:not(.edit-mode) .simple-avatar {
       flex:0 0 auto; width:84px; scroll-snap-align:center;
       transition:transform .2s ease, opacity .2s ease;
+      backface-visibility:hidden; /* 3D旋轉角度不大不會真的翻到背面，純保險 */
     }
     body:not(.edit-mode) .simple-avatar .pair-imgs { display:flex; flex-direction:column; gap:4px; }
     body:not(.edit-mode) .simple-avatar .pair-imgs img { width:84px; height:84px; }
@@ -194,6 +195,21 @@
   .rect-rej { fill:none; stroke:var(--rej); stroke-width:5; stroke-dasharray:14 10; }
   .rect-crop { fill:none; stroke:var(--gold); stroke-width:3; stroke-dasharray:6 8; opacity:0.85; }
   .rect-blur { fill:var(--blur); opacity:0.38; }
+  /* 雙向綁定：不管是點主圖上的框、還是在下方輪播滑到別人，兩邊都要同步
+     標出「現在對應的是誰」。跟 rect-keep（綠）、rect-herself（粉紅）都不同
+     顏色，沿用 ping／輪播聚焦效果同一套亮青色，讓使用者知道這是同一組
+     互動邏輯；用持續的呼吸光暈（不是一次性的 ping）表示「目前綁定」的
+     持續狀態，跟「剛剛點擊」的瞬間反饋做出區隔。用 stroke-dasharray 加上
+     淡淡的跑動效果，跟其餘固定不動的框一眼就能分辨。 */
+  .rect-focused {
+    stroke:#5ad0ff; stroke-width:8; stroke-dasharray:16 8;
+    animation:focusPulse 1.6s ease-in-out infinite, focusMarch 1s linear infinite;
+  }
+  @keyframes focusPulse {
+    0%, 100% { filter:drop-shadow(0 0 4px rgba(90,208,255,0.6)); }
+    50% { filter:drop-shadow(0 0 11px rgba(90,208,255,0.95)); }
+  }
+  @keyframes focusMarch { to { stroke-dashoffset:-48; } }
   .label-bg { fill:rgba(0,0,0,0.65); }
   .label-text { fill:#fff; font-size:34px; font-family:monospace; }
 
@@ -433,6 +449,23 @@ async function main() {
   const main = document.getElementById('main');
   let currentFilter = '';
 
+  // ===== 雙向綁定：主圖框 <-> 下方聚焦頭像 =====
+  // 正方向（點框）：scrollToAvatar 呼叫。反方向（在輪播滑到別人，不點框）：
+  // applyCoverflow 每次重算時，順便找出目前離中心最近的頭像回呼這裡。
+  // 兩個方向最後都收斂到同一個函式，確保畫面上「框」跟「聚焦卡片」
+  // 任何時候都指向同一個人，不會各自為政。
+  let focusedAvatarIdx = null;
+  function setFocusedAvatar(avatarIdx) {
+    if (avatarIdx === focusedAvatarIdx) return;
+    if (focusedAvatarIdx !== null) {
+      const prev = document.querySelector(`rect[data-avatar-idx="${focusedAvatarIdx}"]`);
+      if (prev) prev.classList.remove('rect-focused');
+    }
+    const next = document.querySelector(`rect[data-avatar-idx="${avatarIdx}"]`);
+    if (next) next.classList.add('rect-focused');
+    focusedAvatarIdx = avatarIdx;
+  }
+
   // 點原圖上的框，把對應的Q版頭像捲到「兩列橫向輪播」正中央並脈動一下——
   // inline:'center' 對水平捲動容器有效，block:'nearest' 避免連帶捲動整個頁面。
   function scrollToAvatar(avatarIdx) {
@@ -460,18 +493,23 @@ async function main() {
     el.classList.remove('ping');
     void el.offsetWidth; // 強制 reflow，同一顆頭像連續點兩次也能重新觸發動畫
     el.classList.add('ping');
+    setFocusedAvatar(avatarIdx); // 正方向綁定：點框當下就先標出對應的框，不用等捲動完成
   }
 
-  // ===== 手機版輪播「聚焦」效果 =====
-  // 點框跳到中間那張卡片放大、離中心越遠的卡片越小越淡，模擬一圈由中心
-  // 往外縮的圓環。公式只吃「跟輪播容器中心的水平距離」，不用管一張照片裡
-  // 到底有幾個人（1個到10幾個都遇過）——人少時大家都靠近中心，縮放差異
-  // 自然不明顯；人多時捲動範圍變大，離中心遠的自然被縮小淡化，反而幫忙
-  // 把視覺焦點留在正中央那一位，不用另外為不同數量寫不同的版面規則。
+  // ===== 手機版輪播「聚焦」效果（立體版） =====
+  // 點框跳到中間那張卡片放大、離中心越遠的卡片越小越淡，並加上 rotateY
+  // 讓兩側卡片像實體卡片一樣往內側旋轉、退到景深後方，變成真的有前後
+  // 層次的立體聚焦，不是單純平面放大。公式只吃「跟輪播容器中心的水平
+  // 距離＋方向」，不用管一張照片裡到底有幾個人（1個到10幾個都遇過）——
+  // 人少時大家都靠近中心，縮放/旋轉差異自然不明顯；人多時捲動範圍變大，
+  // 離中心遠的自然被縮小、旋轉、淡化，反而幫忙把視覺焦點留在正中央那一位，
+  // 不用另外為不同數量寫不同的版面規則。
   // 只在手機版單排輪播啟用；桌機版是換行網格，沒有「中心」這個概念。
-  const COVERFLOW_MAX_SCALE = 1.18;
-  const COVERFLOW_MIN_SCALE = 0.82;
-  const COVERFLOW_MIN_OPACITY = 0.55;
+  const COVERFLOW_MAX_SCALE = 1.22;
+  const COVERFLOW_MIN_SCALE = 0.8;
+  const COVERFLOW_MIN_OPACITY = 0.5;
+  const COVERFLOW_MAX_ROTATE = 30; // deg，兩側卡片最大旋轉角度
+  const COVERFLOW_PERSPECTIVE = 700; // px，用 transform 內建的 perspective()，不影響捲動容器本身的堆疊環境
 
   function applyCoverflow(thumbCol) {
     if (window.innerWidth > 900) return;
@@ -479,16 +517,30 @@ async function main() {
     if (!rect.width) return;
     const centerX = rect.left + rect.width / 2;
     const halfWidth = rect.width / 2;
+    let closestIdx = null;
+    let closestNorm = Infinity;
     thumbCol.querySelectorAll(':scope > .simple-avatar').forEach((el) => {
       const r = el.getBoundingClientRect();
       const elCenterX = r.left + r.width / 2;
-      const norm = Math.min(Math.abs(elCenterX - centerX) / halfWidth, 1);
+      const dx = elCenterX - centerX;
+      const norm = Math.min(Math.abs(dx) / halfWidth, 1);
+      const side = dx < 0 ? -1 : 1; // 中心左邊 -1、右邊 1
       const scale = COVERFLOW_MAX_SCALE - norm * (COVERFLOW_MAX_SCALE - COVERFLOW_MIN_SCALE);
       const opacity = 1 - norm * (1 - COVERFLOW_MIN_OPACITY);
-      el.style.transform = `scale(${scale.toFixed(3)})`;
+      // 反號：讓兩側卡片朝中心「內側」的那條邊往螢幕外傾，視覺上像
+      // 圍繞中心卡片往內收攏的一圈立體卡片牆，不是隨機往同一邊倒
+      const rotateY = -side * norm * COVERFLOW_MAX_ROTATE;
+      el.style.transform =
+        `perspective(${COVERFLOW_PERSPECTIVE}px) rotateY(${rotateY.toFixed(1)}deg) scale(${scale.toFixed(3)})`;
       el.style.opacity = opacity.toFixed(3);
       el.style.zIndex = String(Math.round((1 - norm) * 100)); // 中間的疊在最上面，才不會被兩旁蓋住
+      if (norm < closestNorm) {
+        closestNorm = norm;
+        closestIdx = el.dataset.avatarIdx;
+      }
     });
+    // 反方向綁定：使用者用手滑輪播（不是點框）滑到別人時，主圖上的框也要跟著換
+    if (closestIdx !== null) setFocusedAvatar(closestIdx);
   }
 
   // 捲動中持續重算（手動滑動、慣性捲動、scrollToAvatar 的 smooth 捲動過程
@@ -715,6 +767,7 @@ async function main() {
           el.setAttribute('x', x); el.setAttribute('y', y);
           el.setAttribute('width', bw); el.setAttribute('height', bh);
           el.setAttribute('class', isHerself ? 'rect-herself' : 'rect-keep');
+          el.dataset.avatarIdx = k.avatarIdx; // 雙向綁定用：setFocusedAvatar 靠這個屬性找到對應的框
           if (editMode) {
             // 直接點照片上的框就能標記/取消，不用捲到旁邊縮圖清單去點按鈕，瀏覽80幾張時快很多
             el.addEventListener('click', () => toggleHerself(file, k.avatarIdx));
