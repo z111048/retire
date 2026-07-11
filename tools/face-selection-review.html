@@ -431,6 +431,14 @@ async function main() {
     el.style.opacity = '1';
     el.style.transform = 'none';
     el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    // 先把「其他」還留著 .ping 的頭像清掉——ping 動畫只有0.8秒但沒設 forwards，
+    // 播完外觀會自己歸零，可是 class 本身不會自動移除。連續快速點好幾個框
+    // （不到0.8秒點下一個）時，上一個還在播的glow沒被清掉，會跟新的同時
+    // 亮著，讓人搞不清楚「現在到底是哪一個」在回應，誤以為反應的是別人。
+    // 同一時間只允許一個頭像在 ping，才不會有這種疊加造成的錯覺。
+    document.querySelectorAll('.simple-avatar.ping').forEach(other => {
+      if (other !== el) other.classList.remove('ping');
+    });
     el.classList.remove('ping');
     void el.offsetWidth; // 強制 reflow，同一顆頭像連續點兩次也能重新觸發動畫
     el.classList.add('ping');
