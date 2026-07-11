@@ -138,9 +138,17 @@
        點擊定位，體驗更像滑照片牆，找自己也更快。 */
     body:not(.edit-mode) .thumb-col {
       display:flex; flex-direction:row; align-items:flex-start; flex-wrap:nowrap;
+      /* safe center：人少（總寬度小於容器）時置中排列比較好看；人多會溢出，
+         safe 讓瀏覽器自動退回 flex-start，不會把最前面的人擠到畫面外去 */
+      justify-content:safe center;
       overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;
       scroll-snap-type:x proximity; scroll-padding-inline:24px;
-      gap:14px; padding:18px 24px; row-gap:0;
+      gap:14px; row-gap:0;
+      /* 左右留白刻意留到「快接近容器一半寬度」，第一顆／最後一顆頭像才有
+         足夠捲動空間被真的捲到正中央——不然邊緣那幾顆再怎麼捲也到不了
+         viewport 中心，聚焦縮放效果就會落在旁邊那顆，讓人以為認錯人。
+         84px 頭像卡片的一半是42px，扣掉這個寬度才是真正需要留的空間。 */
+      padding-block:30px; padding-inline:calc(50% - 42px);
       /* 左右邊緣淡出，暗示還可以繼續往兩邊滑 */
       mask-image:linear-gradient(to right, transparent 0, #000 20px, #000 calc(100% - 20px), transparent 100%);
       -webkit-mask-image:linear-gradient(to right, transparent 0, #000 20px, #000 calc(100% - 20px), transparent 100%);
@@ -149,7 +157,8 @@
     body:not(.edit-mode) .thumb-col::-webkit-scrollbar-track { background:transparent; }
     body:not(.edit-mode) .thumb-col::-webkit-scrollbar-thumb { background:var(--gold); border-radius:3px; }
     body:not(.edit-mode) .simple-avatar {
-      flex:0 0 auto; width:84px; scroll-snap-align:center; transition:transform .25s ease;
+      flex:0 0 auto; width:84px; scroll-snap-align:center;
+      transition:transform .2s ease, opacity .2s ease;
     }
     body:not(.edit-mode) .simple-avatar .pair-imgs { display:flex; flex-direction:column; gap:4px; }
     body:not(.edit-mode) .simple-avatar .pair-imgs img { width:84px; height:84px; }
@@ -431,10 +440,14 @@ async function main() {
     if (!el) return;
     // 保險：萬一淡入動畫還沒播完就被點到（正常情況下不會，因為使用者要先看到
     // 主圖上的框，代表這張卡片一定已經 revealed 過），直接鎖定顯示狀態，
-    // 確保加 .ping 不會意外把還在跑的 avatarReveal 動畫換掉導致頭像消失
-    el.classList.remove('revealable');
-    el.style.opacity = '1';
-    el.style.transform = 'none';
+    // 確保加 .ping 不會意外把還在跑的 avatarReveal 動畫換掉導致頭像消失。
+    // 只在還沒 revealed 完成時才動 transform——已經 revealed 的頭像可能正
+    // 套著輪播聚焦效果的縮放，這裡不該直接歸零蓋掉它。
+    if (el.classList.contains('revealable')) {
+      el.classList.remove('revealable');
+      el.style.opacity = '1';
+      el.style.transform = 'none';
+    }
     el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
     // 先把「其他」還留著 .ping 的頭像清掉——ping 動畫只有0.8秒但沒設 forwards，
     // 播完外觀會自己歸零，可是 class 本身不會自動移除。連續快速點好幾個框
@@ -448,6 +461,53 @@ async function main() {
     void el.offsetWidth; // 強制 reflow，同一顆頭像連續點兩次也能重新觸發動畫
     el.classList.add('ping');
   }
+
+  // ===== 手機版輪播「聚焦」效果 =====
+  // 點框跳到中間那張卡片放大、離中心越遠的卡片越小越淡，模擬一圈由中心
+  // 往外縮的圓環。公式只吃「跟輪播容器中心的水平距離」，不用管一張照片裡
+  // 到底有幾個人（1個到10幾個都遇過）——人少時大家都靠近中心，縮放差異
+  // 自然不明顯；人多時捲動範圍變大，離中心遠的自然被縮小淡化，反而幫忙
+  // 把視覺焦點留在正中央那一位，不用另外為不同數量寫不同的版面規則。
+  // 只在手機版單排輪播啟用；桌機版是換行網格，沒有「中心」這個概念。
+  const COVERFLOW_MAX_SCALE = 1.18;
+  const COVERFLOW_MIN_SCALE = 0.82;
+  const COVERFLOW_MIN_OPACITY = 0.55;
+
+  function applyCoverflow(thumbCol) {
+    if (window.innerWidth > 900) return;
+    const rect = thumbCol.getBoundingClientRect();
+    if (!rect.width) return;
+    const centerX = rect.left + rect.width / 2;
+    const halfWidth = rect.width / 2;
+    thumbCol.querySelectorAll(':scope > .simple-avatar').forEach((el) => {
+      const r = el.getBoundingClientRect();
+      const elCenterX = r.left + r.width / 2;
+      const norm = Math.min(Math.abs(elCenterX - centerX) / halfWidth, 1);
+      const scale = COVERFLOW_MAX_SCALE - norm * (COVERFLOW_MAX_SCALE - COVERFLOW_MIN_SCALE);
+      const opacity = 1 - norm * (1 - COVERFLOW_MIN_OPACITY);
+      el.style.transform = `scale(${scale.toFixed(3)})`;
+      el.style.opacity = opacity.toFixed(3);
+      el.style.zIndex = String(Math.round((1 - norm) * 100)); // 中間的疊在最上面，才不會被兩旁蓋住
+    });
+  }
+
+  // 捲動中持續重算（手動滑動、慣性捲動、scrollToAvatar 的 smooth 捲動過程
+  // 都會連續觸發 scroll 事件），用 requestAnimationFrame 節流避免捲動時
+  // 頻繁 reflow 造成手機卡頓
+  function bindCoverflow(thumbCol) {
+    let scheduled = false;
+    const update = () => { scheduled = false; applyCoverflow(thumbCol); };
+    thumbCol.addEventListener('scroll', () => {
+      if (scheduled) return;
+      scheduled = true;
+      requestAnimationFrame(update);
+    }, { passive: true });
+    requestAnimationFrame(update); // 初始狀態也要套用一次，不用等使用者先滑一下
+  }
+
+  window.addEventListener('resize', () => {
+    document.querySelectorAll('.thumb-col').forEach(applyCoverflow);
+  });
 
   // 預覽模式點頭像先開燈箱放大看，不直接下載——用高解析度版本讓放大後還算清楚，
   // 下載鏈結也指到同一份高解析度圖，不是縮圖列表用的140px小圖。
@@ -564,6 +624,7 @@ async function main() {
                 avatar.classList.remove('revealable');
                 avatar.style.opacity = '1';
                 avatar.style.transform = 'none';
+                applyCoverflow(thumbCol); // 淡入剛結束會把 transform 歸零，緊接著套回聚焦縮放，不然會閃一下變回原尺寸
               }
               // ping 動畫沒設 forwards（下一次點擊要能重播同一顆），播完把 class
               // 自己清掉，避免使用者這次沒再點別的框時，class 一直卡在身上
@@ -584,6 +645,7 @@ async function main() {
             thumbCol.appendChild(avatar);
           }
         }
+        if (!editMode) bindCoverflow(thumbCol);
         body.appendChild(thumbCol);
       }
 
