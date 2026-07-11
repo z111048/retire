@@ -165,13 +165,18 @@
     }
   }
   /* 點原圖上的框，對應的Q版頭像卡片會捲到正中央並短暫脈動一下，讓使用者
-     一眼看出「就是這個人」——用 box-shadow 擴散淡出模擬漣漪，比單純變色明顯 */
+     一眼看出「就是這個人」——用 box-shadow 擴散淡出模擬漣漪，比單純變色明顯。
+     顏色故意選跟畫面上其他固定色塊（金框=原圖裁切、粉紅=秀燕姐本人）都不一樣
+     的亮青色，且用更大的漲縮幅度＋更長時間，才不會跟旁邊本來就有的金框混在
+     一起看不出來「剛剛亮的是這個」——這正是使用者回報「反應的照片不是本人」
+     的根因：不是真的點錯人，是脈動效果太不明顯，使用者分不出哪個亮過 */
   @keyframes avatarPing {
-    0% { box-shadow:0 0 0 0 rgba(201,168,76,0.7); }
-    40% { box-shadow:0 0 0 10px rgba(201,168,76,0); transform:scale(1.06); }
-    100% { box-shadow:0 0 0 0 rgba(201,168,76,0); }
+    0% { box-shadow:0 0 0 0 rgba(90,208,255,0.9); transform:scale(1); }
+    35% { box-shadow:0 0 0 14px rgba(90,208,255,0); transform:scale(1.16); }
+    100% { box-shadow:0 0 0 0 rgba(90,208,255,0); transform:scale(1); }
   }
-  .simple-avatar.ping { animation:avatarPing .8s ease; border-radius:10px; }
+  .simple-avatar.ping { animation:avatarPing 1.1s cubic-bezier(.34,1.56,.64,1); border-radius:10px; position:relative; z-index:3; }
+  .simple-avatar.ping .pair-imgs img { outline:3px solid #5ad0ff; outline-offset:2px; }
   .rect-keep, .rect-herself {
     /* pointer-events:all 讓整個框（含fill:none的內部空白）都能點擊，不用只點在描邊線上 */
     fill:none; stroke:var(--keep); stroke-width:6; cursor:pointer; pointer-events:all;
@@ -559,6 +564,12 @@ async function main() {
                 avatar.classList.remove('revealable');
                 avatar.style.opacity = '1';
                 avatar.style.transform = 'none';
+              }
+              // ping 動畫沒設 forwards（下一次點擊要能重播同一顆），播完把 class
+              // 自己清掉，避免使用者這次沒再點別的框時，class 一直卡在身上
+              // （雖然視覺上動畫已經歸零，但語意上該是「沒有正在回應中」）
+              if (e.animationName === 'avatarPing') {
+                avatar.classList.remove('ping');
               }
             });
             avatar.innerHTML = `
