@@ -5,7 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>秀燕姐退休紀念・找找你的Q版照片</title>
 <style>
-  :root { --bg:#14120e; --panel:#1e1b15; --panel2:#262218; --gold:#C9A84C; --text:#FFF8EC; --dim:#9a8f78;
+  /* --dim 從 #9a8f78 提亮成 #B8AB8C：同事很多年紀較大，原本的對比度雖然
+     壓線通過 WCAG AA（約5.9:1），但字級一小就更難辨識。提亮到約8.2:1
+     （AAA 等級），跟主文字 --text 之間仍保留足夠亮度差、看得出主次之分。 */
+  :root { --bg:#14120e; --panel:#1e1b15; --panel2:#262218; --gold:#C9A84C; --text:#FFF8EC; --dim:#B8AB8C;
           --keep:#5ad06a; --rej:#e05a4a; --blur:#ff8a3d; --herself:#ff5fa8; --scan-duration:1.4s; }
   * { box-sizing:border-box; }
   body { background:var(--bg); color:var(--text); font-family:"Noto Sans TC",sans-serif; margin:0; }
@@ -13,19 +16,19 @@
     position:sticky; top:0; z-index:20; background:var(--panel); border-bottom:2px solid var(--gold);
     padding:12px 20px; display:flex; align-items:center; gap:20px; flex-wrap:wrap;
   }
-  h1 { color:var(--gold); font-size:16px; margin:0; white-space:nowrap; }
-  .stat { font-size:13px; color:var(--dim); }
+  h1 { color:var(--gold); font-size:20px; margin:0; white-space:nowrap; }
+  .stat { font-size:15px; color:var(--dim); }
   .stat b { color:var(--gold); }
-  .legend { display:flex; gap:16px; font-size:12px; color:var(--dim); flex-wrap:wrap; }
+  .legend { display:flex; gap:16px; font-size:14px; color:var(--dim); flex-wrap:wrap; }
   .legend span { display:inline-flex; align-items:center; gap:5px; }
   .swatch { width:14px; height:14px; border-radius:3px; display:inline-block; }
   input#search {
     background:var(--panel2); color:var(--text); border:1px solid #4a4232; border-radius:6px;
-    padding:6px 10px; font-size:13px; width:160px;
+    padding:8px 12px; font-size:15px; width:170px;
   }
   #copyBtn {
     background:var(--herself); color:#1a0d13; border:none; border-radius:6px;
-    padding:7px 14px; font-size:13px; font-weight:700; cursor:pointer;
+    padding:8px 16px; font-size:15px; font-weight:700; cursor:pointer;
   }
   #copyBtn:active { opacity:0.8; }
   main { max-width:1400px; margin:0 auto; padding:16px; }
@@ -34,7 +37,7 @@
   }
   .card-head {
     padding:8px 14px; display:flex; justify-content:space-between; align-items:center;
-    font-size:13px; color:var(--dim); border-bottom:1px solid #3a3428;
+    font-size:15px; color:var(--dim); border-bottom:1px solid #3a3428;
   }
   .card-head b { color:var(--text); font-family:monospace; }
   .card-body { display:flex; align-items:flex-start; }
@@ -86,7 +89,7 @@
     width:84px; height:84px; object-fit:cover; border-radius:8px; border:2px solid var(--keep); background:#000;
   }
   .thumb-item:first-child img { border-color:var(--gold); }
-  .thumb-item span { font-size:10px; color:var(--dim); }
+  .thumb-item span { font-size:12px; color:var(--dim); }
   .thumb-item.missing img { display:none; }
   .thumb-item.missing::before {
     content:'找不到圖片'; display:block; width:84px; height:84px; line-height:84px; text-align:center;
@@ -94,12 +97,12 @@
   }
   .thumb-arrow { color:var(--dim); font-size:18px; }
   .herself-toggle {
-    margin-top:2px; font-size:11px; padding:3px 8px; border-radius:5px; cursor:pointer;
+    margin-top:2px; font-size:13px; padding:4px 10px; border-radius:5px; cursor:pointer;
     background:var(--panel2); color:var(--dim); border:1px solid #4a4232; white-space:nowrap;
   }
   .herself-toggle.on { background:var(--herself); color:#1a0d13; border-color:var(--herself); font-weight:700; }
   .dl-btn {
-    margin-top:2px; font-size:11px; padding:3px 8px; border-radius:5px; cursor:pointer;
+    margin-top:2px; font-size:13px; padding:4px 10px; border-radius:5px; cursor:pointer;
     background:var(--panel2); color:var(--gold); border:1px solid var(--gold); white-space:nowrap;
     text-decoration:none; display:inline-block;
   }
@@ -121,7 +124,7 @@
   .simple-avatar .pair-imgs img:first-child { border-color:var(--gold); }
   .simple-avatar.is-herself .pair-imgs img { border-color:var(--herself) !important; border-width:3px; }
   .simple-avatar .who {
-    font-size:10px; color:var(--dim); width:100%; text-align:center;
+    font-size:13px; color:var(--dim); width:100%; text-align:center;
     white-space:normal; word-break:keep-all; line-height:1.3;
   }
   .simple-avatar.is-herself .who { color:var(--herself); font-weight:700; }
@@ -143,7 +146,7 @@
   body.edit-mode #previewLegend { display:none !important; }
   @media (max-width: 900px) {
     header { padding:10px 14px; gap:10px; }
-    h1 { font-size:14px; white-space:normal; }
+    h1 { font-size:17px; white-space:normal; }
     .card-body { flex-direction:column; }
     /* .card-body 的 align-items:flex-start 在 column 模式下管的是「橫軸」(寬度)，
        預設不會 stretch。.thumb-col 本來就有明確設定 width:100% 才能正常顯示，
@@ -249,6 +252,8 @@
   @keyframes focusMarch { to { stroke-dashoffset:-48; } }
   .label-bg { fill:rgba(0,0,0,0.65); }
   .label-text { fill:#fff; font-size:34px; font-family:monospace; }
+  /* 分數牌數字（預覽模式也看得到，不只審核用）字級跟著一起放大，
+     跟頁面其他文字放大的幅度一致，不要獨漏這個在SVG座標系裡的文字 */
 
   /* ===== 預覽模式「掃描辨識」進場效果 =====
      卡片捲到畫面裡才觸發（見 JS 的 IntersectionObserver），只播一次。
@@ -300,7 +305,7 @@
   .score-badge-bg { fill:rgba(10,20,12,0.82); stroke:var(--keep); stroke-width:1.5; }
   .rect-herself ~ .score-badge .score-badge-bg,
   .score-badge.for-herself .score-badge-bg { stroke:var(--herself); }
-  .score-badge-text { fill:#eaffef; font-size:30px; font-family:monospace; font-weight:700; letter-spacing:1px; }
+  .score-badge-text { fill:#eaffef; font-size:34px; font-family:monospace; font-weight:700; letter-spacing:1px; }
   .score-badge.for-herself .score-badge-text { fill:#ffd6ec; }
 
   #empty { text-align:center; color:var(--dim); padding:60px 20px; }
@@ -324,12 +329,12 @@
     width:100%; aspect-ratio:1; object-fit:cover; border-radius:14px; border:3px solid var(--gold); background:#000;
   }
   .preview-modal-content.is-herself .preview-modal-img { border-color:var(--herself); }
-  .preview-modal-label { font-size:13px; color:var(--dim); }
+  .preview-modal-label { font-size:16px; color:var(--dim); }
   .preview-modal-content.is-herself .preview-modal-label { color:var(--herself); font-weight:700; }
   .preview-modal-actions { display:flex; gap:10px; width:100%; }
   .preview-modal-dl, .preview-modal-close {
     flex:1; text-align:center; text-decoration:none; cursor:pointer; border:none;
-    font-size:14px; font-weight:700; padding:11px 0; border-radius:99px;
+    font-size:16px; font-weight:700; padding:13px 0; border-radius:99px;
   }
   .preview-modal-dl { background:var(--gold); color:#1a1509; }
   .preview-modal-close { background:var(--panel2); color:var(--dim); border:1px solid #4a4232; }
@@ -712,6 +717,7 @@ async function main() {
       imgwrap.className = 'imgwrap';
       const img = document.createElement('img');
       img.src = `../photos/${file}`;
+      img.alt = `原始照片：${file}`;
       // 主要照片不用 lazy——跟 aspect-ratio 預設值一起是雙重保險，
       // 避免圖片本身尺寸未知時瀏覽器誤判「不在可視範圍」而卡住不載入
       imgwrap.appendChild(img);
@@ -731,12 +737,12 @@ async function main() {
             pair.innerHTML = `
               <div class="thumb-row">
                 <div class="thumb-item">
-                  <img src="../qavatar-crops/${cropIdx}.jpg" loading="lazy" onerror="this.closest('.thumb-item').classList.add('missing')">
+                  <img src="../qavatar-crops/${cropIdx}.jpg" loading="lazy" alt="候選裁切 #${cropIdx}" onerror="this.closest('.thumb-item').classList.add('missing')">
                   <span>候選裁切</span>
                 </div>
                 <div class="thumb-arrow">→</div>
                 <div class="thumb-item">
-                  <img src="../qavatars/${cropIdx}.jpg" loading="lazy" onerror="this.closest('.thumb-item').classList.add('missing')">
+                  <img src="../qavatars/${cropIdx}.jpg" loading="lazy" alt="Q版頭像 #${cropIdx}" onerror="this.closest('.thumb-item').classList.add('missing')">
                   <span>Q版 #${cropIdx}</span>
                 </div>
               </div>
@@ -906,14 +912,17 @@ async function main() {
             badge.setAttribute('class', 'score-badge' + (isHerself ? ' for-herself' : ''));
             badge.style.animationDelay = delay;
             const bg = document.createElementNS(svg.namespaceURI, 'rect');
-            const bw2 = 30 * label.length * 0.62 + 14;
-            bg.setAttribute('x', x); bg.setAttribute('y', Math.max(0, y - 36));
-            bg.setAttribute('width', bw2); bg.setAttribute('height', 32);
+            // 分數牌字級跟著頁面其他文字一起放大（30px→34px，見 CSS
+            // .score-badge-text），寬高計算的係數要同步調整，不然背景牌
+            // 會比放大後的文字窄，字被截斷
+            const bw2 = 34 * label.length * 0.62 + 14;
+            bg.setAttribute('x', x); bg.setAttribute('y', Math.max(0, y - 40));
+            bg.setAttribute('width', bw2); bg.setAttribute('height', 36);
             bg.setAttribute('rx', 8); bg.setAttribute('ry', 8);
             bg.setAttribute('class', 'score-badge-bg');
             badge.appendChild(bg);
             const txt = document.createElementNS(svg.namespaceURI, 'text');
-            txt.setAttribute('x', x + 8); txt.setAttribute('y', Math.max(0, y - 36) + 23);
+            txt.setAttribute('x', x + 8); txt.setAttribute('y', Math.max(0, y - 40) + 26);
             txt.setAttribute('class', 'score-badge-text');
             txt.textContent = label;
             badge.appendChild(txt);
